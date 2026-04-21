@@ -337,7 +337,7 @@ function renderMarkers() {
 
     const popup = isTaken && !isMine
       ? `<b>${t.label || '?'}</b><br>🔒 Déjà récupéré`
-      : `<div style="min-width:150px">${t.photo_url ? `<img src="${t.photo_url}" style="width:100%;max-height:100px;object-fit:cover;border-radius:6px;margin-bottom:5px;display:block">` : ''}<b>${t.label || '?'}</b><br><span style="font-size:0.82em;color:#888">${t.type === 'fixed' ? '📌 Fixe — tout le monde peut trouver' : '🎁 Unique — premier arrivé'}</span>${t.hint ? `<br><span style="font-size:0.82em;color:#93c5fd">💡 ${t.hint}</span>` : ''}</div>`;
+      : `<div style="min-width:150px">${t.photo_url ? `<img src="${t.photo_url}" style="width:100%;max-height:100px;object-fit:cover;border-radius:6px;margin-bottom:5px;display:block">` : ''}<b>${t.label || '?'}</b><br><span style="font-size:0.82em;color:#888">${t.type === 'fixed' ? '📌 Balise fixe' : '🎁 Balise unique'}</span>${t.hint ? `<br><span style="font-size:0.82em;color:#93c5fd">💡 ${t.hint}</span>` : ''}</div>`;
 
     mapMarkers[t.id] = L.marker([t.lat, t.lng], { icon }).addTo(gameMap).bindPopup(popup, { maxWidth: 220 });
   });
@@ -529,18 +529,19 @@ function formatDuration(sec) {
 async function loadLeaderboard() {
   const { data } = await db.from('players').select('pseudo,found_count,score').order('found_count', { ascending: false }).limit(50);
   if (!data) return;
-  // Sort: most found desc, then lowest score (duration) asc
-  data.sort((a, b) => b.found_count !== a.found_count ? b.found_count - a.found_count : a.score - b.score);
+  // Sort: most found desc, then lowest score (duration) asc — exclude players with 0 finds
+  const active = data.filter(p => p.found_count > 0);
+  active.sort((a, b) => b.found_count !== a.found_count ? b.found_count - a.found_count : a.score - b.score);
 
   const medals = ['🥇', '🥈', '🥉'];
   const ranks  = ['gold', 'silver', 'bronze'];
-  document.getElementById('lbList').innerHTML = data.length ? data.map((p, i) => `
+  document.getElementById('lbList').innerHTML = active.length ? active.map((p, i) => `
     <div class="lb-row">
       <div class="lb-rank ${ranks[i] || ''}">${medals[i] || (i+1)}</div>
       <div class="lb-name ${p.pseudo === myPseudo ? 'me' : ''}">${p.pseudo}${p.pseudo === myPseudo ? ' 👈' : ''}</div>
       <div class="lb-stats"><strong>${p.found_count} trouvés</strong>${formatDuration(p.score || 0)} total</div>
     </div>`).join('')
-    : '<p style="color:#475569;text-align:center;padding:40px">Aucun joueur encore</p>';
+    : '<p style="color:#475569;text-align:center;padding:40px">Personne n\'a encore trouvé de trésor…</p>';
   document.getElementById('lbRefresh').textContent = 'Mis à jour ' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 
