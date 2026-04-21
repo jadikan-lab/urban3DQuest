@@ -158,6 +158,7 @@ let gameMap      = null;
 let treasures    = [];
 let mapMarkers   = {};
 let proximityR   = 100;
+let mapCenter    = [48.8566, 2.3522]; // default Paris, overridden by config
 let playerLat    = null, playerLng = null;
 let scanner      = null;
 let lbInterval   = null;
@@ -166,11 +167,18 @@ let geoWatch     = null;
 // ── Startup ──────────────────────────────────────────
 let bgMap = null;
 
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
+  // Pre-fetch config to get mapCenter for background map
+  const { data: cfgData } = await db.from('config').select('key,value').eq('key','mapCenter');
+  if (cfgData && cfgData.length) {
+    const parts = cfgData[0].value.split(',').map(Number);
+    if (parts.length === 2 && !isNaN(parts[0])) mapCenter = parts;
+  }
+
   // Init background map on landing
   bgMap = L.map('bgMap', { zoomControl: false, attributionControl: false, dragging: false, scrollWheelZoom: false, touchZoom: false, doubleClickZoom: false, keyboard: false });
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(bgMap);
-  bgMap.setView([48.85, 2.35], 14);
+  bgMap.setView(mapCenter, 14);
   // Try to center on user
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(pos => {
@@ -246,6 +254,10 @@ async function initGame(pendingFoundId) {
     const c = Object.fromEntries(cfg.map(r => [r.key, r.value]));
     if (c.proximityRadius) proximityR = Number(c.proximityRadius);
     if (c.gameActive === 'false') showPause();
+    if (c.mapCenter) {
+      const parts = c.mapCenter.split(',').map(Number);
+      if (parts.length === 2 && !isNaN(parts[0])) mapCenter = parts;
+    }
   }
 
   // Load treasures & init map
@@ -275,7 +287,7 @@ async function loadTreasures() {
 
 // ── Map ──────────────────────────────────────────────
 function initMap() {
-  gameMap = L.map('gameMap', { zoomControl: true }).setView([48.85, 2.35], 15);
+  gameMap = L.map('gameMap', { zoomControl: true }).setView(mapCenter, 15);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(gameMap);
   renderMarkers();
 }
