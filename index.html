@@ -41,7 +41,7 @@
     #radarBar.very-near{color:#4ade80;border-color:#16a34a;background:rgba(5,46,22,.95);animation:pulse 1s infinite}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:.7}}
     /* ── QR FAB ── */
-    #qrFab{position:fixed;bottom:24px;right:24px;width:64px;height:64px;background:#3b82f6;border:none;border-radius:50%;font-size:1.6rem;color:#fff;cursor:pointer;z-index:200;box-shadow:0 4px 20px rgba(59,130,246,.5);display:none}
+    #qrFab{position:fixed;bottom:24px;right:24px;width:64px;height:64px;background:#3b82f6;border:none;border-radius:50%;font-size:1.6rem;color:#fff;cursor:pointer;z-index:1000;box-shadow:0 4px 20px rgba(59,130,246,.5);display:none}
     /* ── Leaderboard ── */
     #panelScores{height:calc(100vh - 98px);overflow-y:auto;padding:16px;max-width:600px;margin:0 auto}
     .lb-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:#1e293b;border-radius:10px;margin-bottom:8px}
@@ -431,28 +431,38 @@ function updateRadar() {
 // ── QR Scanner ───────────────────────────────────────
 function openScanner() {
   document.getElementById('scanModal').classList.add('open');
-  if (!scanner) scanner = new Html5Qrcode('qrReader');
+  // Always recreate scanner to avoid Android resume issues
+  if (scanner) { try { scanner.stop(); } catch(e){} scanner = null; }
+  document.getElementById('qrReader').innerHTML = '';
+  scanner = new Html5Qrcode('qrReader');
   scanner.start(
     { facingMode: 'environment' },
     { fps: 10, qrbox: { width: 250, height: 250 } },
     async decodedText => {
       closeScanner();
-      // Extract found ID from URL
+      let foundId = null;
+      // Try parse as URL first
       try {
-        const url    = new URL(decodedText);
-        const foundId = url.searchParams.get('found');
-        if (foundId) await processFindById(foundId);
-        else alert('QR code non reconnu.');
-      } catch {
-        alert('QR code non reconnu.');
+        const url = new URL(decodedText);
+        foundId = url.searchParams.get('found');
+      } catch(e) {}
+      // Fallback: raw text might be the ID directly (e.g. "QR-001")
+      if (!foundId && /^QR-\d+$/i.test(decodedText.trim())) {
+        foundId = decodedText.trim();
       }
-    }
-  ).catch(e => console.warn('Scanner error', e));
+      if (foundId) await processFindById(foundId);
+      else alert('QR code non reconnu : ' + decodedText);
+    },
+    err => { /* scan frame errors: ignore */ }
+  ).catch(e => {
+    alert('Impossible d\'ouvrir la caméra : ' + e);
+    closeScanner();
+  });
 }
 
 function closeScanner() {
   document.getElementById('scanModal').classList.remove('open');
-  if (scanner) scanner.stop().catch(() => {});
+  if (scanner) { scanner.stop().catch(() => {}); scanner = null; }
 }
 
 // ── Process find ─────────────────────────────────────
