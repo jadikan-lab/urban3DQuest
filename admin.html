@@ -65,6 +65,19 @@
     .modal-sub{font-size:0.72rem;color:#64748b;margin-bottom:16px;word-break:break-all}
     #qrWrap{display:flex;justify-content:center;background:#fff;padding:12px;border-radius:10px;margin-bottom:12px}
     .qr-url{font-size:0.68rem;color:#475569;margin-bottom:14px;word-break:break-all}
+    .qr-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:4px}
+    .qr-card{background:#1e293b;border-radius:10px;padding:14px;text-align:center}
+    .qr-card-id{font-size:0.85rem;font-weight:700;margin-bottom:8px;color:#93c5fd;letter-spacing:.04em}
+    .qr-card-url{font-size:0.6rem;color:#475569;margin-top:6px;word-break:break-all}
+    @media print{
+      #pwScreen,header,nav,#panelAdd,#panelList,#panelMap,#panelCfg,.btn-print-ctrl,#qrModal{display:none!important}
+      #panelQr{display:block!important;padding:0}
+      .qr-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+      .qr-card{border:1px solid #ccc;break-inside:avoid;background:#fff;color:#000}
+      .qr-card-id{color:#1d4ed8}
+      .qr-card-url{color:#666}
+      body{background:#fff;color:#000}
+    }
   </style>
 </head>
 <body>
@@ -86,6 +99,7 @@
   <button onclick="showTab('list',this)">Tresors</button>
   <button onclick="showTab('map',this)">Carte</button>
   <button onclick="showTab('cfg',this)">Config</button>
+  <button onclick="showTab('qr',this)">QR</button>
 </nav>
 <div id="panelAdd" class="panel active">
   <div id="stAdd" class="status"></div>
@@ -114,6 +128,10 @@
     <div class="toggle on" id="visToggle" onclick="toggleVis()"></div>
     <span id="visLabel">Visible par les joueurs</span>
   </div>
+  <div class="field">
+    <label>Numéro QR pré-collé (optionnel)</label>
+    <input type="text" id="fQrNum" placeholder="ex: QR-003 — vide = ID automatique" style="text-transform:uppercase">
+  </div>
   <button class="btn" id="saveBtn" onclick="saveTreasure()">Enregistrer le tresor</button>
 </div>
 <div id="panelList" class="panel">
@@ -137,6 +155,23 @@
   <hr style="border:none;border-top:1px solid #334155;margin:24px 0">
   <h3 style="font-size:0.82rem;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Statistiques</h3>
   <div id="statsDiv"></div>
+</div>
+<div id="panelQr" class="panel">
+  <div class="field">
+    <label>Préfixe</label>
+    <input type="text" id="qrPrefix" value="QR" maxlength="8" style="text-transform:uppercase">
+  </div>
+  <div class="field">
+    <label>Nombre de codes</label>
+    <input type="number" id="qrCount" value="10" min="1" max="50">
+  </div>
+  <div class="field">
+    <label>Numéro de départ</label>
+    <input type="number" id="qrStart" value="1" min="1">
+  </div>
+  <button class="btn" onclick="generateQRCodes()">⚡ Générer les QR codes</button>
+  <button class="btn btn-print-ctrl" style="background:#1e293b;border:1px solid #334155;margin-bottom:20px" onclick="window.print()">🖨 Imprimer</button>
+  <div id="qrGrid" class="qr-grid"></div>
 </div>
 <div class="modal" id="qrModal" onclick="if(event.target===this)closeQR()">
   <div class="modal-box">
@@ -166,7 +201,7 @@ function startGeo(){var el=document.getElementById('geoBar');el.textContent='Loc
 function onPhoto(evt){var file=evt.target.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(e){var img=new Image();img.onload=function(){var canvas=document.createElement('canvas');var MAX=1200,ratio=Math.min(MAX/img.width,MAX/img.height,1);canvas.width=img.width*ratio;canvas.height=img.height*ratio;canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);photoDataUrl=canvas.toDataURL('image/jpeg',0.8);var prev=document.getElementById('photoPreview');prev.src=photoDataUrl;prev.style.display='block';};img.src=e.target.result;};reader.readAsDataURL(file);}
 function setType(t){currentType=t;document.getElementById('typeFixed').classList.toggle('active',t==='fixed');document.getElementById('typeUnique').classList.toggle('active',t==='unique');}
 function toggleVis(){visVisible=!visVisible;document.getElementById('visToggle').classList.toggle('on',visVisible);document.getElementById('visLabel').textContent=visVisible?'Visible par les joueurs':'Masque aux joueurs';}
-async function saveTreasure(){var btn=document.getElementById('saveBtn');var st=document.getElementById('stAdd');if(!currentLoc){showStatus(st,'err','GPS requis');return;}var label=document.getElementById('fLabel').value.trim()||'Sans nom';var hint=document.getElementById('fHint').value.trim();btn.disabled=true;btn.textContent='Enregistrement...';var id=crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2);var photoUrl='';if(photoDataUrl){try{var blob=await(await fetch(photoDataUrl)).blob();var up=await db.storage.from('photos').upload(id+'.jpg',blob,{contentType:'image/jpeg',upsert:true});if(!up.error)photoUrl=db.storage.from('photos').getPublicUrl(id+'.jpg').data.publicUrl;}catch(e){console.warn('Photo upload failed',e);}}var res=await db.from('treasures').insert({id:id,type:currentType,lat:currentLoc.lat,lng:currentLoc.lng,placed_at:new Date().toISOString(),label:label,hint:hint,visible:visVisible,photo_url:photoUrl,found_by:''});btn.disabled=false;btn.textContent='Enregistrer le tresor';if(res.error){showStatus(st,'err','Erreur: '+res.error.message);return;}showStatus(st,'ok',label+' enregistre!');showQR(id,label);document.getElementById('fLabel').value='';document.getElementById('fHint').value='';document.getElementById('photoPreview').style.display='none';document.getElementById('photoInput').value='';photoDataUrl=null;}
+async function saveTreasure(){var btn=document.getElementById('saveBtn');var st=document.getElementById('stAdd');if(!currentLoc){showStatus(st,'err','GPS requis');return;}var label=document.getElementById('fLabel').value.trim()||'Sans nom';var hint=document.getElementById('fHint').value.trim();var qrNum=document.getElementById('fQrNum').value.trim().toUpperCase().replace(/[^A-Z0-9\-]/g,'');btn.disabled=true;btn.textContent='Enregistrement...';var id=qrNum?qrNum:(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2));var photoUrl='';if(photoDataUrl){try{var blob=await(await fetch(photoDataUrl)).blob();var up=await db.storage.from('photos').upload(id+'.jpg',blob,{contentType:'image/jpeg',upsert:true});if(!up.error)photoUrl=db.storage.from('photos').getPublicUrl(id+'.jpg').data.publicUrl;}catch(e){console.warn('Photo upload failed',e);}}var res=await db.from('treasures').insert({id:id,type:currentType,lat:currentLoc.lat,lng:currentLoc.lng,placed_at:new Date().toISOString(),label:label,hint:hint,visible:visVisible,photo_url:photoUrl,found_by:''});btn.disabled=false;btn.textContent='Enregistrer le tresor';if(res.error){showStatus(st,'err','Erreur: '+res.error.message);return;}showStatus(st,'ok',label+' enregistre!');showQR(id,label);document.getElementById('fLabel').value='';document.getElementById('fHint').value='';document.getElementById('fQrNum').value='';document.getElementById('photoPreview').style.display='none';document.getElementById('photoInput').value='';photoDataUrl=null;}
 async function loadList(){var el=document.getElementById('treasureList');el.innerHTML='<p style="color:#475569;text-align:center;padding:40px">Chargement</p>';var res=await db.from('treasures').select('*').order('placed_at',{ascending:false});if(res.error){el.innerHTML='<p style="color:#f87171;padding:16px">'+res.error.message+'</p>';return;}if(!res.data.length){el.innerHTML='<p style="color:#475569;text-align:center;padding:40px">Aucun tresor</p>';return;}el.innerHTML=res.data.map(function(t){var found=t.found_by&&t.found_by.length>0;var date=new Date(t.placed_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});var sl=(t.label||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');return'<div class="t-card"><div class="t-head"><span class="badge '+(t.type==='fixed'?'b-fixed':'b-unique')+'">'+(t.type==='fixed'?'fixe':'unique')+'</span>'+(found?'<span class="badge b-found">trouve</span>':'')+(!t.visible?'<span class="badge b-hidden">masque</span>':'')+'<span class="t-label">'+(t.label||'Sans nom')+'</span></div><div class="t-meta">'+Number(t.lat).toFixed(4)+', '+Number(t.lng).toFixed(4)+' - '+date+'</div>'+(t.hint?'<div class="t-meta" style="margin-top:4px">'+t.hint+'</div>':'')+(found?'<div class="t-meta" style="margin-top:4px;color:#4ade80">Trouve par: '+t.found_by+'</div>':'')+'<div class="t-actions"><button class="a-qr" onclick="showQR(\''+t.id+'\',\''+sl+'\')">QR</button><button class="a-tog" onclick="toggleVis2(\''+t.id+'\','+t.visible+')">'+(t.visible?'Masquer':'Afficher')+'</button><button class="a-del" onclick="deleteTreasure(\''+t.id+'\',\''+sl+'\')">Suppr</button></div></div>';}).join('');}
 async function toggleVis2(id,current){await db.from('treasures').update({visible:!current}).eq('id',id);loadList();}
 async function deleteTreasure(id,label){if(!confirm('Supprimer?'))return;await db.from('treasures').delete().eq('id',id);loadList();}
@@ -175,6 +210,7 @@ async function loadConfig(){var res=await db.from('config').select('*');if(!res.
 function toggleGame(){gameActive=!gameActive;document.getElementById('gameToggle').classList.toggle('on',gameActive);document.getElementById('gameLabel').textContent=gameActive?'Jeu actif':'Jeu en pause';}
 async function saveConfig(){var st=document.getElementById('stCfg');await db.from('config').upsert({key:'proximityRadius',value:document.getElementById('cfgRadius').value});await db.from('config').upsert({key:'gameActive',value:String(gameActive)});showStatus(st,'ok','Config sauvegardee');}
 async function loadStats(){var r1=await db.from('treasures').select('id,type,found_by');var r2=await db.from('players').select('pseudo,found_count');var t=r1.data||[];var p=r2.data||[];document.getElementById('statsDiv').innerHTML='<div class="stat-row"><span>Tresors fixes</span><span>'+t.filter(function(x){return x.type==='fixed';}).length+'</span></div><div class="stat-row"><span>Tresors uniques</span><span>'+t.filter(function(x){return x.type==='unique';}).length+'</span></div><div class="stat-row"><span>Joueurs</span><span>'+p.length+'</span></div>';}
+function generateQRCodes(){var prefix=(document.getElementById('qrPrefix').value||'QR').toUpperCase().replace(/[^A-Z0-9]/g,'');var count=Math.min(parseInt(document.getElementById('qrCount').value)||10,50);var start=parseInt(document.getElementById('qrStart').value)||1;var grid=document.getElementById('qrGrid');grid.innerHTML='';for(var i=start;i<start+count;i++){var num=String(i).padStart(3,'0');var id=prefix+'-'+num;var url=GAME_BASE_URL+'/?found='+id;var card=document.createElement('div');card.className='qr-card';card.innerHTML='<div class="qr-card-id">'+id+'</div><div id="qrg_'+id.replace(/-/g,'_')+'"></div><div class="qr-card-url">'+url+'</div>';grid.appendChild(card);new QRCode(document.getElementById('qrg_'+id.replace(/-/g,'_')),{text:url,width:140,height:140,colorDark:'#000000',colorLight:'#ffffff'});}}
 function showQR(id,label){var url=GAME_BASE_URL+'/?found='+id;document.getElementById('qrLabel').textContent=label||'Tresor';document.getElementById('qrId').textContent=id;document.getElementById('qrUrl').textContent=url;var wrap=document.getElementById('qrWrap');wrap.innerHTML='';new QRCode(wrap,{text:url,width:200,height:200,colorDark:'#000000',colorLight:'#ffffff'});document.getElementById('qrModal').classList.add('open');}
 function closeQR(){document.getElementById('qrModal').classList.remove('open');}
 function showStatus(el,type,msg){el.className='status '+type;el.textContent=msg;setTimeout(function(){el.className='status';},4000);}

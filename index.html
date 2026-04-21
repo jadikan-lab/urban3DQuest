@@ -9,16 +9,18 @@
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:system-ui,sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh;overflow:hidden}
+    /* ── Background map (landing) ── */
+    #bgMap{position:fixed;inset:0;z-index:0}
     /* ── Pseudo screen ── */
-    #pseudoScreen{position:fixed;inset:0;background:#0f172a;z-index:500;display:flex;align-items:center;justify-content:center;padding:24px}
-    .ps-box{width:100%;max-width:360px;text-align:center}
-    .ps-box .logo{font-size:3rem;margin-bottom:12px}
-    .ps-box h1{font-size:1.4rem;margin-bottom:6px}
-    .ps-box p{font-size:0.82rem;color:#64748b;margin-bottom:28px}
-    .ps-box input{width:100%;padding:14px;background:#1e293b;border:2px solid #334155;border-radius:12px;color:#f1f5f9;font-size:1.1rem;text-align:center;margin-bottom:12px;letter-spacing:.05em}
-    .ps-box input:focus{outline:none;border-color:#3b82f6}
-    .btn-main{width:100%;padding:16px;border:none;border-radius:12px;background:#3b82f6;color:#fff;font-size:1.05rem;font-weight:700;cursor:pointer}
-    .btn-main:disabled{background:#1e293b;color:#475569}
+    #pseudoScreen{position:fixed;inset:0;background:linear-gradient(180deg,rgba(15,23,42,.55) 0%,rgba(15,23,42,.75) 100%);z-index:500;display:flex;align-items:center;justify-content:center;padding:24px}
+    .ps-box{width:100%;max-width:360px;text-align:center;background:rgba(15,23,42,.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(148,163,184,.18);border-radius:24px;padding:32px 28px;box-shadow:0 8px 48px rgba(0,0,0,.6)}
+    .ps-logo{font-size:2.8rem;margin-bottom:8px}
+    .ps-title{font-size:1.5rem;font-weight:800;letter-spacing:-.02em;background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
+    .ps-sub{font-size:0.82rem;color:#94a3b8;margin-bottom:28px;line-height:1.5}
+    .ps-box input{width:100%;padding:14px;background:rgba(30,41,59,.9);border:2px solid #334155;border-radius:12px;color:#f1f5f9;font-size:1.1rem;text-align:center;margin-bottom:12px;letter-spacing:.05em}
+    .ps-box input:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.2)}
+    .btn-main{width:100%;padding:16px;border:none;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;font-size:1.05rem;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(99,102,241,.4);transition:opacity .2s}
+    .btn-main:disabled{opacity:.5;cursor:default}
     /* ── Header ── */
     header{background:#1e293b;padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #334155}
     header h1{font-size:0.88rem;flex:1;color:#94a3b8}
@@ -72,12 +74,15 @@
 </head>
 <body>
 
+<!-- ── Background map (landing) ─────────────────────── -->
+<div id="bgMap"></div>
+
 <!-- ── Pseudo screen ────────────────────────────────── -->
 <div id="pseudoScreen">
   <div class="ps-box">
-    <div class="logo">🗺</div>
-    <h1>Urban3DQuest</h1>
-    <p>Chasse au trésor urbaine — entre ton pseudo pour commencer</p>
+    <div class="ps-logo">🏙</div>
+    <div class="ps-title">Urban3DQuest</div>
+    <p class="ps-sub">Chasse au trésor urbaine<br>Entre ton pseudo pour rejoindre</p>
     <input type="text" id="pseudoInput" placeholder="TON PSEUDO" maxlength="20" autocomplete="off" autocapitalize="characters">
     <p id="pseudoErr" style="color:#f87171;font-size:0.78rem;margin-bottom:10px;display:none"></p>
     <button class="btn-main" id="startBtn" onclick="startGame()">🚀 Rejoindre le jeu</button>
@@ -159,19 +164,38 @@ let lbInterval   = null;
 let geoWatch     = null;
 
 // ── Startup ──────────────────────────────────────────
+let bgMap = null;
+
 window.addEventListener('load', () => {
+  // Init background map on landing
+  bgMap = L.map('bgMap', { zoomControl: false, attributionControl: false, dragging: false, scrollWheelZoom: false, touchZoom: false, doubleClickZoom: false, keyboard: false });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(bgMap);
+  bgMap.setView([48.85, 2.35], 14);
+  // Try to center on user
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      bgMap && bgMap.setView([pos.coords.latitude, pos.coords.longitude], 15);
+    }, () => {}, { timeout: 5000 });
+  }
+
   // Check if URL has ?found=ID (QR scan from native camera)
   const params  = new URLSearchParams(location.search);
   const foundId = params.get('found');
 
   if (myPseudo) {
-    document.getElementById('pseudoScreen').style.display = 'none';
+    hideLanding();
     initGame(foundId);
   } else if (foundId) {
     // Show pseudo screen but remember the found ID
     sessionStorage.setItem('pendingFound', foundId);
   }
 });
+
+function hideLanding() {
+  document.getElementById('pseudoScreen').style.display = 'none';
+  if (bgMap) { bgMap.remove(); bgMap = null; }
+  document.getElementById('bgMap').style.display = 'none';
+}
 
 // ── Register & start ─────────────────────────────────
 async function startGame() {
@@ -203,7 +227,7 @@ async function startGame() {
 
   myPseudo = pseudo;
   localStorage.setItem('u3dq_pseudo', pseudo);
-  document.getElementById('pseudoScreen').style.display = 'none';
+  hideLanding();
 
   const pending = sessionStorage.getItem('pendingFound');
   sessionStorage.removeItem('pendingFound');
