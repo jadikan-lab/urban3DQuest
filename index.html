@@ -409,19 +409,20 @@ function startGeoWatch() {
     playerLat = pos.coords.latitude;
     playerLng = pos.coords.longitude;
 
-    if (!playerMarker) {
-      const icon = L.divIcon({
-        html: `<div style="background:#f59e0b;width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 4px rgba(245,158,11,.3)"></div>`,
-        className: '', iconSize: [12, 12], iconAnchor: [6, 6]
-      });
-      // Round to ~10m for marker display (privacy + game design)
-      const rLat = Math.round(playerLat * 10000) / 10000;
-      const rLng = Math.round(playerLng * 10000) / 10000;
-      playerMarker = L.marker([rLat, rLng], { icon, zIndexOffset: 1000 }).addTo(gameMap);
-    } else {
-      const rLat = Math.round(playerLat * 10000) / 10000;
-      const rLng = Math.round(playerLng * 10000) / 10000;
-      playerMarker.setLatLng([rLat, rLng]);
+    if (gameMap) {
+      if (!playerMarker) {
+        const icon = L.divIcon({
+          html: `<div style="background:#f59e0b;width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 4px rgba(245,158,11,.3)"></div>`,
+          className: '', iconSize: [12, 12], iconAnchor: [6, 6]
+        });
+        const rLat = Math.round(playerLat * 10000) / 10000;
+        const rLng = Math.round(playerLng * 10000) / 10000;
+        playerMarker = L.marker([rLat, rLng], { icon, zIndexOffset: 1000 }).addTo(gameMap);
+      } else {
+        const rLat = Math.round(playerLat * 10000) / 10000;
+        const rLng = Math.round(playerLng * 10000) / 10000;
+        playerMarker.setLatLng([rLat, rLng]);
+      }
     }
 
     updateRadar();
