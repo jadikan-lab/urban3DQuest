@@ -41,6 +41,8 @@
     #radarBar.very-near{color:#4ade80;border-color:#16a34a;background:rgba(5,46,22,.95);animation:pulse 1s infinite}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:.7}}
     /* ── QR FAB supprimé — scan natif caméra Android/iOS ── */
+    /* ── Capture FAB (balises fixes) ── */
+    #captureFab{position:fixed;bottom:calc(42px + 14px);right:18px;padding:13px 20px;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:16px;font-size:1rem;font-weight:700;color:#fff;cursor:pointer;z-index:1000;box-shadow:0 4px 20px rgba(34,197,94,.5);display:none;animation:pulse 1.2s infinite}
     /* ── Progress bar ── */
     #progressBar{position:fixed;bottom:0;left:0;right:0;background:#1e293b;border-top:1px solid #334155;padding:6px 16px 8px;z-index:200;display:none}
     #progressBar .pb-label{display:flex;justify-content:space-between;font-size:0.72rem;color:#64748b;margin-bottom:5px}
@@ -118,6 +120,9 @@
 <!-- ── Radar bar ─────────────────────────────────────── -->
 <div id="radarBar"></div>
 
+<!-- ── Capture FAB (balises fixes GPS) ──────────────── -->
+<button id="captureFab" onclick="captureFixed()">📸 Capturer !</button>
+
 <!-- ── Progress bar ──────────────────────────────────── -->
 <div id="progressBar">
   <div class="pb-label">
@@ -170,6 +175,7 @@ let gameStart    = null;  // Date or null — reference timestamp for score calc
 let gameCode     = '';    // empty = open access
 let playerLat    = null, playerLng = null;
 let scanner      = null; // unused, kept for compat
+let nearestFixed = null; // fixed beacon currently in capture range
 let lbInterval   = null;
 let geoWatch     = null;
 
@@ -402,6 +408,7 @@ function distLabel(d) {
 function updateRadar() {
   if (playerLat === null) return;
   const bar = document.getElementById('radarBar');
+  const fab = document.getElementById('captureFab');
 
   const candidates = treasures.filter(t => {
     if (t.type === 'unique' && t.found_by && t.found_by.length > 0) return false; // already taken
@@ -409,7 +416,13 @@ function updateRadar() {
     return true;
   });
 
-  if (!candidates.length) { bar.textContent = '✅ Tous les trésors trouvés !'; bar.className = ''; return; }
+  if (!candidates.length) {
+    bar.textContent = '✅ Tous les trésors trouvés !';
+    bar.className = '';
+    fab.style.display = 'none';
+    nearestFixed = null;
+    return;
+  }
 
   let nearest = null, minDist = Infinity;
   candidates.forEach(t => {
@@ -419,16 +432,45 @@ function updateRadar() {
 
   const dist = Math.round(minDist);
   const label = distLabel(dist);
+  const isFixed = nearest.type === 'fixed';
+
   if (dist > proximityR * 5) {
-    bar.textContent = `🧭 Trésor le plus proche : ${label}`;
+    bar.textContent = `🧭 ${isFixed ? '📌' : '🎁'} Le plus proche : ${label}`;
     bar.className = '';
+    fab.style.display = 'none';
+    nearestFixed = null;
   } else if (dist > proximityR) {
     bar.textContent = `🔥 Tu approches ! ${label}`;
     bar.className = 'near';
+    fab.style.display = 'none';
+    nearestFixed = null;
   } else {
-    bar.textContent = `⚡ Tu y es ! ${label} — ouvre ta caméra et scanne le QR !`;
-    bar.className = 'very-near';
+    if (isFixed) {
+      // Fixed beacon: GPS capture, no QR needed
+      bar.textContent = `📌 Balise fixe à portée ! (${label})`;
+      bar.className = 'very-near';
+      nearestFixed = nearest;
+      fab.style.display = 'block';
+    } else {
+      // Mobile/unique beacon: QR scan via native camera
+      bar.textContent = `⚡ Tu y es ! ${label} — ouvre ta caméra et scanne le QR !`;
+      bar.className = 'very-near';
+      fab.style.display = 'none';
+      nearestFixed = null;
+    }
   }
+}
+
+async function captureFixed() {
+  if (!nearestFixed) return;
+  const fab = document.getElementById('captureFab');
+  fab.disabled = true;
+  fab.textContent = '⏳…';
+  await processFindById(nearestFixed.id);
+  nearestFixed = null;
+  fab.style.display = 'none';
+  fab.disabled = false;
+  fab.textContent = '📸 Capturer !';
 }
 
 // ── Progress bar ─────────────────────────────────────
