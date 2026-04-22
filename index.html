@@ -388,6 +388,8 @@ function renderMarkers() {
 
   treasures.forEach(t => {
     const isMine  = t.found_by && t.found_by.split(',').includes(myPseudo);
+    // Fixed beacons are hidden on the map unless already found by this player
+    if (t.type === 'fixed' && !isMine) return;
     const isTaken = t.type === 'unique' && t.found_by && t.found_by.length > 0;
     const color   = isMine ? '#4ade80' : isTaken ? '#475569' : (t.type === 'unique' ? '#c084fc' : '#60a5fa');
     const opacity = isTaken && !isMine ? 0.4 : 1;
