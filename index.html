@@ -64,15 +64,18 @@
     #progressBar .pb-fill{height:100%;background:linear-gradient(90deg,#3b82f6,#6366f1);border-radius:6px;transition:width .5s ease;min-width:0}
     /* ── Leaderboard ── */
     #panelScores{height:calc(100vh - 98px);overflow-y:auto;padding:16px;max-width:600px;margin:0 auto}
-    .lb-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:#1e293b;border-radius:10px;margin-bottom:8px}
-    .lb-rank{font-size:1.1rem;font-weight:700;width:32px;text-align:center;color:#64748b}
+    .lb-row{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:#1e293b;border-radius:10px;margin-bottom:8px;border:1px solid #334155}
+    .lb-row.lb-me{border-color:#3b82f6;background:#1e3a5f}
+    .lb-rank{font-size:1.1rem;font-weight:700;width:32px;text-align:center;color:#64748b;padding-top:2px;flex-shrink:0}
     .lb-rank.gold{color:#fbbf24}
     .lb-rank.silver{color:#94a3b8}
     .lb-rank.bronze{color:#c2855a}
-    .lb-name{flex:1;font-weight:600;font-size:0.9rem}
-    .lb-name.me{color:#93c5fd}
-    .lb-stats{text-align:right;font-size:0.78rem;color:#64748b}
-    .lb-stats strong{display:block;font-size:0.9rem;color:#f1f5f9}
+    .lb-body{flex:1;min-width:0}
+    .lb-name{font-weight:700;font-size:0.92rem;color:#f1f5f9;margin-bottom:3px}
+    .lb-stats{font-size:0.78rem;color:#64748b;margin-bottom:4px}
+    .lb-stats strong{color:#f1f5f9;font-size:0.88rem}
+    .lb-unique{display:inline-block;background:#0f2942;border:1px solid #1d4ed8;border-radius:6px;color:#93c5fd;font-size:0.72rem;padding:2px 8px;margin:2px 4px 2px 0}
+    .lb-reward{margin-top:6px;background:#14532d;border:1px solid #16a34a;border-radius:8px;color:#4ade80;font-size:0.78rem;padding:6px 10px;font-weight:600}
     .lb-refresh{font-size:0.72rem;color:#334155;text-align:center;padding:8px;margin-top:4px}
     /* ── QR Modal supprimé ── */
     /* ── Found modal ── */
@@ -781,9 +784,18 @@ function showFoundResult(status, t, durationSec) {
         !(tr.found_by && tr.found_by.split(',').includes(myPseudo)) &&
         tr.id !== t.id
       ).length;
-      desc.textContent = remaining > 0
-        ? `Bravo ! Il te reste ${remaining} balise${remaining > 1 ? 's' : ''} fixe${remaining > 1 ? 's' : ''} à trouver. Continue !`
-        : '� Incroyable ! Tu as trouvé toutes les balises fixes !';
+      if (remaining > 0) {
+        desc.textContent = `Bravo ! Il te reste ${remaining} balise${remaining > 1 ? 's' : ''} fixe${remaining > 1 ? 's' : ''} à trouver. Continue !`;
+      } else {
+        // All fixed found — fetch reward message from config
+        desc.textContent = '🏆 Incroyable ! Tu as trouvé toutes les balises fixes !';
+        db.from('config').select('key,value').then(({ data: cfgData }) => {
+          if (!cfgData) return;
+          const cfg = Object.fromEntries(cfgData.map(r => [r.key, r.value]));
+          const msg = cfg['rewardMessage_' + (activeQuest || '')] || cfg['rewardMessage'] || '';
+          if (msg) desc.innerHTML = `🏆 Tu as trouvé toutes les balises fixes !<br><br>📍 <strong>${msg}</strong>`;
+        });
+      }
     } else {
       emoji.textContent = '🎁';
       title.textContent = `"${t.label || 'Trésor'}" trouvé !`;
@@ -814,22 +826,80 @@ function formatDuration(sec) {
 
 // ── Leaderboard ──────────────────────────────────────
 async function loadLeaderboard() {
-  const { data } = await db.from('players').select('pseudo,found_count,score').order('found_count', { ascending: false }).limit(50);
-  if (!data) return;
-  // Sort: most found desc, then lowest score (duration) asc — exclude players with 0 finds
-  const active = data.filter(p => p.found_count > 0);
-  active.sort((a, b) => b.found_count !== a.found_count ? b.found_count - a.found_count : a.score - b.score);
+  // Fetch all events (fixed + unique) with timestamp
+  const [evRes, cfgRes] = await Promise.all([
+    db.from('events').select('pseudo,treasure_id,treasure_type,duration_sec,created_at').order('created_at', { ascending: true }),
+    db.from('config').select('key,value')
+  ]);
+  const events = evRes.data || [];
+  const cfg    = Object.fromEntries((cfgRes.data || []).map(r => [r.key, r.value]));
+  const rewardMsg = cfg['rewardMessage_' + (activeQuest || '')] || cfg['rewardMessage'] || '';
+  const totalFixed = parseInt(cfg.fixedTotal || fixedTotal || 0);
 
-  const medals = ['🥇', '🥈', '🥉'];
-  const ranks  = ['gold', 'silver', 'bronze'];
-  document.getElementById('lbList').innerHTML = active.length ? active.map((p, i) => `
-    <div class="lb-row">
-      <div class="lb-rank ${ranks[i] || ''}">${medals[i] || (i+1)}</div>
-      <div class="lb-name ${p.pseudo === myPseudo ? 'me' : ''}">${p.pseudo}${p.pseudo === myPseudo ? ' 👈' : ''}</div>
-      <div class="lb-stats"><strong>${p.found_count} trouvés</strong>${formatDuration(p.score || 0)} total</div>
-    </div>`).join('')
-    : '<p style="color:#475569;text-align:center;padding:40px">Personne n\'a encore trouvé de trésor…</p>';
-  document.getElementById('lbRefresh').textContent = 'Mis à jour ' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  // Group events by player
+  const players = {};
+  events.forEach(e => {
+    if (!e.pseudo) return;
+    if (!players[e.pseudo]) players[e.pseudo] = { fixedEvents: [], uniqueEvents: [] };
+    if (e.treasure_type === 'fixed')  players[e.pseudo].fixedEvents.push(e);
+    if (e.treasure_type === 'unique') players[e.pseudo].uniqueEvents.push(e);
+  });
+
+  // Build rows
+  const rows = Object.entries(players).map(([pseudo, d]) => {
+    const fixedCount = d.fixedEvents.length;
+    // Global fixed time = last fixed found_at - first fixed found_at
+    let fixedDuration = null;
+    if (d.fixedEvents.length >= 2) {
+      const times = d.fixedEvents.map(e => new Date(e.created_at).getTime()).sort((a,b) => a-b);
+      fixedDuration = Math.round((times[times.length-1] - times[0]) / 1000);
+    } else if (d.fixedEvents.length === 1) {
+      fixedDuration = 0;
+    }
+    const allFixed = fixedCount >= totalFixed && totalFixed > 0;
+    return { pseudo, fixedCount, fixedDuration, uniqueEvents: d.uniqueEvents, allFixed };
+  });
+
+  // Sort: most fixed desc, then shortest duration asc, then most uniques desc
+  rows.sort((a, b) => {
+    if (b.fixedCount !== a.fixedCount) return b.fixedCount - a.fixedCount;
+    if (a.fixedDuration !== null && b.fixedDuration !== null) return a.fixedDuration - b.fixedDuration;
+    if (a.fixedDuration !== null) return -1;
+    if (b.fixedDuration !== null) return 1;
+    return b.uniqueEvents.length - a.uniqueEvents.length;
+  });
+
+  const medals = ['🥇','🥈','🥉'];
+  const ranks  = ['gold','silver','bronze'];
+
+  const html = rows.length ? rows.map((p, i) => {
+    const isMe = p.pseudo === myPseudo;
+    const durationStr = p.fixedDuration !== null
+      ? `⏱ ${formatDuration(p.fixedDuration)}`
+      : '';
+    const allDoneStr = p.allFixed && rewardMsg
+      ? `<div class="lb-reward">📍 ${rewardMsg}</div>`
+      : (p.allFixed ? '<div class="lb-reward">🏆 Tous les fixes trouvés !</div>' : '');
+    const uniqueStr = p.uniqueEvents.length
+      ? p.uniqueEvents.map(e => `<span class="lb-unique">🎁 ${e.treasure_id} — ${formatDuration(e.duration_sec || 0)}</span>`).join('')
+      : '';
+    return `<div class="lb-row${isMe ? ' lb-me' : ''}">
+      <div class="lb-rank ${ranks[i]||''}">${medals[i]||(i+1)}</div>
+      <div class="lb-body">
+        <div class="lb-name">${p.pseudo}${isMe ? ' 👈' : ''}</div>
+        <div class="lb-stats">
+          <strong>${p.fixedCount}${totalFixed ? '/'+totalFixed : ''} fixes</strong>
+          ${durationStr}
+          ${p.uniqueEvents.length ? `· ${p.uniqueEvents.length} unique${p.uniqueEvents.length>1?'s':''}` : ''}
+        </div>
+        ${uniqueStr}
+        ${allDoneStr}
+      </div>
+    </div>`;
+  }).join('') : '<p style="color:#475569;text-align:center;padding:40px">Personne n\'a encore trouvé de trésor…</p>';
+
+  document.getElementById('lbList').innerHTML = html;
+  document.getElementById('lbRefresh').textContent = 'Mis à jour ' + new Date().toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
 }
 
 function startLbPolling() {
