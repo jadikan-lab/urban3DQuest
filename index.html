@@ -134,7 +134,9 @@
 
 <!-- ── Explorer (carte + boussole fusionnées) ────────── -->
 <div id="panelExplore" class="panel active">
-  <div id="miniMap"></div>
+  <div id="miniMap" style="position:relative">
+    <button id="arrowToggleBtn" onclick="toggleCompassArrows()" style="position:absolute;bottom:10px;right:10px;z-index:1000;background:rgba(15,23,42,.88);border:2px solid #334155;border-radius:12px;color:#94a3b8;font-size:0.75rem;font-weight:700;padding:7px 12px;cursor:pointer;backdrop-filter:blur(6px)">🧭 Flèches</button>
+  </div>
   <div id="compassSection">
     <button id="compassPermBtn" onclick="requestCompassPermission()" style="display:none;width:100%;padding:12px;background:linear-gradient(135deg,#3b82f6,#6366f1);border:none;border-radius:12px;color:#fff;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:12px">🧭 Activer le compas (iOS)</button>
     <div id="compassStatus">GPS en cours…</div>
@@ -220,7 +222,8 @@ let nearestFixed = null; // fixed beacon currently in capture range
 let lbInterval   = null;
 let geoWatch     = null;
 let lastHapticZone = null;
-let directionLayers = []; // polylines on minimap pointing toward fixed beacons
+let directionLayers = []; // arrow markers on minimap
+let compassArrowMode = false; // toggle: show direction arrows on minimap
 
 // ── Device token for pseudo ownership ────────────────
 function getDeviceToken() {
@@ -699,25 +702,50 @@ function updateCompass() {
     directionLayers.forEach(l => gameMap.removeLayer(l));
     directionLayers = [];
 
-    // Draw direction lines for unfound fixed beacons (direction only, no exact position)
-    const unfoundFixed = treasures.filter(t =>
-      t.type === 'fixed' && !(t.found_by && t.found_by.split(',').includes(myPseudo))
-    );
-    unfoundFixed.forEach(t => {
-      const dist    = haversine(playerLat, playerLng, t.lat, t.lng);
-      const bearing = bearingTo(playerLat, playerLng, t.lat, t.lng);
-      const inRange = dist <= proximityR;
-      const lineLen = inRange ? dist * 0.85 : Math.min(dist * 0.38, 320);
-      const color   = inRange ? '#22c55e' : dist < proximityR * 5 ? '#fbbf24' : '#60a5fa';
-      const end     = destinationPoint(playerLat, playerLng, bearing, lineLen);
-      const line = L.polyline([[playerLat, playerLng], end], {
-        color, weight: inRange ? 3 : 2, opacity: inRange ? 0.9 : 0.6,
-        dashArray: inRange ? null : '8,6'
-      }).addTo(gameMap);
-      // Arrow tip
-      const tip = L.circleMarker(end, { radius: inRange ? 6 : 4, color, fillColor: color, fillOpacity: 1, weight: 2 }).addTo(gameMap);
-      directionLayers.push(line, tip);
-    });
+    if (compassArrowMode) {
+      // Draw direction arrows (Option B): short arrow + distance label from player
+      const unfoundFixed = treasures
+        .filter(t => t.type === 'fixed' && !(t.found_by && t.found_by.split(',').includes(myPseudo)))
+        .map(t => ({ ...t, dist: haversine(playerLat, playerLng, t.lat, t.lng) }))
+        .sort((a, b) => a.dist - b.dist)
+        .slice(0, 3);
+
+      // Fixed arrow length in meters on map (visual, not actual distance)
+      const arrowLen = 60; // meters from player center
+
+      unfoundFixed.forEach(t => {
+        const bearing = bearingTo(playerLat, playerLng, t.lat, t.lng);
+        const inRange = t.dist <= proximityR;
+        const color   = inRange ? '#22c55e' : t.dist < proximityR * 5 ? '#fbbf24' : '#60a5fa';
+        const distStr = t.dist < 1000 ? `${Math.round(t.dist)}m` : `${(t.dist/1000).toFixed(1)}km`;
+
+        // Shaft: from player to arrowLen meters in bearing direction
+        const tip = destinationPoint(playerLat, playerLng, bearing, arrowLen);
+        const shaft = destinationPoint(playerLat, playerLng, bearing, arrowLen * 0.55);
+
+        const line = L.polyline([[playerLat, playerLng], tip], {
+          color, weight: 3, opacity: 0.9
+        }).addTo(gameMap);
+
+        // Arrowhead marker at tip
+        const arrowIcon = L.divIcon({
+          html: `<svg width="28" height="36" viewBox="0 0 28 36" xmlns="http://www.w3.org/2000/svg" style="transform:rotate(${bearing}deg);transform-origin:50% 75%;display:block">
+            <polygon points="14,0 22,20 14,15 6,20" fill="${color}" stroke="#0f172a" stroke-width="1.5"/>
+          </svg>`,
+          className: '', iconSize: [28, 36], iconAnchor: [14, 27]
+        });
+        const arrowMarker = L.marker(tip, { icon: arrowIcon, interactive: false, zIndexOffset: 500 }).addTo(gameMap);
+
+        // Distance label slightly behind the tip
+        const labelIcon = L.divIcon({
+          html: `<div style="background:rgba(15,23,42,.85);color:${color};font-size:0.68rem;font-weight:700;padding:2px 6px;border-radius:8px;border:1px solid ${color};white-space:nowrap;backdrop-filter:blur(4px)">${distStr}</div>`,
+          className: '', iconSize: [60, 20], iconAnchor: [30, -4]
+        });
+        const labelMarker = L.marker(shaft, { icon: labelIcon, interactive: false, zIndexOffset: 501 }).addTo(gameMap);
+
+        directionLayers.push(line, arrowMarker, labelMarker);
+      });
+    }
   }
 
   const allFixed = treasures.filter(t => t.type === 'fixed');
@@ -770,6 +798,20 @@ function updateCompass() {
 async function captureFixedById(id, btn) {
   if (btn) { btn.disabled = true; btn.textContent = '⏳…'; }
   await processFindById(id);
+  updateCompass();
+}
+
+function toggleCompassArrows() {
+  compassArrowMode = !compassArrowMode;
+  const btn = document.getElementById('arrowToggleBtn');
+  if (btn) {
+    btn.style.borderColor = compassArrowMode ? '#3b82f6' : '#334155';
+    btn.style.color       = compassArrowMode ? '#93c5fd' : '#94a3b8';
+    btn.style.background  = compassArrowMode ? 'rgba(30,58,138,.88)' : 'rgba(15,23,42,.88)';
+  }
+  // Clear and redraw immediately
+  directionLayers.forEach(l => gameMap && gameMap.removeLayer(l));
+  directionLayers = [];
   updateCompass();
 }
 
