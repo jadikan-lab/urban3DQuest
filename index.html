@@ -289,11 +289,40 @@ async function startGame() {
 
   const myToken = getDeviceToken();
 
-  // Check/insert player
-  const { data: existing } = await db.from('players').select('pseudo,score,found_count,token').eq('pseudo', pseudo).single();
-  if (!existing) {
-    // New pseudo — register with device token
-    const { error } = await db.from('players').insert({ pseudo, joined_at: new Date().toISOString(), score: 0, found_count: 0, token: myToken });
+  // Check/insert player — token column may not exist yet, handle gracefully
+  try {
+    const { data: existing } = await db.from('players').select('pseudo,score,found_count,token').eq('pseudo', pseudo).single();
+    if (!existing) {
+      // New pseudo — try insert with token, fallback without if column missing
+      let res = await db.from('players').insert({ pseudo, joined_at: new Date().toISOString(), score: 0, found_count: 0, token: myToken });
+      if (res.error && (res.error.code === '42703' || res.error.message.includes('token'))) {
+        res = await db.from('players').insert({ pseudo, joined_at: new Date().toISOString(), score: 0, found_count: 0 });
+      }
+      if (res.error && res.error.code !== '23505') {
+        err.textContent = 'Erreur réseau : ' + res.error.message;
+        err.style.display = 'block';
+        document.getElementById('startBtn').disabled = false;
+        document.getElementById('startBtn').textContent = '🚀 Rejoindre le jeu';
+        return;
+      }
+    } else {
+      // Existing pseudo — verify token ownership only if column works
+      if (existing.token && existing.token !== myToken) {
+        err.textContent = '🔒 Ce pseudo est déjà pris. Choisis un autre nom.';
+        err.style.display = 'block';
+        document.getElementById('startBtn').disabled = false;
+        document.getElementById('startBtn').textContent = '🚀 Rejoindre le jeu';
+        return;
+      }
+      if (!existing.token) {
+        await db.from('players').update({ token: myToken }).eq('pseudo', pseudo).then(() => {}).catch(() => {});
+      }
+      myScore      = existing.score      || 0;
+      myFoundCount = existing.found_count || 0;
+    }
+  } catch(e) {
+    // Fallback: column issue — just do a simple upsert without token
+    const { error } = await db.from('players').insert({ pseudo, joined_at: new Date().toISOString(), score: 0, found_count: 0 });
     if (error && error.code !== '23505') {
       err.textContent = 'Erreur réseau : ' + error.message;
       err.style.display = 'block';
@@ -301,21 +330,6 @@ async function startGame() {
       document.getElementById('startBtn').textContent = '🚀 Rejoindre le jeu';
       return;
     }
-  } else {
-    // Existing pseudo — verify token ownership
-    if (existing.token && existing.token !== myToken) {
-      err.textContent = '🔒 Ce pseudo est déjà pris. Choisis un autre nom.';
-      err.style.display = 'block';
-      document.getElementById('startBtn').disabled = false;
-      document.getElementById('startBtn').textContent = '🚀 Rejoindre le jeu';
-      return;
-    }
-    // Same device or no token yet — update token if missing
-    if (!existing.token) {
-      await db.from('players').update({ token: myToken }).eq('pseudo', pseudo);
-    }
-    myScore      = existing.score      || 0;
-    myFoundCount = existing.found_count || 0;
   }
 
   myPseudo = pseudo;
