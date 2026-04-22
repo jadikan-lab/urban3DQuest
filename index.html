@@ -599,12 +599,14 @@ function updateCompass() {
 
   if (playerLat === null) {
     status.textContent = '📍 En attente du GPS…';
+    cards.innerHTML = '<p style="text-align:center;color:#475569;padding:20px;font-size:0.8rem">Le GPS est nécessaire pour orienter les flèches.<br>Active la localisation sur ton téléphone.</p>';
     return;
   }
 
   // 3 nearest fixed beacons not found by me
-  const fixed = treasures
-    .filter(t => t.type === 'fixed' && !(t.found_by && t.found_by.split(',').includes(myPseudo)))
+  const allFixed = treasures.filter(t => t.type === 'fixed');
+  const fixed = allFixed
+    .filter(t => !(t.found_by && t.found_by.split(',').includes(myPseudo)))
     .map(t => ({ ...t, dist: haversine(playerLat, playerLng, t.lat, t.lng) }))
     .sort((a, b) => a.dist - b.dist)
     .slice(0, 3);
@@ -612,64 +614,42 @@ function updateCompass() {
   const hasHeading = deviceHeading !== null;
   status.textContent = hasHeading
     ? '🧭 Boussole active — pointe vers les balises'
-    : '🧭 Compas non disponible — orientation depuis le Nord';
+    : '🧭 Direction depuis le Nord (compas inactif)';
 
   if (!fixed.length) {
-    cards.innerHTML = '<p style="text-align:center;color:#475569;padding:40px">✅ Toutes les balises fixes trouvées !</p>';
+    if (!allFixed.length) {
+      cards.innerHTML = '<p style="text-align:center;color:#475569;padding:40px">Aucune balise fixe dans ce jeu.<br><span style="font-size:0.75rem">Les balises fixes sont créées depuis l\'admin avec le type "📌 Fixe".</span></p>';
+    } else {
+      cards.innerHTML = '<p style="text-align:center;color:#475569;padding:40px">✅ Toutes les balises fixes trouvées !</p>';
+    }
     return;
   }
 
-  // Rebuild only if needed (avoid flicker on rotation update)
-  if (cards.children.length !== fixed.length) {
-    cards.innerHTML = '';
-    fixed.forEach(t => {
-      const card = document.createElement('div');
-      card.className = 'cmp-card';
-      card.id = 'cmpcard-' + t.id;
-      card.innerHTML = `
-        <div class="cmp-arrow-wrap">
-          <svg id="cmp-arrow-${t.id}" width="80" height="80" viewBox="0 0 80 80">
-            <polygon points="40,5 56,60 40,50 24,60" fill="#3b82f6"/>
-            <circle cx="40" cy="38" r="7" fill="#0f172a" stroke="#3b82f6" stroke-width="2"/>
-          </svg>
-        </div>
-        <div class="cmp-info">
-          <div class="cmp-label">${t.label || t.id}</div>
-          <div class="cmp-dist" id="cmp-dist-${t.id}">${distLabel(Math.round(t.dist))}</div>
-          ${t.hint ? `<div class="cmp-hint">💡 ${t.hint}</div>` : ''}
-          <div id="cmp-btn-${t.id}"></div>
-        </div>`;
-      cards.appendChild(card);
-    });
-  }
-
-  // Update arrows + distances + capture buttons
+  // Always rebuild cards (simple, avoids stale DOM issues with special chars in IDs)
+  cards.innerHTML = '';
   fixed.forEach(t => {
     const dist = Math.round(t.dist);
     const bearing = bearingTo(playerLat, playerLng, t.lat, t.lng);
     const rotation = hasHeading ? (bearing - deviceHeading + 360) % 360 : bearing;
+    const inRange = dist <= proximityR;
+    const arrowColor = inRange ? '#22c55e' : '#3b82f6';
 
-    const svg = document.getElementById('cmp-arrow-' + t.id);
-    if (svg) svg.style.transform = `rotate(${rotation}deg)`;
-
-    const distEl = document.getElementById('cmp-dist-' + t.id);
-    if (distEl) distEl.textContent = distLabel(dist);
-
-    const card = document.getElementById('cmpcard-' + t.id);
-    if (card) card.classList.toggle('in-range', dist <= proximityR);
-
-    // Arrow color: green when in range
-    const poly = svg && svg.querySelector('polygon');
-    if (poly) poly.setAttribute('fill', dist <= proximityR ? '#22c55e' : '#3b82f6');
-
-    const btnWrap = document.getElementById('cmp-btn-' + t.id);
-    if (btnWrap) {
-      if (dist <= proximityR) {
-        btnWrap.innerHTML = `<button class="cmp-capture" onclick="captureFixedById('${t.id}',this)">📸 Capturer !</button>`;
-      } else {
-        btnWrap.innerHTML = '';
-      }
-    }
+    const card = document.createElement('div');
+    card.className = 'cmp-card' + (inRange ? ' in-range' : '');
+    card.innerHTML = `
+      <div class="cmp-arrow-wrap">
+        <svg class="cmp-svg" style="transform:rotate(${rotation}deg);display:block" width="72" height="72" viewBox="0 0 80 80">
+          <polygon points="40,4 57,62 40,51 23,62" fill="${arrowColor}"/>
+          <circle cx="40" cy="40" r="8" fill="#0f172a" stroke="${arrowColor}" stroke-width="2.5"/>
+        </svg>
+      </div>
+      <div class="cmp-info">
+        <div class="cmp-label">${t.label || t.id}</div>
+        <div class="cmp-dist">${distLabel(dist)}</div>
+        ${t.hint ? `<div class="cmp-hint">💡 ${t.hint}</div>` : ''}
+        ${inRange ? `<button class="cmp-capture" onclick="captureFixedById('${t.id.replace(/'/g,"\\'")}',this)">📸 Capturer !</button>` : ''}
+      </div>`;
+    cards.appendChild(card);
   });
 }
 
