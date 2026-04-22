@@ -287,36 +287,18 @@ async function startGame() {
   document.getElementById('startBtn').disabled = true;
   document.getElementById('startBtn').textContent = '⏳ Connexion…';
 
-  const myToken = getDeviceToken();
-
-  // Check/insert player — select without token to avoid column-missing errors
-  const { data: existing, error: selErr } = await db.from('players').select('pseudo,score,found_count').eq('pseudo', pseudo).single();
+  // Check/insert player
+  const { data: existing } = await db.from('players').select('pseudo,score,found_count').eq('pseudo', pseudo).single();
   if (!existing) {
-    // New pseudo — try insert with token, fallback without
-    let res = await db.from('players').insert({ pseudo, joined_at: new Date().toISOString(), score: 0, found_count: 0, token: myToken });
-    if (res.error && (res.error.code === '42703' || (res.error.message && res.error.message.includes('token')))) {
-      res = await db.from('players').insert({ pseudo, joined_at: new Date().toISOString(), score: 0, found_count: 0 });
-    }
-    if (res.error && res.error.code !== '23505') {
-      err.textContent = 'Erreur réseau : ' + res.error.message;
+    const { error } = await db.from('players').insert({ pseudo, joined_at: new Date().toISOString(), score: 0, found_count: 0 });
+    if (error && error.code !== '23505') {
+      err.textContent = 'Erreur réseau : ' + error.message;
       err.style.display = 'block';
       document.getElementById('startBtn').disabled = false;
       document.getElementById('startBtn').textContent = '🚀 Rejoindre le jeu';
       return;
     }
   } else {
-    // Existing pseudo — try to check token ownership separately
-    const { data: tokenRow } = await db.from('players').select('token').eq('pseudo', pseudo).single().catch(() => ({ data: null }));
-    if (tokenRow && tokenRow.token && tokenRow.token !== myToken) {
-      err.textContent = '🔒 Ce pseudo est déjà pris. Choisis un autre nom.';
-      err.style.display = 'block';
-      document.getElementById('startBtn').disabled = false;
-      document.getElementById('startBtn').textContent = '🚀 Rejoindre le jeu';
-      return;
-    }
-    if (tokenRow && !tokenRow.token) {
-      db.from('players').update({ token: myToken }).eq('pseudo', pseudo).catch(() => {});
-    }
     myScore      = existing.score      || 0;
     myFoundCount = existing.found_count || 0;
   }
