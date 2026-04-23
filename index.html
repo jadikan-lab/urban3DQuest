@@ -38,10 +38,10 @@
     nav button{flex:1;padding:11px 4px;background:none;border:none;color:#64748b;font-size:0.75rem;cursor:pointer}
     nav button.active{color:#f1f5f9;border-bottom:2px solid #3b82f6}
     /* ── Panels ── */
-    .panel{display:none}
-    .panel.active{display:block}
+    .panel{display:none!important}
+    .panel.active{display:block!important}
     /* ── Map ── */
-    #panelExplore{display:flex;flex-direction:column;height:calc(100vh - 98px - 42px);overflow:hidden}
+    #panelExplore.active{display:flex!important;flex-direction:column;height:calc(100vh - 98px - 42px);overflow:hidden}
     #miniMap{flex:1;border-bottom:2px solid #334155}
     /* ── Radar bar ── */
     #radarBar{position:fixed;bottom:calc(42px + 12px);left:50%;transform:translateX(-50%);background:rgba(30,41,59,.95);border:1px solid #334155;border-radius:24px;padding:8px 20px;font-size:0.82rem;color:#94a3b8;z-index:200;display:none;white-space:nowrap;backdrop-filter:blur(8px)}
@@ -486,11 +486,20 @@ function updateHeader() {
 async function loadTreasures() {
   let q = db.from('treasures').select('id,type,lat,lng,label,hint,visible,photo_url,found_by,placed_at').eq('visible', true);
   if (activeQuests.length) {
-    const quoted = activeQuests.map(q => '"' + q + '"').join(',');
-    q = q.or('quest.in.(' + quoted + '),quest.is.null,quest.eq.');
+    // Include treasures matching active quests OR with no quest assigned (null or empty string)
+    const inList = activeQuests.map(aq => `"${aq}"`).join(',');
+    q = q.or(`quest.in.(${inList}),quest.is.null`);
   }
-  const { data } = await q;
-  if (!data) return;
+  const { data, error } = await q;
+  if (!data || error) return;
+  // Also include treasures with empty string quest (PostgREST can't filter empty string in .or())
+  if (activeQuests.length) {
+    const extra = await db.from('treasures').select('id,type,lat,lng,label,hint,visible,photo_url,found_by,placed_at').eq('visible', true).eq('quest', '');
+    if (extra.data && extra.data.length) {
+      const ids = new Set(data.map(t => t.id));
+      extra.data.forEach(t => { if (!ids.has(t.id)) data.push(t); });
+    }
+  }
   treasures = data;
 }
 
