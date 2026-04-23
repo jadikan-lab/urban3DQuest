@@ -744,7 +744,8 @@ function updateCompass() {
           const inRange = t.dist <= proximityR;
           const color   = inRange ? '#22c55e' : t.dist < proximityR * 5 ? '#fbbf24' : '#60a5fa';
           const distStr = t.dist < 1000 ? `${Math.round(t.dist)}m` : `${(t.dist/1000).toFixed(1)}km`;
-          const arrowLabel = `${tLabel(t)} · ${distStr}`;
+          const shortName = tLabel(t).length > 14 ? tLabel(t).slice(0, 13) + '…' : tLabel(t);
+          const arrowLabel = `${shortName} · ${distStr}`;
 
           const tip   = destinationPoint(playerLat, playerLng, bearing, arrowLen);
           const shaft = destinationPoint(playerLat, playerLng, bearing, arrowLen * 0.55);
