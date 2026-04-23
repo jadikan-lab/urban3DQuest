@@ -409,8 +409,8 @@ function renderMarkers() {
     });
 
     const popup = isTaken && !isMine
-      ? `<b>${t.label || '?'}</b><br>🔒 Déjà récupéré`
-      : (() => { const ph = getPhotoUrls(t.photo_url).map(u => `<img src="${u}" style="width:100%;max-height:90px;object-fit:cover;border-radius:5px;margin-bottom:3px;display:block">`).join(''); return `<div style="min-width:150px">${ph}<b>${t.label || '?'}</b><br><span style="font-size:0.82em;color:#888">${t.type === 'fixed' ? '📌 Balise fixe' : '🎁 Balise unique'}</span>${t.hint ? `<br><span style="font-size:0.82em;color:#93c5fd">💡 ${t.hint}</span>` : ''}</div>`; })();
+      ? `<b>${tLabel(t)}</b><br>🔒 Déjà récupéré`
+      : (() => { const ph = getPhotoUrls(t.photo_url).map(u => `<img src="${u}" style="width:100%;max-height:90px;object-fit:cover;border-radius:5px;margin-bottom:3px;display:block">`).join(''); return `<div style="min-width:150px">${ph}<b>${tLabel(t)}</b><br><span style="font-size:0.82em;color:#888">${t.type === 'fixed' ? '📌 Balise fixe' : '🎁 Balise unique'}</span>${t.hint ? `<br><span style="font-size:0.82em;color:#93c5fd">💡 ${t.hint}</span>` : ''}</div>`; })();
 
     mapMarkers[t.id] = L.marker([t.lat, t.lng], { icon }).addTo(gameMap).bindPopup(popup, { maxWidth: 220 });
   });
@@ -493,6 +493,12 @@ function destinationPoint(lat, lng, bearing, distM) {
   const lat2 = Math.asin(Math.sin(lat1)*Math.cos(d) + Math.cos(lat1)*Math.sin(d)*Math.cos(b));
   const lng2 = lng1 + Math.atan2(Math.sin(b)*Math.sin(d)*Math.cos(lat1), Math.cos(d)-Math.sin(lat1)*Math.sin(lat2));
   return [lat2 * 180/Math.PI, lng2 * 180/Math.PI];
+}
+
+// Human-readable label for a treasure (never shows raw ID or generic "sans nom")
+function tLabel(t) {
+  if (t.label && t.label.trim()) return t.label.trim();
+  return t.type === 'fixed' ? '📌 Balise fixe' : '🎁 Trésor unique';
 }
 
 function distLabel(d) {
@@ -738,6 +744,7 @@ function updateCompass() {
           const inRange = t.dist <= proximityR;
           const color   = inRange ? '#22c55e' : t.dist < proximityR * 5 ? '#fbbf24' : '#60a5fa';
           const distStr = t.dist < 1000 ? `${Math.round(t.dist)}m` : `${(t.dist/1000).toFixed(1)}km`;
+          const arrowLabel = `${tLabel(t)} · ${distStr}`;
 
           const tip   = destinationPoint(playerLat, playerLng, bearing, arrowLen);
           const shaft = destinationPoint(playerLat, playerLng, bearing, arrowLen * 0.55);
@@ -753,7 +760,7 @@ function updateCompass() {
           const arrowMarker = L.marker(tip, { icon: arrowIcon, interactive: false, zIndexOffset: 500 }).addTo(gameMap);
 
           const labelIcon = L.divIcon({
-            html: `<div style="background:rgba(15,23,42,.85);color:${color};font-size:0.68rem;font-weight:700;padding:2px 6px;border-radius:8px;border:1px solid ${color};white-space:nowrap;backdrop-filter:blur(4px)">${distStr}</div>`,
+            html: `<div style="background:rgba(15,23,42,.85);color:${color};font-size:0.68rem;font-weight:700;padding:2px 6px;border-radius:8px;border:1px solid ${color};white-space:nowrap;backdrop-filter:blur(4px)">${arrowLabel}</div>`,
             className: '', iconSize: [60, 20], iconAnchor: [30, -4]
           });
           const labelMarker = L.marker(shaft, { icon: labelIcon, interactive: false, zIndexOffset: 501 }).addTo(gameMap);
@@ -802,7 +809,7 @@ function updateCompass() {
         </svg>
       </div>
       <div class="cmp-info">
-        <div class="cmp-label">${t.label || t.id}</div>
+        <div class="cmp-label">${tLabel(t)}</div>
         <div class="cmp-dist">${distLabel(dist)}</div>
         ${t.hint ? `<div class="cmp-hint">💡 ${t.hint}</div>` : ''}
         ${inRange ? `<button class="cmp-capture" onclick="captureFixedById('${t.id.replace(/'/g,"\\'")}',this)">📸 Capturer !</button>` : ''}
@@ -919,7 +926,7 @@ function showFoundResult(status, t, durationSec) {
   if (status === 'success') {
     if (t.type === 'fixed') {
       emoji.textContent = '✅';
-      title.textContent = `"${t.label || 'Balise'}" capturée !`;
+      title.textContent = `"${tLabel(t)}" capturée !`;
       dur.textContent   = '';
       // Compte combien de fixes il reste
       const remaining = treasures.filter(tr =>
@@ -941,7 +948,7 @@ function showFoundResult(status, t, durationSec) {
       }
     } else {
       emoji.textContent = '🎁';
-      title.textContent = `"${t.label || 'Trésor'}" trouvé !`;
+      title.textContent = `"${tLabel(t)}" trouvé !`;
       dur.textContent   = formatDuration(durationSec);
       desc.textContent  = 'Bravo ! Tu es le premier à l\'avoir récupéré.';
     }
