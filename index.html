@@ -53,6 +53,11 @@
     .dark-popup .leaflet-popup-content-wrapper{background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.6)}
     .dark-popup .leaflet-popup-tip{background:#1e293b}
     .dark-popup .leaflet-popup-close-button{color:#64748b!important}
+    /* ── Photo viewer overlay ── */
+    #photoViewer{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;align-items:center;justify-content:center;flex-direction:column;padding:16px}
+    #photoViewer.open{display:flex}
+    #photoViewer img{max-width:100%;max-height:80vh;object-fit:contain;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,.8)}
+    #photoViewer button{margin-top:18px;padding:10px 28px;background:#1e293b;border:1px solid #334155;border-radius:10px;color:#e2e8f0;font-size:1rem;cursor:pointer}
     /* ── QR FAB supprimé — scan natif caméra Android/iOS ── */
     /* ── Compass panel ── */
     #compassStatus{text-align:center;font-size:0.78rem;color:#64748b;padding:6px 0 4px}
@@ -143,6 +148,12 @@
     <div id="compassDebug" style="display:none;position:absolute;top:10px;left:10px;z-index:1000;font-size:0.68rem;color:#94a3b8;line-height:1.6;padding:8px 12px;background:rgba(15,23,42,.9);border-radius:8px;max-width:220px"></div>
     <button onclick="toggleCompassDebug()" style="position:absolute;top:10px;right:10px;z-index:1000;padding:4px 8px;background:rgba(15,23,42,.5);border:1px solid #1e293b;border-radius:8px;color:#334155;font-size:0.65rem;cursor:pointer">dbg</button>
   </div>
+</div>
+
+<!-- ── Photo viewer overlay ──────────────────────────── -->
+<div id="photoViewer" onclick="closePhotoViewer()">
+  <img id="photoViewerImg" src="" alt="photo">
+  <button onclick="closePhotoViewer()">✕ Fermer</button>
 </div>
 
 <!-- ── Leaderboard ───────────────────────────────────── -->
@@ -495,9 +506,15 @@ function renderMarkers() {
 
     const popup = isTaken && !isMine
       ? `<b>${tLabel(t)}</b><br>🔒 Déjà récupéré`
-      : (() => { const ph = getPhotoUrls(t.photo_url).map(u => `<img src="${u}" style="width:100%;max-height:90px;object-fit:cover;border-radius:5px;margin-bottom:3px;display:block">`).join(''); return `<div style="min-width:150px">${ph}<b>${tLabel(t)}</b><br><span style="font-size:0.82em;color:#888">${t.type === 'fixed' ? '📌 Balise fixe' : '🎁 Balise unique'}</span>${t.hint ? `<br><span style="font-size:0.82em;color:#93c5fd">💡 ${t.hint}</span>` : ''}</div>`; })();
+      : (() => {
+          const urls = getPhotoUrls(t.photo_url);
+          const ph = urls.map(u =>
+            `<img src="${u}" onclick="openPhotoViewer('${u}')" style="width:100%;max-height:180px;object-fit:cover;border-radius:8px;margin-bottom:6px;display:block;cursor:zoom-in">`
+          ).join('');
+          return `<div style="min-width:220px">${ph}<b style="font-size:0.95rem">${tLabel(t)}</b><br><span style="font-size:0.82em;color:#888">${t.type === 'fixed' ? '📌 Balise fixe' : '🎁 Balise unique'}</span>${t.hint ? `<br><span style="font-size:0.82em;color:#93c5fd">💡 ${t.hint}</span>` : ''}${urls.length ? `<br><span style="font-size:0.75em;color:#64748b">👆 Tap photo pour agrandir</span>` : ''}</div>`;
+        })();
 
-    mapMarkers[t.id] = L.marker([t.lat, t.lng], { icon }).addTo(gameMap).bindPopup(popup, { maxWidth: 220 });
+    mapMarkers[t.id] = L.marker([t.lat, t.lng], { icon }).addTo(gameMap).bindPopup(popup, { maxWidth: 280, className: 'dark-popup' });
   });
 }
 function startGeoWatch() {
@@ -1001,6 +1018,15 @@ function showFoundResult(status, t, durationSec) {
 
 function closeFound() { document.getElementById('foundModal').classList.remove('open'); }
 
+function openPhotoViewer(url) {
+  document.getElementById('photoViewerImg').src = url;
+  document.getElementById('photoViewer').classList.add('open');
+}
+function closePhotoViewer() {
+  document.getElementById('photoViewer').classList.remove('open');
+  document.getElementById('photoViewerImg').src = '';
+}
+
 function formatDuration(sec) {
   if (sec < 60)   return `${sec}s`;
   if (sec < 3600) return `${Math.floor(sec/60)}min ${sec%60}s`;
@@ -1103,10 +1129,15 @@ function showTab(name, btn) {
     setTimeout(() => gameMap && gameMap.invalidateSize(), 60);
     startCompassInterval();
     updateRadar();
+  } else if (name === 'scores') {
+    stopCompassInterval();
+    document.getElementById('captureFab').style.display = 'none';
+    directionLayers.forEach(l => gameMap && gameMap.removeLayer(l));
+    directionLayers = [];
+    loadLeaderboard();
   } else {
     stopCompassInterval();
     document.getElementById('captureFab').style.display = 'none';
-    // Clear direction lines when leaving explore
     directionLayers.forEach(l => gameMap && gameMap.removeLayer(l));
     directionLayers = [];
   }
