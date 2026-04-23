@@ -478,17 +478,17 @@ async function generateFixedQRCodes(){
   if(!res.data||!res.data.length){grid.innerHTML='<p style="color:#94a3b8;font-size:0.82rem;text-align:center;padding:16px">Aucune balise fixe enregistrée.</p>';return;}
   grid.innerHTML='';
   window._fixedQrData=res.data;
-  res.data.forEach(function(t){
-    var name=(t.label||'Balise fixe').substring(0,16);
-    var found=t.found_by&&t.found_by.length>0;
+  res.data.forEach(function(t,idx){
+    // Nom court : label de la balise (ex: B1, B2…) — jamais en rouge car fixe = plusieurs joueurs
+    var name=(t.label||('B'+(idx+1))).substring(0,20);
+    var foundCount=t.found_by?t.found_by.split(',').filter(Boolean).length:0;
     var sid='fqrs_'+t.id.replace(/[^a-z0-9]/gi,'_');
     var url=GAME_BASE_URL+'/?checkin='+encodeURIComponent(t.id);
     var card=document.createElement('div');
     card.className='qr-card';
-    card.style.border='2px solid '+(found?'#f97316':'#166534');
-    card.style.opacity=found?'0.5':'1';
-    card.innerHTML='<div class="qr-card-id" style="color:'+(found?'#f97316':'#4ade80')+'">'+name+(found?' 🎯':'')+'</div>'
-      +'<div style="font-size:0.58rem;color:#475569;margin-bottom:4px;font-family:monospace;word-break:break-all">'+t.id+'</div>'
+    card.style.border='2px solid #166534'; // toujours vert — les fixes sont pour tout le monde
+    card.innerHTML='<div class="qr-card-id" style="color:#4ade80">'+name+'</div>'
+      +(foundCount?'<div style="font-size:0.58rem;color:#94a3b8;margin-bottom:3px">👥 '+foundCount+' joueur'+(foundCount>1?'s':'')+'</div>':'')
       +'<div id="'+sid+'"></div>';
     grid.appendChild(card);
     new QRCode(document.getElementById(sid),{text:url,width:120,height:120,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
@@ -509,9 +509,9 @@ async function downloadFixedQrZip(){
   tmp.style.cssText='position:fixed;left:-9999px;top:0;visibility:hidden';
   document.body.appendChild(tmp);
   var QR_SZ=400;var PAD=72;
-  data.forEach(function(t){
+  data.forEach(function(t,idx){
     var url=GAME_BASE_URL+'/?checkin='+encodeURIComponent(t.id);
-    var name=(t.label||'Balise fixe');
+    var name=(t.label||('B'+(idx+1)));  // nom court uniquement, ex: B1
     var wrap=document.createElement('div');tmp.appendChild(wrap);
     new QRCode(wrap,{text:url,width:QR_SZ,height:QR_SZ,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
     var qrCanvas=wrap.querySelector('canvas');
@@ -522,10 +522,9 @@ async function downloadFixedQrZip(){
       ctx.fillStyle='#ffffff';ctx.fillRect(0,0,QR_SZ,QR_SZ+PAD);
       ctx.drawImage(qrCanvas,0,0);
       ctx.fillStyle='#000000';
-      ctx.font='bold 16px monospace';ctx.textAlign='center';
-      ctx.fillText(t.id.substring(0,50),QR_SZ/2,QR_SZ+20);
-      ctx.font='bold 22px sans-serif';
-      ctx.fillText(name.substring(0,40),QR_SZ/2,QR_SZ+50);
+      // Juste le nom court centré, bien lisible
+      ctx.font='bold 28px sans-serif';ctx.textAlign='center';
+      ctx.fillText(name.substring(0,30),QR_SZ/2,QR_SZ+46);
       var safeName=name.replace(/[^a-zA-Z0-9\-_]/g,'_').substring(0,40);
       zip.file('balise_'+safeName+'.png',canvas.toDataURL('image/png').split(',')[1],{base64:true});
     }
