@@ -144,6 +144,7 @@
 <div id="panelExplore" class="panel active">
   <div id="miniMap" style="position:relative">
     <button id="arrowToggleBtn" onclick="toggleCompassArrows()" style="position:absolute;bottom:10px;right:10px;z-index:1000;background:rgba(30,58,138,.88);border:2px solid #3b82f6;border-radius:12px;color:#93c5fd;font-size:0.75rem;font-weight:700;padding:7px 12px;cursor:pointer;backdrop-filter:blur(6px)">📌 Balises fixes</button>
+    <button id="locateMeBtn" onclick="recenterMap()" style="position:absolute;bottom:10px;left:10px;z-index:1000;background:rgba(15,23,42,.88);border:2px solid #334155;border-radius:12px;color:#94a3b8;font-size:1.1rem;padding:7px 11px;cursor:pointer;backdrop-filter:blur(6px);display:none" title="Recentrer sur ma position">📍</button>
     <button id="compassPermBtn" onclick="requestCompassPermission()" style="display:none;position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1000;padding:8px 16px;background:linear-gradient(135deg,#3b82f6,#6366f1);border:none;border-radius:12px;color:#fff;font-size:0.82rem;font-weight:700;cursor:pointer;backdrop-filter:blur(6px)">🧭 Activer le compas (iOS)</button>
     <div id="compassDebug" style="display:none;position:absolute;top:10px;left:10px;z-index:1000;font-size:0.68rem;color:#94a3b8;line-height:1.6;padding:8px 12px;background:rgba(15,23,42,.9);border-radius:8px;max-width:220px"></div>
     <button onclick="toggleCompassDebug()" style="position:absolute;top:10px;right:10px;z-index:1000;padding:4px 8px;background:rgba(15,23,42,.5);border:1px solid #1e293b;border-radius:8px;color:#334155;font-size:0.65rem;cursor:pointer">dbg</button>
@@ -234,6 +235,7 @@ let geoWatch     = null;
 let lastHapticZone = null;
 let directionLayers = []; // arrow markers on minimap
 let compassArrowMode = true; // toggle: show direction arrows on minimap
+let mapFollowing = true; // true = map follows GPS, false = user is panning freely
 let lastArrowLat = null, lastArrowLng = null, lastArrowHeading = null; // throttle
 
 // ── Device token for pseudo ownership ────────────────
@@ -466,7 +468,7 @@ function updateHeader() {
 // ── Treasures ────────────────────────────────────────
 async function loadTreasures() {
   let q = db.from('treasures').select('id,type,lat,lng,label,hint,visible,photo_url,found_by,placed_at').eq('visible', true);
-  if (activeQuests.length) q = q.in('quest', activeQuests);
+  if (activeQuests.length) q = q.or('quest.in.(' + activeQuests.join(',') + '),quest.is.null');
   const { data } = await q;
   if (!data) return;
   treasures = data;
@@ -476,6 +478,11 @@ async function loadTreasures() {
 function initMap() {
   gameMap = L.map('miniMap', { zoomControl: false, attributionControl: false }).setView(mapCenter, 13);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(gameMap);
+  gameMap.on('dragstart', function() {
+    mapFollowing = false;
+    var btn = document.getElementById('locateMeBtn');
+    if (btn) btn.style.display = 'block';
+  });
   renderMarkers();
 }
 
@@ -564,8 +571,8 @@ function startGeoWatch() {
       } else {
         playerMarker.setLatLng(pos2);
       }
-      // Follow player on map only when on explore tab
-      if (activeTab === 'explore') {
+      // Follow player on map only when on explore tab and not manually panning
+      if (activeTab === 'explore' && mapFollowing) {
         gameMap.setView(pos2, gameMap.getZoom(), { animate: true });
       }
     }
@@ -580,6 +587,14 @@ function startGeoWatch() {
     const lbl  = document.getElementById('gpsLabel');
     if (chip && lbl) { lbl.textContent = 'off'; chip.className = 'gps-bad'; }
   }, { enableHighAccuracy: true, maximumAge: 5000 });
+}
+
+function recenterMap() {
+  if (!gameMap || playerLat === null) return;
+  mapFollowing = true;
+  gameMap.setView([playerLat, playerLng], gameMap.getZoom(), { animate: true });
+  var btn = document.getElementById('locateMeBtn');
+  if (btn) btn.style.display = 'none';
 }
 
 function haversine(lat1, lng1, lat2, lng2) {
