@@ -484,25 +484,16 @@ function updateHeader() {
 
 // ── Treasures ────────────────────────────────────────
 async function loadTreasures() {
-  let q = db.from('treasures').select('id,type,lat,lng,label,hint,visible,photo_url,found_by,placed_at').eq('visible', true);
-  if (activeQuests.length) {
-    const inList = activeQuests.map(aq => `"${aq}"`).join(',');
-    q = q.or(`quest.in.(${inList}),quest.is.null`);
-  }
-  const { data } = await q;
+  const { data } = await db.from('treasures')
+    .select('id,type,lat,lng,label,hint,visible,photo_url,found_by,placed_at,quest')
+    .eq('visible', true);
   if (!data) return;
-  let all = data;
-  // Also fetch treasures with empty quest string (PostgREST .or() can't match empty string)
+  // Filter client-side: if no active quest, show all. Otherwise show matching quest + no-quest (null or '')
   if (activeQuests.length) {
-    const { data: extra } = await db.from('treasures')
-      .select('id,type,lat,lng,label,hint,visible,photo_url,found_by,placed_at')
-      .eq('visible', true).eq('quest', '');
-    if (extra && extra.length) {
-      const ids = new Set(all.map(t => t.id));
-      extra.forEach(t => { if (!ids.has(t.id)) all.push(t); });
-    }
+    treasures = data.filter(t => !t.quest || activeQuests.includes(t.quest));
+  } else {
+    treasures = data;
   }
-  treasures = all;
 }
 
 // ── Map ──────────────────────────────────────────────
