@@ -383,7 +383,7 @@ async function loadTreasures() {
 
 // ── Map ──────────────────────────────────────────────
 function initMap() {
-  gameMap = L.map('miniMap', { zoomControl: false, attributionControl: false }).setView(mapCenter, 18);
+  gameMap = L.map('miniMap', { zoomControl: false, attributionControl: false }).setView(mapCenter, 13);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(gameMap);
   renderMarkers();
 }
