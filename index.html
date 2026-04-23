@@ -503,18 +503,6 @@ function renderMarkers() {
     const color   = isMine ? '#4ade80' : isTaken ? '#475569' : (t.type === 'unique' ? '#c084fc' : '#60a5fa');
     const opacity = isTaken && !isMine ? 0.4 : 1;
 
-    // Balises uniques : petit drapeau 🚩 avec point coloré ; balises fixes : point simple
-    const iconHtml = t.type === 'unique'
-      ? `<div style="position:relative;width:20px;height:24px;opacity:${opacity}">
-           <div style="position:absolute;bottom:0;left:2px;background:${color};width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.5)"></div>
-           <span style="position:absolute;top:0;left:0;font-size:13px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))">🚩</span>
-         </div>`
-      : `<div style="background:${color};width:16px;height:16px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.5);opacity:${opacity}"></div>`;
-    const icon = L.divIcon({
-      html: iconHtml,
-      className: '', iconSize: [20, 24], iconAnchor: [10, 24]
-    });
-
     const popup = isTaken && !isMine
       ? `<b>${tLabel(t)}</b><br>🔒 Déjà récupéré`
       : (() => {
@@ -525,6 +513,22 @@ function renderMarkers() {
           return `<div style="min-width:220px">${ph}<b style="font-size:0.95rem">${tLabel(t)}</b><br><span style="font-size:0.82em;color:#888">${t.type === 'fixed' ? '📌 Balise fixe' : '🎁 Balise unique'}</span>${t.hint ? `<br><span style="font-size:0.82em;color:#93c5fd">💡 ${t.hint}</span>` : ''}${urls.length ? `<br><span style="font-size:0.75em;color:#64748b">👆 Tap photo pour agrandir</span>` : ''}</div>`;
         })();
 
+    // Unique treasures not yet found: L.circle in meters — looks like a dot when zoomed out,
+    // grows into a fuzzy search zone when zoomed in — preserves the mystery
+    if (t.type === 'unique' && !isMine) {
+      const c = L.circle([t.lat, t.lng], {
+        radius: 20, color, fillColor: color,
+        fillOpacity: 0.25 * opacity, weight: 2, opacity: 0.8 * opacity
+      }).addTo(gameMap).bindPopup(popup, { maxWidth: 280, className: 'dark-popup' });
+      mapMarkers[t.id] = c;
+      return;
+    }
+
+    // All other cases (found uniques, found fixed): simple dot
+    const icon = L.divIcon({
+      html: `<div style="background:${color};width:16px;height:16px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.5);opacity:${opacity}"></div>`,
+      className: '', iconSize: [16, 16], iconAnchor: [8, 8]
+    });
     mapMarkers[t.id] = L.marker([t.lat, t.lng], { icon }).addTo(gameMap).bindPopup(popup, { maxWidth: 280, className: 'dark-popup' });
   });
 }
