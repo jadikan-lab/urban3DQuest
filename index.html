@@ -166,19 +166,7 @@
 <header>
   <h1>🏙 Urban3DQuest</h1>
   <span id="gpsChip" title="Précision GPS">
-    <svg id="gpsDot" width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <!-- Rose des vents simplifiée -->
-      <circle cx="9" cy="9" r="8" stroke="currentColor" stroke-width="1" fill="none" opacity="0.3"/>
-      <circle cx="9" cy="9" r="2.5" fill="currentColor"/>
-      <!-- Nord -->
-      <polygon points="9,1 7.5,5.5 9,4.5 10.5,5.5" fill="currentColor"/>
-      <!-- Sud -->
-      <polygon points="9,17 7.5,12.5 9,13.5 10.5,12.5" fill="currentColor" opacity="0.5"/>
-      <!-- Est -->
-      <polygon points="17,9 12.5,7.5 13.5,9 12.5,10.5" fill="currentColor" opacity="0.5"/>
-      <!-- Ouest -->
-      <polygon points="1,9 5.5,7.5 4.5,9 5.5,10.5" fill="currentColor" opacity="0.5"/>
-    </svg>
+    <span id="gpsDot"></span>
     <span id="gpsLabel">GPS…</span>
   </span>
   <span class="pseudo-chip" id="headerPseudo"></span>
@@ -510,13 +498,21 @@ function _checkinError(msg) {
 }
 
 function updateHeader() {
+  const chip = document.getElementById('headerPseudo');
+  if (chip) chip.textContent = myPseudo || '';
 }
 
 // ── Treasures ────────────────────────────────────────
 async function loadTreasures() {
-  const { data } = await db.from('treasures')
+  const { data, error } = await db.from('treasures')
     .select('id,type,lat,lng,label,hint,visible,photo_url,found_by,placed_at,quest')
     .eq('visible', true);
+  if (error) {
+    console.error('loadTreasures error:', error.message);
+    const bar = document.getElementById('radarBar');
+    if (bar && !treasures.length) { bar.textContent = '⚠️ Erreur réseau — vérifie ta connexion'; bar.className = ''; }
+    return;
+  }
   if (!data) return;
   // Filter client-side: if no active quest, show all. Otherwise show matching quest + no-quest (null or '')
   if (activeQuests.length) {
@@ -1000,8 +996,8 @@ function toggleCompassDebug() {
 async function processFindById(treasureId) {
   // Fetch treasure fresh from DB
   const { data: t, error } = await db.from('treasures').select('*').eq('id', treasureId).single();
-  if (error || !t) { alert('Trésor introuvable.'); return; }
-  if (!t.visible)   { alert('Ce trésor n\'est pas encore actif.'); return; }
+  if (error || !t) { _checkinError('Trésor introuvable — il a peut-être été retiré.'); return; }
+  if (!t.visible)  { _checkinError('Ce trésor n\'est pas encore actif.'); return; }
 
   // Check if already found by me
   const foundList = (t.found_by || '').split(',').filter(Boolean);
