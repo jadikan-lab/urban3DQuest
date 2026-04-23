@@ -532,12 +532,22 @@ function renderMarkers() {
           return `<div style="min-width:220px">${ph}<b style="font-size:0.95rem">${tLabel(t)}</b><br><span style="font-size:0.82em;color:#888">${t.type === 'fixed' ? '📌 Balise fixe' : '🎁 Balise unique'}</span>${t.hint ? `<br><span style="font-size:0.82em;color:#93c5fd">💡 ${t.hint}</span>` : ''}${urls.length ? `<br><span style="font-size:0.75em;color:#64748b">👆 Tap photo pour agrandir</span>` : ''}</div>`;
         })();
 
-    // Unique treasures not yet found: L.circle (real meters) — grows when zooming in,
-    // revealing a ~200m search zone but hiding the exact spot
+    // Unique treasures not yet found: fuzzy circle — center is randomly OFFSET from
+    // the real location (deterministic per treasure ID), so zooming in never reveals
+    // the exact spot. The treasure is somewhere inside the circle, not at the center.
     if (t.type === 'unique' && !isMine) {
-      const c = L.circle([t.lat, t.lng], {
-        radius: 100, color, fillColor: color,
-        fillOpacity: 0.18 * opacity, weight: 2.5, opacity: 0.85 * opacity
+      // Deterministic pseudo-random offset from treasure ID (same result every render)
+      let seed = 0;
+      for (let i = 0; i < t.id.length; i++) seed = (seed * 31 + t.id.charCodeAt(i)) & 0xffffffff;
+      const angle  = (seed % 628) / 100; // 0 to 2π
+      const dist   = 40 + (Math.abs(seed >> 8) % 40); // 40–80m offset
+      const mPerLat = 111320;
+      const mPerLng = 111320 * Math.cos(t.lat * Math.PI / 180);
+      const fuzzLat = t.lat + (dist * Math.sin(angle)) / mPerLat;
+      const fuzzLng = t.lng + (dist * Math.cos(angle)) / mPerLng;
+      const c = L.circle([fuzzLat, fuzzLng], {
+        radius: 90, color, fillColor: color,
+        fillOpacity: 0.18 * opacity, weight: 2, opacity: 0.75 * opacity
       }).addTo(gameMap).bindPopup(popup, { maxWidth: 280, className: 'dark-popup' });
       mapMarkers[t.id] = c;
       return;
