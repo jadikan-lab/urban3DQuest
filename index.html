@@ -1002,21 +1002,17 @@ function formatDuration(sec) {
 
 // ── Leaderboard ──────────────────────────────────────
 async function loadLeaderboard() {
-  const [evRes, cfgRes, plRes] = await Promise.all([
+  const [evRes, cfgRes] = await Promise.all([
     db.from('events').select('pseudo,treasure_id,treasure_type,duration_sec,created_at').order('created_at', { ascending: true }),
-    db.from('config').select('key,value'),
-    db.from('players').select('pseudo,joined_at')
+    db.from('config').select('key,value')
   ]);
   const events = evRes.data || [];
-  const allPlayers = plRes.data || [];
   const cfg    = Object.fromEntries((cfgRes.data || []).map(r => [r.key, r.value]));
   const rewardMsg = cfg['rewardMessage_' + (activeQuest || '')] || cfg['rewardMessage'] || '';
   const totalFixed = parseInt(cfg.fixedTotal || fixedTotal || 0);
 
   // Group events by player
   const players = {};
-  // Init all registered players with 0
-  allPlayers.forEach(p => { players[p.pseudo] = { fixedEvents: [], uniqueEvents: [] }; });
   events.forEach(e => {
     if (!e.pseudo) return;
     if (!players[e.pseudo]) players[e.pseudo] = { fixedEvents: [], uniqueEvents: [] };
@@ -1024,10 +1020,12 @@ async function loadLeaderboard() {
     if (e.treasure_type === 'unique') players[e.pseudo].uniqueEvents.push(e);
   });
 
-  // Build rows
-  const rows = Object.entries(players).map(([pseudo, d]) => {
+  // Build rows — only players with at least 1 find
+  const rows = Object.entries(players)
+    .filter(([, d]) => d.fixedEvents.length > 0 || d.uniqueEvents.length > 0)
+    .map(([pseudo, d]) => {
     const fixedCount = d.fixedEvents.length;
-    // Global fixed time = last fixed found_at - first fixed found_at
+    // Total time = last fixed timestamp - first fixed timestamp (only shown when all fixed done)
     let fixedDuration = null;
     if (d.fixedEvents.length >= 2) {
       const times = d.fixedEvents.map(e => new Date(e.created_at).getTime()).sort((a,b) => a-b);
@@ -1053,12 +1051,13 @@ async function loadLeaderboard() {
 
   const html = rows.length ? rows.map((p, i) => {
     const isMe = p.pseudo === myPseudo;
-    const durationStr = p.fixedDuration !== null
+    // Temps total affiché seulement si toutes les balises fixes trouvées
+    const durationStr = p.allFixed && p.fixedDuration !== null
       ? `⏱ ${formatDuration(p.fixedDuration)}`
       : '';
     const allDoneStr = p.allFixed && rewardMsg
       ? `<div class="lb-reward">📍 ${rewardMsg}</div>`
-      : (p.allFixed ? '<div class="lb-reward">🏆 Tous les fixes trouvés !</div>' : '');
+      : (p.allFixed ? '<div class="lb-reward">🏆 Toutes les balises fixes trouvées !</div>' : '');
     const uniqueStr = p.uniqueEvents.length
       ? p.uniqueEvents.map(e => `<span class="lb-unique">🎁 ${e.treasure_id} — ${formatDuration(e.duration_sec || 0)}</span>`).join('')
       : '';
@@ -1067,20 +1066,15 @@ async function loadLeaderboard() {
       <div class="lb-body">
         <div class="lb-name">${p.pseudo}${isMe ? ' 👈' : ''}</div>
         <div class="lb-stats">
-          <strong>${p.fixedCount}${totalFixed ? '/'+totalFixed : ''} fixes</strong>
+          <strong>${p.fixedCount}${totalFixed ? '/'+totalFixed : ''} 📌</strong>
           ${durationStr}
-          ${p.uniqueEvents.length ? `· ${p.uniqueEvents.length} unique${p.uniqueEvents.length>1?'s':''}` : ''}
+          ${p.uniqueEvents.length ? `· ${p.uniqueEvents.length} 🎁` : ''}
         </div>
         ${uniqueStr}
         ${allDoneStr}
       </div>
     </div>`;
-  }).join('') : (allPlayers.length
-    ? allPlayers.map((p,i) => {
-        const isMe = p.pseudo === myPseudo;
-        return `<div class="lb-row${isMe?' lb-me':''}"><div class="lb-rank">${i+1}</div><div class="lb-body"><div class="lb-name">${p.pseudo}${isMe?' 👈':''}</div><div class="lb-stats" style="color:#475569">0 fixes</div></div></div>`;
-      }).join('')
-    : '<p style="color:#475569;text-align:center;padding:40px">Aucun joueur inscrit pour l\'instant…</p>');
+  }).join('') : '<p style="color:#475569;text-align:center;padding:40px">Personne n\'a encore trouvé de trésor…</p>';
 
   document.getElementById('lbList').innerHTML = html;
   document.getElementById('lbRefresh').textContent = 'Mis à jour ' + new Date().toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
