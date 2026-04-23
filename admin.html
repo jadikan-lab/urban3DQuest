@@ -599,21 +599,16 @@ async function saveQuestModal(){
   var newQuest=document.getElementById('questModalSelect').value;
   var st=document.getElementById('questModalStatus');
   st.style.color='#94a3b8';st.textContent='Enregistrement…';
-  // Recharge le cache PostgREST avant l'update
-  await db.rpc('pg_notify_pgrst').catch(function(){});
-  var res=await db.from('treasures').update({quest:newQuest}).eq('id',id);
-  if(res.error){
-    // Fallback : fetch REST direct
-    var patchRes=await fetch(SUPABASE_URL+'/rest/v1/treasures?id=eq.'+encodeURIComponent(id),{
-      method:'PATCH',
-      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
-      body:JSON.stringify({quest:newQuest})
-    });
-    if(!patchRes.ok){
-      st.style.color='#f87171';
-      st.textContent='Erreur persistante — exécute NOTIFY pgrst,\'reload schema\'; dans Supabase SQL Editor puis réessaie.';
-      return;
-    }
+  // fetch REST direct — bypasse le cache schema côté client JS
+  var patchRes=await fetch(SUPABASE_URL+'/rest/v1/treasures?id=eq.'+encodeURIComponent(id),{
+    method:'PATCH',
+    headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+    body:JSON.stringify({quest:newQuest})
+  });
+  if(!patchRes.ok){
+    var errTxt=await patchRes.text();
+    st.style.color='#f87171';st.textContent='Erreur : '+errTxt;
+    return;
   }
   // Mise à jour DOM
   var card=document.getElementById('lbl_'+id)?.closest('.t-card');
