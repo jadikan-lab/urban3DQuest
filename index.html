@@ -43,8 +43,7 @@
     .panel.active{display:block}
     /* ── Map ── */
     #panelExplore{display:flex;flex-direction:column;height:calc(100vh - 98px - 42px);overflow:hidden}
-    #miniMap{height:38vh;flex-shrink:0;border-bottom:2px solid #334155}
-    #compassSection{flex:1;overflow-y:auto;padding:10px 14px}
+    #miniMap{flex:1;border-bottom:2px solid #334155}
     /* ── Radar bar ── */
     #radarBar{position:fixed;bottom:calc(42px + 12px);left:50%;transform:translateX(-50%);background:rgba(30,41,59,.95);border:1px solid #334155;border-radius:24px;padding:8px 20px;font-size:0.82rem;color:#94a3b8;z-index:200;display:none;white-space:nowrap;backdrop-filter:blur(8px)}
     #radarBar.near{color:#fbbf24;border-color:#d97706;background:rgba(69,26,3,.95)}
@@ -135,14 +134,10 @@
 <!-- ── Explorer (carte + boussole fusionnées) ────────── -->
 <div id="panelExplore" class="panel active">
   <div id="miniMap" style="position:relative">
-    <button id="arrowToggleBtn" onclick="toggleCompassArrows()" style="position:absolute;bottom:10px;right:10px;z-index:1000;background:rgba(30,58,138,.88);border:2px solid #3b82f6;border-radius:12px;color:#93c5fd;font-size:0.75rem;font-weight:700;padding:7px 12px;cursor:pointer;backdrop-filter:blur(6px)">🧭 Flèches</button>
-  </div>
-  <div id="compassSection">
-    <button id="compassPermBtn" onclick="requestCompassPermission()" style="display:none;width:100%;padding:12px;background:linear-gradient(135deg,#3b82f6,#6366f1);border:none;border-radius:12px;color:#fff;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:12px">🧭 Activer le compas (iOS)</button>
-    <div id="compassStatus">GPS en cours…</div>
-    <div id="compassCards"></div>
-    <div id="compassDebug" style="margin-top:16px;font-size:0.68rem;color:#94a3b8;line-height:1.6;padding:8px 12px;background:#1e293b;border-radius:8px;display:none"></div>
-    <button onclick="toggleCompassDebug()" style="margin-top:8px;padding:4px 10px;background:transparent;border:1px solid #1e293b;border-radius:8px;color:#334155;font-size:0.65rem;cursor:pointer">debug</button>
+    <button id="arrowToggleBtn" onclick="toggleCompassArrows()" style="position:absolute;bottom:10px;right:10px;z-index:1000;background:rgba(30,58,138,.88);border:2px solid #3b82f6;border-radius:12px;color:#93c5fd;font-size:0.75rem;font-weight:700;padding:7px 12px;cursor:pointer;backdrop-filter:blur(6px)">📌 Balises fixes</button>
+    <button id="compassPermBtn" onclick="requestCompassPermission()" style="display:none;position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1000;padding:8px 16px;background:linear-gradient(135deg,#3b82f6,#6366f1);border:none;border-radius:12px;color:#fff;font-size:0.82rem;font-weight:700;cursor:pointer;backdrop-filter:blur(6px)">🧭 Activer le compas (iOS)</button>
+    <div id="compassDebug" style="display:none;position:absolute;top:10px;left:10px;z-index:1000;font-size:0.68rem;color:#94a3b8;line-height:1.6;padding:8px 12px;background:rgba(15,23,42,.9);border-radius:8px;max-width:220px"></div>
+    <button onclick="toggleCompassDebug()" style="position:absolute;top:10px;right:10px;z-index:1000;padding:4px 8px;background:rgba(15,23,42,.5);border:1px solid #1e293b;border-radius:8px;color:#334155;font-size:0.65rem;cursor:pointer">dbg</button>
   </div>
 </div>
 
@@ -699,45 +694,26 @@ function stopCompassInterval() {
 
 function updateCompass() {
   if (activeTab !== 'explore') return;
-  const status = document.getElementById('compassStatus');
-  const cards  = document.getElementById('compassCards');
+  if (playerLat === null || !treasures.length) return;
 
-  // GPS not yet acquired
-  if (playerLat === null) {
-    status.innerHTML = '📍 En attente du GPS… <span style="font-size:0.7rem;color:#334155">(autorise la localisation)</span>';
-    cards.innerHTML = '';
-    return;
-  }
-
-  // Treasures not yet loaded
-  if (!treasures.length) {
-    status.textContent = '⏳ Chargement des balises…';
-    cards.innerHTML = '';
-    return;
-  }
-
-  // Center minimap on player — now handled by startGeoWatch
   if (gameMap) {
-    // Throttle arrow redraw: only if position moved >2m or heading changed >5°
     const headingChanged = lastArrowHeading === null || Math.abs((deviceHeading || 0) - lastArrowHeading) > 5;
     const posChanged = lastArrowLat === null || haversine(playerLat, playerLng, lastArrowLat, lastArrowLng) > 2;
 
     if (posChanged || headingChanged) {
       lastArrowLat = playerLat; lastArrowLng = playerLng; lastArrowHeading = deviceHeading || 0;
 
-      // Clear old direction lines
       directionLayers.forEach(l => gameMap.removeLayer(l));
       directionLayers = [];
 
       if (compassArrowMode) {
-        // Draw direction arrows: short arrow + distance label from player
         const unfoundFixed = treasures
           .filter(t => t.type === 'fixed' && !(t.found_by && t.found_by.split(',').includes(myPseudo)))
           .map(t => ({ ...t, dist: haversine(playerLat, playerLng, t.lat, t.lng) }))
           .sort((a, b) => a.dist - b.dist)
           .slice(0, 3);
 
-        const arrowLen = 60; // meters visual length
+        const arrowLen = 60;
 
         unfoundFixed.forEach(t => {
           const bearing = bearingTo(playerLat, playerLng, t.lat, t.lng);
@@ -771,52 +747,6 @@ function updateCompass() {
       }
     }
   }
-
-  const allFixed = treasures.filter(t => t.type === 'fixed');
-  const fixed = allFixed
-    .filter(t => !(t.found_by && t.found_by.split(',').includes(myPseudo)))
-    .map(t => ({ ...t, dist: haversine(playerLat, playerLng, t.lat, t.lng) }))
-    .sort((a, b) => a.dist - b.dist)
-    .slice(0, 3);
-
-  const hasHeading = deviceHeading !== null;
-  status.innerHTML = hasHeading
-    ? `🧭 Boussole active <span style="font-size:0.7rem;color:#475569">(cap: ${Math.round(deviceHeading)}°)</span>`
-    : '🧭 Direction Nord — <span style="font-size:0.7rem;color:#fb923c">compas inactif</span>';
-
-  if (!fixed.length) {
-    cards.innerHTML = !allFixed.length
-      ? '<p style="text-align:center;color:#475569;padding:40px">Aucune balise fixe dans ce jeu.</p>'
-      : '<p style="text-align:center;color:#4ade80;padding:40px;font-size:1.1rem">🏆 Toutes les balises fixes trouvées !</p>';
-    return;
-  }
-
-  cards.innerHTML = '';
-  fixed.forEach(t => {
-    const dist     = Math.round(t.dist);
-    const bearing  = bearingTo(playerLat, playerLng, t.lat, t.lng);
-    const rotation = hasHeading ? (bearing - deviceHeading + 360) % 360 : bearing;
-    const inRange  = dist <= proximityR;
-    const arrowColor = inRange ? '#22c55e' : '#60a5fa';
-
-    const card = document.createElement('div');
-    card.className = 'cmp-card' + (inRange ? ' in-range' : '');
-    card.innerHTML = `
-      <div class="cmp-arrow-wrap">
-        <svg style="transform:rotate(${rotation}deg);transition:transform .3s ease;display:block;flex-shrink:0"
-             width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-          <polygon points="32,4 44,52 32,42 20,52" fill="${arrowColor}" stroke="#0f172a" stroke-width="1.5"/>
-          <circle cx="32" cy="32" r="7" fill="#0f172a" stroke="${arrowColor}" stroke-width="2.5"/>
-        </svg>
-      </div>
-      <div class="cmp-info">
-        <div class="cmp-label">${tLabel(t)}</div>
-        <div class="cmp-dist">${distLabel(dist)}</div>
-        ${t.hint ? `<div class="cmp-hint">💡 ${t.hint}</div>` : ''}
-        ${inRange ? `<button class="cmp-capture" onclick="captureFixedById('${t.id.replace(/'/g,"\\'")}',this)">📸 Capturer !</button>` : ''}
-      </div>`;
-    cards.appendChild(card);
-  });
 }
 
 async function captureFixedById(id, btn) {
