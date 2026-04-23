@@ -49,6 +49,10 @@
     #radarBar.near{color:#fbbf24;border-color:#d97706;background:rgba(69,26,3,.95)}
     #radarBar.very-near{color:#4ade80;border-color:#16a34a;background:rgba(5,46,22,.95);animation:pulse 1s infinite}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:.7}}
+    /* ── Leaflet dark popup ── */
+    .dark-popup .leaflet-popup-content-wrapper{background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.6)}
+    .dark-popup .leaflet-popup-tip{background:#1e293b}
+    .dark-popup .leaflet-popup-close-button{color:#64748b!important}
     /* ── QR FAB supprimé — scan natif caméra Android/iOS ── */
     /* ── Compass panel ── */
     #compassStatus{text-align:center;font-size:0.78rem;color:#64748b;padding:6px 0 4px}
@@ -734,7 +738,19 @@ function updateCompass() {
             </svg>`,
             className: '', iconSize: [28, 36], iconAnchor: [14, 27]
           });
-          const arrowMarker = L.marker(tip, { icon: arrowIcon, interactive: false, zIndexOffset: 500 }).addTo(gameMap);
+          const arrowMarker = L.marker(tip, { icon: arrowIcon, interactive: true, zIndexOffset: 500 }).addTo(gameMap);
+
+          // Popup with hint + photo on arrow click
+          const photos = getPhotoUrls(t.photo_url);
+          const photoHtml = photos.length
+            ? photos.map(u => `<img src="${u}" style="width:100%;max-height:110px;object-fit:cover;border-radius:8px;margin-bottom:5px;display:block">`).join('')
+            : '';
+          const hintHtml = t.hint ? `<div style="font-size:0.8rem;color:#93c5fd;margin-top:4px">💡 ${t.hint}</div>` : '';
+          const inRangeHtml = inRange
+            ? `<button onclick="captureFixedById('${t.id.replace(/'/g,"\\'")}',this)" style="margin-top:8px;width:100%;padding:8px;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:8px;color:#fff;font-weight:700;cursor:pointer;font-size:0.85rem">📸 Capturer !</button>`
+            : `<div style="font-size:0.75rem;color:#64748b;margin-top:6px;text-align:center">${distStr} — approche-toi</div>`;
+          const popupContent = `<div style="min-width:160px;max-width:200px">${photoHtml}<b style="font-size:0.88rem">${tLabel(t)}</b>${hintHtml}${inRangeHtml}</div>`;
+          arrowMarker.bindPopup(popupContent, { maxWidth: 210, className: 'dark-popup' });
 
           const labelIcon = L.divIcon({
             html: `<div style="background:rgba(15,23,42,.85);color:${color};font-size:0.68rem;font-weight:700;padding:2px 6px;border-radius:8px;border:1px solid ${color};white-space:nowrap;backdrop-filter:blur(4px)">${arrowLabel}</div>`,
