@@ -264,6 +264,7 @@
       <span id="qrZoomLabel">1×</span>
       <input id="qrZoomSlider" type="range" min="1" max="4" step="0.1" value="1" oninput="applyQRZoom(this.value)">
       <span>4×</span>
+      <button id="qrTorchBtn" onclick="toggleQRTorch()" style="display:none;background:none;border:1px solid #334155;border-radius:8px;padding:6px 10px;color:#f1f5f9;font-size:1.1rem;cursor:pointer;flex-shrink:0">🔦</button>
     </div>
     <button id="qrCloseBtn" onclick="closeQRScanner()">✕ Annuler</button>
   </div>
@@ -986,130 +987,119 @@ function updateCompass() {
   }
 }
 
-// ── QR Scanner (jsQR — universel Android + iOS) ──────
+// ── QR Scanner (jsQR multi-scale + torch + autofocus) ─
 let qrStream     = null;
 let qrAnimFrame  = null;
 let qrExpectedId = null;
 let qrVideoTrack = null;
 let qrZoom       = 1;
 let qrScanning   = false;
+let qrTorch      = false;
+let qrLastScan   = 0;
 
 async function openQRScanner(beaconId) {
   qrExpectedId = beaconId || null;
   qrScanning   = true;
-  const overlay = document.getElementById('qrOverlay');
-  const video   = document.getElementById('qrVideo');
-  const status  = document.getElementById('qrStatus');
-  const slider  = document.getElementById('qrZoomSlider');
-  slider.value  = 1;
+  qrTorch      = false;
+  qrZoom       = 1;
+  const status = document.getElementById('qrStatus');
+  const slider = document.getElementById('qrZoomSlider');
+  slider.value = 1;
   document.getElementById('qrZoomLabel').textContent = '1×';
+  document.getElementById('qrTorchBtn').textContent = '🔦';
   status.className = '';
   status.textContent = '📷 Ouverture de la caméra…';
-  overlay.classList.add('open');
+  document.getElementById('qrOverlay').classList.add('open');
 
   try {
     qrStream = await navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: { ideal: 'environment' },
         width:  { ideal: 1920 },
-        height: { ideal: 1080 }
+        height: { ideal: 1080 },
+        focusMode: { ideal: 'continuous' }
       },
       audio: false
     });
-    video.srcObject = qrStream;
-    await video.play();
+    document.getElementById('qrVideo').srcObject = qrStream;
+    await document.getElementById('qrVideo').play();
     qrVideoTrack = qrStream.getVideoTracks()[0];
 
-    // Check max zoom
+    // Try continuous autofocus
+    try { await qrVideoTrack.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }); } catch(e) {}
+
+    // Show/hide torch button
     try {
       const caps = qrVideoTrack.getCapabilities();
-      if (caps.zoom) {
-        slider.min   = caps.zoom.min;
-        slider.max   = Math.min(caps.zoom.max, 6);
-        slider.step  = caps.zoom.step || 0.1;
-        slider.value = caps.zoom.min;
-        document.getElementById('qrZoomWrap').style.display = 'flex';
-      } else {
-        // Digital zoom only via CSS scale
-        document.getElementById('qrZoomWrap').style.display = 'flex';
-        slider.max = 3; slider.min = 1; slider.step = 0.1;
-      }
-    } catch(e) {}
+      document.getElementById('qrTorchBtn').style.display = caps.torch ? 'block' : 'none';
+    } catch(e) { document.getElementById('qrTorchBtn').style.display = 'none'; }
 
-    status.textContent = '🔍 Pointe vers le QR code de la balise…';
-    _qrLoop();
+    status.textContent = '🔍 Centre le QR dans le cadre — approche-toi si nécessaire';
+    _qrSchedule();
   } catch(e) {
     status.textContent = '❌ Caméra inaccessible — vérifie les permissions dans les réglages.';
     status.className = 'qr-err';
   }
 }
 
-async function applyQRZoom(val) {
-  qrZoom = parseFloat(val);
-  document.getElementById('qrZoomLabel').textContent = qrZoom.toFixed(1) + '×';
-  // Zoom is applied in _qrLoop via canvas crop — no CSS needed
-  // Also try native optical zoom if available
-  if (qrVideoTrack) {
-    try {
-      const caps = qrVideoTrack.getCapabilities();
-      if (caps.zoom && qrZoom <= caps.zoom.max) {
-        await qrVideoTrack.applyConstraints({ advanced: [{ zoom: qrZoom }] });
-      }
-    } catch(e) {}
-  }
+// Throttle : scan every 200ms max (not every frame — too heavy on mobile)
+function _qrSchedule() {
+  if (!qrScanning) return;
+  const now = Date.now();
+  const wait = Math.max(0, 180 - (now - qrLastScan));
+  qrAnimFrame = setTimeout(() => { _qrLoop(); }, wait);
 }
 
 function _qrLoop() {
   if (!qrScanning || !qrStream) return;
+  qrLastScan = Date.now();
   const video  = document.getElementById('qrVideo');
   const canvas = document.getElementById('qrCanvas');
-  if (!video.videoWidth) { qrAnimFrame = requestAnimationFrame(_qrLoop); return; }
+  if (!video.videoWidth) { _qrSchedule(); return; }
 
-  // Crop the center of the frame proportional to zoom level
-  // zoom=1 → full frame ; zoom=4 → center quarter → QR appears 4× bigger for jsQR
   const vw = video.videoWidth;
   const vh = video.videoHeight;
-  const cropW = Math.round(vw / qrZoom);
-  const cropH = Math.round(vh / qrZoom);
-  const cropX = Math.round((vw - cropW) / 2);
-  const cropY = Math.round((vh - cropH) / 2);
-
-  canvas.width  = cropW;
-  canvas.height = cropH;
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  // Draw only the cropped center — this is the actual zoom
-  ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
 
-  const imageData = ctx.getImageData(0, 0, cropW, cropH);
-  const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
-  if (code && code.data) {
-    _qrHandleResult(code.data);
-    return;
+  // Multi-scale: try 3 crop levels — full, 2×, 4× center crop
+  // Bigger crop zoom = QR occupies more pixels = easier to detect
+  const scales = [1, 2, 4];
+  for (const z of scales) {
+    const effectiveZoom = z * qrZoom;  // combine slider zoom + multi-scale
+    const cropW = Math.min(vw, Math.round(vw / effectiveZoom));
+    const cropH = Math.min(vh, Math.round(vh / effectiveZoom));
+    const cropX = Math.round((vw - cropW) / 2);
+    const cropY = Math.round((vh - cropH) / 2);
+    // Decode at fixed 400px for speed — enough resolution for jsQR
+    const outW = Math.min(cropW, 400);
+    const outH = Math.round(cropH * outW / cropW);
+    canvas.width  = outW;
+    canvas.height = outH;
+    ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, outW, outH);
+    const img = ctx.getImageData(0, 0, outW, outH);
+    const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'attemptBoth' });
+    if (code && code.data) { _qrHandleResult(code.data); return; }
   }
-  qrAnimFrame = requestAnimationFrame(_qrLoop);
+  _qrSchedule();
 }
 
 async function _qrHandleResult(raw) {
   const status = document.getElementById('qrStatus');
   const match  = raw.match(/[?&](?:checkin|found)=([^&\s]+)/);
-  if (!match) {
-    // Not a game QR — ignore and keep scanning
-    qrAnimFrame = requestAnimationFrame(_qrLoop);
-    return;
-  }
+  if (!match) { _qrSchedule(); return; }  // not a game QR, keep scanning
   const scannedId = decodeURIComponent(match[1]);
 
   if (qrExpectedId && scannedId !== qrExpectedId) {
-    status.textContent = '⚠️ Ce QR ne correspond pas à cette balise — cherche le bon QR !';
+    status.textContent = '⚠️ Mauvaise balise — cherche le bon QR !';
     status.className = 'qr-err';
     haptic([80, 60, 80]);
-    await new Promise(r => setTimeout(r, 2200));
+    await new Promise(r => setTimeout(r, 2000));
     if (!qrScanning) return;
-    status.textContent = '🔍 Pointe vers le QR code de la balise…';
+    status.textContent = '🔍 Centre le QR dans le cadre';
     status.className = '';
-    qrAnimFrame = requestAnimationFrame(_qrLoop);
+    _qrSchedule();
   } else {
-    status.textContent = '✅ QR détecté !';
+    status.textContent = '✅ Balise validée !';
     status.className = 'qr-ok';
     haptic([80, 40, 160]);
     await new Promise(r => setTimeout(r, 350));
@@ -1118,10 +1108,31 @@ async function _qrHandleResult(raw) {
   }
 }
 
+async function applyQRZoom(val) {
+  qrZoom = parseFloat(val);
+  document.getElementById('qrZoomLabel').textContent = qrZoom.toFixed(1) + '×';
+  // Try native optical zoom
+  if (qrVideoTrack) {
+    try {
+      const caps = qrVideoTrack.getCapabilities();
+      if (caps.zoom) await qrVideoTrack.applyConstraints({ advanced: [{ zoom: Math.min(qrZoom, caps.zoom.max) }] });
+    } catch(e) {}
+  }
+}
+
+async function toggleQRTorch() {
+  if (!qrVideoTrack) return;
+  qrTorch = !qrTorch;
+  try {
+    await qrVideoTrack.applyConstraints({ advanced: [{ torch: qrTorch }] });
+    document.getElementById('qrTorchBtn').textContent = qrTorch ? '💡' : '🔦';
+  } catch(e) { qrTorch = false; }
+}
+
 function closeQRScanner() {
   qrScanning = false;
   document.getElementById('qrOverlay').classList.remove('open');
-  if (qrAnimFrame)  { cancelAnimationFrame(qrAnimFrame); qrAnimFrame = null; }
+  if (qrAnimFrame)  { clearTimeout(qrAnimFrame); qrAnimFrame = null; }
   if (qrStream)     { qrStream.getTracks().forEach(t => t.stop()); qrStream = null; }
   qrVideoTrack = null;
   qrExpectedId = null;
