@@ -532,11 +532,12 @@ function renderMarkers() {
           return `<div style="min-width:220px">${ph}<b style="font-size:0.95rem">${tLabel(t)}</b><br><span style="font-size:0.82em;color:#888">${t.type === 'fixed' ? '📌 Balise fixe' : '🎁 Balise unique'}</span>${t.hint ? `<br><span style="font-size:0.82em;color:#93c5fd">💡 ${t.hint}</span>` : ''}${urls.length ? `<br><span style="font-size:0.75em;color:#64748b">👆 Tap photo pour agrandir</span>` : ''}</div>`;
         })();
 
-    // Unique treasures not yet found: circleMarker (pixel radius — always visible regardless of zoom)
+    // Unique treasures not yet found: L.circle (real meters) — small dot from far,
+    // expands into a ~80m search zone when zoomed in, preserving the mystery
     if (t.type === 'unique' && !isMine) {
-      const c = L.circleMarker([t.lat, t.lng], {
-        radius: 10, color, fillColor: color,
-        fillOpacity: 0.35 * opacity, weight: 2.5, opacity: 0.9 * opacity
+      const c = L.circle([t.lat, t.lng], {
+        radius: 40, color, fillColor: color,
+        fillOpacity: 0.22 * opacity, weight: 2.5, opacity: 0.85 * opacity
       }).addTo(gameMap).bindPopup(popup, { maxWidth: 280, className: 'dark-popup' });
       mapMarkers[t.id] = c;
       return;
