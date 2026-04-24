@@ -250,6 +250,7 @@
       📷 Prendre une photo
       <input type="file" accept="image/*" capture="environment" id="qrFileInput" style="display:none">
     </label>
+    <div id="qrTips" style="font-size:0.86rem;color:#94a3b8;display:none;max-width:380px;text-align:center">Astuce: rapproche-toi du QR, évite les reflets et assure-toi qu'il occupe une bonne part de l'image.</div>
     <button id="qrCloseBtn" onclick="closeQRScanner()">✕ Annuler</button>
   </div>
 </div>
@@ -998,6 +999,7 @@ async function handleQRPhoto(input) {
   const status = document.getElementById('qrStatus');
   status.className = '';
   status.textContent = '🔍 Analyse en cours…';
+  document.getElementById('qrTips').style.display = 'none';
 
   const file = input.files[0];
   const url = URL.createObjectURL(file);
@@ -1011,19 +1013,17 @@ async function handleQRPhoto(input) {
   img.onload = async () => {
     try {
       const canvas = document.getElementById('qrCanvas');
-      canvas.width  = img.width;
-      canvas.height = img.height;
       const ctx = canvas.getContext('2d', { willReadFrequently: true });
-      ctx.drawImage(img, 0, 0);
-      const imageData = ctx.getImageData(0, 0, img.width, img.height);
-      const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'attemptBoth' });
+      // Use a robust decoder that tries rotations and downscales
+      const decoded = await tryDecodeImageWithRetries(img, canvas, ctx);
       URL.revokeObjectURL(url);
-      if (code && code.data) {
-        await _qrHandleResult(code.data);
+      if (decoded) {
+        await _qrHandleResult(decoded);
       } else {
         status.textContent = '❌ QR non reconnu — réessaie en te rapprochant et en éclairant bien le QR';
         status.className = 'qr-err';
         haptic([80, 60, 80]);
+        document.getElementById('qrTips').style.display = 'block';
         _resetQRInput(); // allow retrying immediately on iOS
       }
     } catch(err) {
@@ -1040,6 +1040,52 @@ async function handleQRPhoto(input) {
     status.className = 'qr-err';
   };
   img.src = url;
+}
+
+// Try decoding with multiple scales and rotations for higher robustness
+async function tryDecodeImageWithRetries(img, canvas, ctx) {
+  // Draw original to compute ratios
+  const maxDim = Math.max(img.width, img.height);
+  // List of scales to try (1 means full size, then smaller downscales)
+  const scales = maxDim > 1600 ? [1, 0.75, 0.5, 0.33] : [1, 0.66, 0.5];
+  const rotations = [0, 90, 180, 270];
+
+  for (const s of scales) {
+    const w = Math.round(img.width * s);
+    const h = Math.round(img.height * s);
+    canvas.width = w;
+    canvas.height = h;
+    // draw scaled
+    ctx.clearRect(0, 0, w, h);
+    ctx.drawImage(img, 0, 0, w, h);
+    // Try original orientation first
+    try {
+      const data = ctx.getImageData(0, 0, w, h);
+      const code = jsQR(data.data, data.width, data.height, { inversionAttempts: 'attemptBoth' });
+      if (code && code.data) return code.data;
+    } catch(e) { /* ignore */ }
+
+    // Try rotations by redrawing into temporary canvas
+    for (const deg of rotations) {
+      if (deg === 0) continue; // already tried
+      // rotate into canvas
+      const tmpW = deg % 180 === 0 ? w : h;
+      const tmpH = deg % 180 === 0 ? h : w;
+      canvas.width = tmpW;
+      canvas.height = tmpH;
+      ctx.save();
+      ctx.translate(tmpW / 2, tmpH / 2);
+      ctx.rotate((deg * Math.PI) / 180);
+      ctx.drawImage(img, -w / 2, -h / 2, w, h);
+      ctx.restore();
+      try {
+        const data2 = ctx.getImageData(0, 0, tmpW, tmpH);
+        const code2 = jsQR(data2.data, data2.width, data2.height, { inversionAttempts: 'attemptBoth' });
+        if (code2 && code2.data) return code2.data;
+      } catch(e) { /* ignore */ }
+    }
+  }
+  return null;
 }
 
 async function _qrHandleResult(raw) {
