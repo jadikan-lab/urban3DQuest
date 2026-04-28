@@ -117,21 +117,7 @@
       <button class="btn" id="pwBtn" onclick="checkPw()" style="margin-top:12px">Connexion</button>
       <p id="pwErr" style="color:#f87171;font-size:0.78rem;margin-top:8px;display:none">Email ou mot de passe incorrect</p>
     </div>
-    <!-- RESET PASSWORD -->
-    <div id="resetView" style="display:none">
-      <h2>Nouveau mot de passe</h2>
-      <p style="margin-bottom:16px">Choisis ton nouveau mot de passe admin.</p>
-      <div style="position:relative;margin-bottom:12px">
-        <input type="password" id="newPw1" placeholder="Nouveau mot de passe" style="width:100%;padding-right:44px">
-        <button type="button" onclick="toggleFieldVis('newPw1',this)" style="position:absolute;right:0;top:0;height:100%;width:44px;background:none;border:none;cursor:pointer;color:#94a3b8;font-size:1.1rem;display:flex;align-items:center;justify-content:center">👁</button>
-      </div>
-      <div style="position:relative;margin-bottom:12px">
-        <input type="password" id="newPw2" placeholder="Confirmer le mot de passe" style="width:100%;padding-right:44px">
-        <button type="button" onclick="toggleFieldVis('newPw2',this)" style="position:absolute;right:0;top:0;height:100%;width:44px;background:none;border:none;cursor:pointer;color:#94a3b8;font-size:1.1rem;display:flex;align-items:center;justify-content:center">👁</button>
-      </div>
-      <button class="btn" id="resetBtn" onclick="doResetPassword()">Enregistrer le mot de passe</button>
-      <p id="resetErr" style="color:#f87171;font-size:0.78rem;margin-top:8px;display:none"></p>
-    </div>
+
   </div>
 </div>
 <header>
@@ -409,35 +395,15 @@ async function adminLogout(){
 }
 function togglePwVis(){var inp=document.getElementById('pwInput');var btn=document.getElementById('pwToggle');if(inp.type==='password'){inp.type='text';btn.textContent='🙈';}else{inp.type='password';btn.textContent='👁';}inp.focus();}
 function toggleFieldVis(id,btn){var inp=document.getElementById(id);if(inp.type==='password'){inp.type='text';btn.textContent='🙈';}else{inp.type='password';btn.textContent='👁';}inp.focus();}
-async function doResetPassword(){
-  var p1=document.getElementById('newPw1').value;
-  var p2=document.getElementById('newPw2').value;
-  var err=document.getElementById('resetErr');
-  var btn=document.getElementById('resetBtn');
-  err.style.display='none';
-  if(!p1||p1.length<8){err.textContent='Mot de passe trop court (8 caractères minimum).';err.style.display='block';return;}
-  if(p1!==p2){err.textContent='Les mots de passe ne correspondent pas.';err.style.display='block';return;}
-  btn.disabled=true;btn.textContent='Enregistrement…';
-  var res=await db.auth.updateUser({password:p1});
-  btn.disabled=false;btn.textContent='Enregistrer le mot de passe';
-  if(res.error){err.textContent='Erreur : '+res.error.message;err.style.display='block';return;}
-  var isAdmin=await _checkIsAdmin();
-  if(isAdmin){_showAdminUI();}else{err.textContent='Mot de passe mis à jour mais accès non admin.';err.style.display='block';}
-}
-// Auth state handler — covers login, session restore AND recovery token from email
-db.auth.onAuthStateChange(async function(event, session){
-  if(event==='PASSWORD_RECOVERY'){
-    history.replaceState({},document.title,window.location.pathname);
-    document.getElementById('loginView').style.display='none';
-    document.getElementById('resetView').style.display='block';
-    return;
-  }
-  if((event==='SIGNED_IN'||event==='TOKEN_REFRESHED')&&session){
+// Restore session on reload
+(async function(){
+  var s=await db.auth.getSession();
+  if(s.data&&s.data.session){
     var isAdmin=await _checkIsAdmin();
-    if(isAdmin){_showAdminUI();}
-    return;
+    if(isAdmin){_showAdminUI();return;}
+    await db.auth.signOut();
   }
-});
+})();
 ['pwEmail','pwInput'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('keydown',function(e){if(e.key==='Enter')checkPw();});});
 async function init(){var r=await db.from('config').select('key').limit(1);document.getElementById('dbDot').className='dot'+(r.error?'':' ok');startGeo();loadConfig();loadQrLov();}
 async function loadQuests(){var res=await db.from('config').select('value').eq('key','quests').single();if(res.data&&res.data.value){try{questList=JSON.parse(res.data.value);}catch(e){questList=[];}}else{questList=[];}var ra=await db.from('config').select('value').eq('key','activeQuests').single();if(ra.data&&ra.data.value){try{activeQuests=JSON.parse(ra.data.value);}catch(e){activeQuests=[];}}else{var old=await db.from('config').select('value').eq('key','activeQuest').single();var ov=(old.data&&old.data.value)||'';activeQuests=ov?[ov]:[];}populateQuestSelectors();}
