@@ -107,14 +107,16 @@
   <div id="pwBox">
     <h2>Urban3DQuest</h2>
     <p>Interface administrateur</p>
-    <input type="password" id="pwInput" placeholder="Mot de passe admin" autocomplete="off">
-    <button class="btn" onclick="checkPw()">Entrer</button>
-    <p id="pwErr" style="color:#f87171;font-size:0.78rem;margin-top:8px;display:none">Mot de passe incorrect</p>
+    <input type="email" id="pwEmail" placeholder="Email admin" autocomplete="email" style="margin-bottom:8px">
+    <input type="password" id="pwInput" placeholder="Mot de passe" autocomplete="current-password">
+    <button class="btn" id="pwBtn" onclick="checkPw()">Connexion</button>
+    <p id="pwErr" style="color:#f87171;font-size:0.78rem;margin-top:8px;display:none">Email ou mot de passe incorrect</p>
   </div>
 </div>
 <header>
   <h1 id="adminTitle">Urban3DQuest Admin</h1>
   <span class="dot" id="dbDot"></span>
+  <button id="logoutBtn" onclick="adminLogout()" style="display:none;padding:5px 12px;background:#450a0a;border:1px solid #7f1d1d;border-radius:8px;color:#f87171;font-size:0.75rem;font-weight:600;cursor:pointer">Déconnexion</button>
 </header>
 <nav>
   <button class="active" onclick="showTab('add',this)">➕ Ajouter</button>
@@ -347,10 +349,8 @@
 <script>
 var SUPABASE_URL='https://jocfvobqfpygixrawnbq.supabase.co';
 var SUPABASE_KEY='sb_publishable_M8SxhXrmh17vrOf1WlOM6Q_ZNKNqQhM';
-var GAME_BASE_URL='https://zzzanzzzibar.github.io/urban3DQuest';
-// Admin local password (easy to find/change)
-var ADMIN_PW='Urban2026!';
-var ADMIN_UI_VERSION='v3.1';
+var GAME_BASE_URL='https://jadikan-lab.github.io/urban3DQuest';
+var ADMIN_UI_VERSION='v3.2';
 var db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 var currentLoc=null,currentType='fixed',visVisible=true,gameActive=true,modeMap=true,modeCompass=true,photoDataUrls=[],adminMap=null,mapLayers=[],questList=[],activeQuests=[],rewardMessages={},relocate=null;
 var _adminTitle=document.getElementById('adminTitle');
@@ -358,9 +358,44 @@ if(_adminTitle)_adminTitle.textContent='Urban3DQuest Admin · '+ADMIN_UI_VERSION
 function escHtml(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function safeImgUrl(v){var s=String(v||'').trim();if(!s)return'';if(/^(https?:|data:image\/)/i.test(s))return s;return'';}
 function csvCell(v){var s=String(v??'');if(/^[=+\-@]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';}
-function checkPw(){if(document.getElementById('pwInput').value===ADMIN_PW){sessionStorage.setItem('u3dq_admin','1');document.getElementById('pwScreen').style.display='none';init();}else{document.getElementById('pwErr').style.display='block';}}
-document.getElementById('pwInput').addEventListener('keydown',function(e){if(e.key==='Enter')checkPw();});
-if(sessionStorage.getItem('u3dq_admin')==='1'){document.getElementById('pwScreen').style.display='none';init();}
+async function checkPw(){
+  var email=document.getElementById('pwEmail').value.trim();
+  var pw=document.getElementById('pwInput').value;
+  var btn=document.getElementById('pwBtn');
+  var err=document.getElementById('pwErr');
+  if(!email||!pw){err.textContent='Email et mot de passe requis.';err.style.display='block';return;}
+  btn.disabled=true;btn.textContent='Connexion…';err.style.display='none';
+  var res=await db.auth.signInWithPassword({email:email,password:pw});
+  btn.disabled=false;btn.textContent='Connexion';
+  if(res.error||!res.data.user){err.textContent='Email ou mot de passe incorrect.';err.style.display='block';return;}
+  var isAdmin=await _checkIsAdmin();
+  if(!isAdmin){await db.auth.signOut();err.textContent='Accès refusé — compte non admin.';err.style.display='block';return;}
+  _showAdminUI();
+}
+async function _checkIsAdmin(){
+  var res=await db.rpc('is_admin');
+  return res.data===true;
+}
+function _showAdminUI(){
+  document.getElementById('pwScreen').style.display='none';
+  document.getElementById('logoutBtn').style.display='block';
+  init();
+}
+async function adminLogout(){
+  await db.auth.signOut();
+  sessionStorage.clear();
+  location.reload();
+}
+// Restore session on reload
+(async function(){
+  var {data:{session}}=await db.auth.getSession();
+  if(session){
+    var isAdmin=await _checkIsAdmin();
+    if(isAdmin){_showAdminUI();return;}
+    await db.auth.signOut();
+  }
+})();
+['pwEmail','pwInput'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('keydown',function(e){if(e.key==='Enter')checkPw();});});
 async function init(){var r=await db.from('config').select('key').limit(1);document.getElementById('dbDot').className='dot'+(r.error?'':' ok');startGeo();loadConfig();loadQrLov();}
 async function loadQuests(){var res=await db.from('config').select('value').eq('key','quests').single();if(res.data&&res.data.value){try{questList=JSON.parse(res.data.value);}catch(e){questList=[];}}else{questList=[];}var ra=await db.from('config').select('value').eq('key','activeQuests').single();if(ra.data&&ra.data.value){try{activeQuests=JSON.parse(ra.data.value);}catch(e){activeQuests=[];}}else{var old=await db.from('config').select('value').eq('key','activeQuest').single();var ov=(old.data&&old.data.value)||'';activeQuests=ov?[ov]:[];}populateQuestSelectors();}
 function populateQuestSelectors(){var configs=[{id:'fQuestSelect',first:'— Sans quête —'},{id:'filterQuestFixed',first:'Toutes les quêtes'},{id:'filterQuestUnique',first:'Toutes les quêtes'},{id:'filterQuestQr',first:'Toutes les quêtes'},{id:'filterQuestMap',first:'Toutes les quêtes'},{id:'qrNewQuest',first:'— Aucune quête —'}];configs.forEach(function(c){var sel=document.getElementById(c.id);if(!sel)return;var cur=sel.value;while(sel.options.length>1)sel.remove(1);questList.forEach(function(q){var opt=document.createElement('option');opt.value=q;opt.textContent=q;sel.appendChild(opt);});if(cur)sel.value=cur;});document.getElementById('questField').style.display=questList.length?'block':'none';renderQuestListAdmin();}
