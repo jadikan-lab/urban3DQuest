@@ -38,6 +38,9 @@ alter table if exists players   enable row level security;
 alter table if exists events    enable row level security;
 alter table if exists config    enable row level security;
 
+create unique index if not exists uq_events_pseudo_treasure
+  on events(pseudo, treasure_id);
+
 -- 2) Drop old policies (idempotent)
 drop policy if exists treasures_read_all on treasures;
 drop policy if exists treasures_update_found on treasures;

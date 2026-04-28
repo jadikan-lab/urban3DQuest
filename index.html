@@ -83,6 +83,7 @@
     /* ── Capture FAB ── */
     #captureFab{position:fixed;bottom:calc(42px + 14px);right:18px;padding:16px 24px;min-height:56px;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:16px;font-size:1.05rem;font-weight:800;color:#fff;cursor:pointer;z-index:1000;box-shadow:0 4px 24px rgba(34,197,94,.5);display:none;animation:pulse 1.2s infinite;letter-spacing:0.03em;transition:transform 0.1s}
     #captureFab:active{transform:scale(0.94)}
+    #captureFab:disabled{opacity:0.65;cursor:progress;animation:none;box-shadow:0 2px 10px rgba(34,197,94,.25)}
     /* ── Progress bar ── */
     #progressBar{position:fixed;bottom:0;left:0;right:0;background:#1e293b;border-top:1px solid #334155;padding:8px 16px 12px;z-index:200;display:none;padding-bottom:calc(8px + env(safe-area-inset-bottom))}
     #progressBar .pb-label{display:flex;justify-content:space-between;font-size:0.78rem;color:#94a3b8;margin-bottom:6px}
@@ -847,6 +848,7 @@ function updateRadar() {
 
 async function captureFixed() {
   if (!myPseudo) { _checkinError('Mode invité: connecte-toi pour capturer une balise.'); return; }
+  if (_processingFind) { setFindProgress('⏳ Validation déjà en cours…'); return; }
   if (!nearestFixed) return;
   haptic([50, 30, 50]);
   openQRScanner(nearestFixed.id);
@@ -1205,19 +1207,50 @@ function toggleCompassDebug() {
 
 
 let _processingFind = false;
+let _findProgressMessage = '';
+
+function setFindProgress(msg) {
+  _findProgressMessage = msg || '';
+
+  const fab = document.getElementById('captureFab');
+  if (fab) {
+    const busy = !!_findProgressMessage;
+    fab.disabled = busy;
+    fab.textContent = busy ? '⏳ Validation…' : '📸 Capturer !';
+  }
+
+  const qrOverlay = document.getElementById('qrOverlay');
+  if (qrOverlay && qrOverlay.classList.contains('open') && _findProgressMessage) {
+    const qrStatus = document.getElementById('qrStatus');
+    if (qrStatus) {
+      qrStatus.className = '';
+      qrStatus.textContent = _findProgressMessage;
+    }
+  }
+
+  const bar = document.getElementById('radarBar');
+  if (bar && _findProgressMessage) {
+    bar.textContent = _findProgressMessage;
+    bar.className = 'near';
+  }
+}
 
 async function processFindById(treasureId) {
-  if (_processingFind) return;
+  if (_processingFind) { setFindProgress('⏳ Validation déjà en cours…'); return; }
   _processingFind = true;
+  setFindProgress('⏳ Validation en cours…');
   try {
     await _doProcessFind(treasureId);
   } finally {
     _processingFind = false;
+    setFindProgress('');
+    updateRadar();
   }
 }
 
 async function _doProcessFind(treasureId) {
   if (!myPseudo) { _checkinError('Mode invité: connecte-toi pour valider une balise.'); return; }
+  setFindProgress('📡 Vérification de la balise…');
   // Fetch treasure fresh from DB
   const { data: t, error } = await db.from('treasures').select('*').eq('id', treasureId).single();
   if (error || !t) { _checkinError('Trésor introuvable — il a peut-être été retiré.'); return; }
@@ -1235,29 +1268,55 @@ async function _doProcessFind(treasureId) {
   const refTime = gameStart && gameStart > new Date(t.placed_at) ? gameStart : new Date(t.placed_at);
   const durationSec = Math.max(0, Math.round((Date.now() - refTime.getTime()) / 1000));
 
-  // Update treasure found_by
+  // Update treasure found_by with optimistic lock to prevent double-claim races
+  const previousFoundBy = t.found_by || '';
   const newFoundBy = t.type === 'unique' ? myPseudo : [...foundList, myPseudo].join(',');
   const updatePayload = { found_by: newFoundBy, found_at: new Date().toISOString() };
-  const updateQ = db.from('treasures').update(updatePayload).eq('id', t.id);
-  const { error: updateError, data: updatedRows } = t.type === 'unique'
-    ? await updateQ.eq('found_by', '').select('id')
-    : await updateQ.select('id');
+  setFindProgress('🛡️ Sécurisation de la capture…');
+  const updateQ = db.from('treasures')
+    .update(updatePayload)
+    .eq('id', t.id)
+    .eq('found_by', previousFoundBy);
+  const { error: updateError, data: updatedRows } = await updateQ.select('id');
   if (updateError || !updatedRows || !updatedRows.length) {
-    if (t.type === 'unique') {
-      showFoundResult('taken', t);
-    } else {
-      _checkinError('Validation impossible pour le moment. Réessaie dans quelques secondes.');
-    }
+    const { data: latest } = await db.from('treasures').select('id,type,found_by').eq('id', t.id).single();
+    const latestFoundList = ((latest && latest.found_by) || '').split(',').filter(Boolean);
+    if (latestFoundList.includes(myPseudo)) { showFoundResult('already', t); return; }
+    if (t.type === 'unique' && latestFoundList.length > 0) { showFoundResult('taken', t); return; }
+    _checkinError('Validation impossible pour le moment. Réessaie dans quelques secondes.');
     return;
   }
 
-  // Log event
-  await db.from('events').insert({ pseudo: myPseudo, treasure_id: t.id, treasure_type: t.type, duration_sec: durationSec });
+  // Log event idempotently (dedup by pseudo+treasure_id via DB unique index)
+  const eventPayload = { pseudo: myPseudo, treasure_id: t.id, treasure_type: t.type, duration_sec: durationSec };
+  setFindProgress('🧾 Enregistrement du score…');
+  const { data: eventRows, error: eventError } = await db.from('events')
+    .upsert(eventPayload, { onConflict: 'pseudo,treasure_id', ignoreDuplicates: true })
+    .select('id');
+  if (eventError) {
+    _checkinError('Erreur lors de l\'enregistrement du score. Réessaie.');
+    return;
+  }
+  if (!eventRows || !eventRows.length) {
+    showFoundResult('already', t);
+    return;
+  }
 
-  // Update player score
-  myScore      += durationSec;
-  myFoundCount += 1;
-  await db.from('players').update({ score: myScore, found_count: myFoundCount }).eq('pseudo', myPseudo);
+  // Recompute player score from source-of-truth events for idempotency
+  const [{ count: freshFoundCount, error: countError }, { data: scoreRows, error: scoreError }] = await Promise.all([
+    db.from('events').select('id', { count: 'exact', head: true }).eq('pseudo', myPseudo),
+    db.from('events').select('duration_sec').eq('pseudo', myPseudo)
+  ]);
+  if (countError || scoreError) {
+    _checkinError('Score validé mais actualisation incomplète. Recharge la page si besoin.');
+    return;
+  }
+
+  const freshScore = (scoreRows || []).reduce((acc, row) => acc + Number(row.duration_sec || 0), 0);
+  myScore = freshScore;
+  myFoundCount = Number(freshFoundCount || 0);
+  setFindProgress('🔄 Mise à jour du classement…');
+  await db.from('players').upsert({ pseudo: myPseudo, score: myScore, found_count: myFoundCount }, { onConflict: 'pseudo' });
 
   // Refresh local treasures
   await loadTreasures();

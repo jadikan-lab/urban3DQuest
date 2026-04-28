@@ -43,6 +43,9 @@ create table events (
   duration_sec  bigint
 );
 
+create unique index uq_events_pseudo_treasure
+  on events(pseudo, treasure_id);
+
 -- ── Config ────────────────────────────────────────────
 create table config (
   key   text primary key,
