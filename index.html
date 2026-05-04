@@ -545,7 +545,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.9.1';
+const GAME_VERSION = 'v3.9.2';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -1532,8 +1532,8 @@ async function startLiveQRScan() {
     html5QrInst = new Html5Qrcode('qrReader', { verbose: false });
     document.getElementById('qrReader').style.display = 'block';
     await html5QrInst.start(
-      { facingMode: 'environment' },
-      { fps: 8, qrbox: { width: 200, height: 200 }, aspectRatio: 1.0 },
+      { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
+      { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 },
       async (decodedText) => {
         await stopLiveQRScan();
         await _qrHandleResult(decodedText);
@@ -1541,32 +1541,23 @@ async function startLiveQRScan() {
       () => {}
     );
     status.className = '';
-    status.textContent = '📷 Vise le QR · Tapote si flou';
-    try {
-      const caps = html5QrInst.getRunningTrackCapabilities();
-      if (caps) {
-        if (caps.focusMode && caps.focusMode.includes('continuous')) {
-          await html5QrInst.applyVideoConstraints({ advanced: [{ focusMode: 'continuous' }] });
-        }
-        if (caps.torch) document.getElementById('qrTorchBtn').style.display = 'flex';
-      }
-    } catch(e) {}
-    // Tap-to-refocus : un tap sur la vidéo déclenche une remise au point
-    const readerDiv = document.getElementById('qrReader');
-    readerDiv.addEventListener('click', async () => {
+    status.textContent = '📷 Vise le QR du polaroid';
+    // Appliquer focus continu + zoom 1.5x après stabilisation du stream (1.5s)
+    // focusMode au niveau racine (pas dans advanced) = requis sur Android Chrome
+    // zoom 1.5x = permet de scanner à 20-25cm sans problème de mise au point
+    setTimeout(async () => {
       if (!html5QrInst) return;
       try {
         const caps = html5QrInst.getRunningTrackCapabilities();
         if (!caps) return;
-        if (caps.focusMode && caps.focusMode.includes('single-shot')) {
-          await html5QrInst.applyVideoConstraints({ advanced: [{ focusMode: 'single-shot' }] });
-          await new Promise(r => setTimeout(r, 300));
-        }
-        if (caps.focusMode && caps.focusMode.includes('continuous')) {
-          await html5QrInst.applyVideoConstraints({ advanced: [{ focusMode: 'continuous' }] });
-        }
+        const constraints = {};
+        if (caps.focusMode && caps.focusMode.includes('continuous')) constraints.focusMode = 'continuous';
+        const maxZoom = caps.zoom ? caps.zoom.max : null;
+        if (maxZoom && maxZoom >= 1.5) constraints.advanced = [{ zoom: 1.5 }];
+        if (Object.keys(constraints).length) await html5QrInst.applyVideoConstraints(constraints);
+        if (caps.torch) document.getElementById('qrTorchBtn').style.display = 'flex';
       } catch(e) {}
-    }, { passive: true });
+    }, 1500);
   } catch(err) {
     html5QrInst = null;
     status.textContent = '⚠️ Caméra refusée. Utilise la photo de secours.';
