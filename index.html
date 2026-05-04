@@ -143,13 +143,14 @@
     .my-card-done{height:100%;background:linear-gradient(90deg,#22c55e,#16a34a);border-radius:4px}
     .lb-divider{font-size:0.68rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:.1em;text-align:center;padding:6px 0 8px;font-family:var(--mono)}
     /* ── Modal trésor trouvé ── */
-    #foundModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:700;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+    #foundModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:700;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
     #foundModal.open{display:flex}
-    .found-box{background:var(--surface);border-radius:24px;padding:32px 26px;width:100%;max-width:400px;text-align:center;border:1px solid var(--line-2);animation:foundPop 0.38s cubic-bezier(.34,1.56,.64,1)}
-    .found-box h2{font-size:1.35rem;font-weight:800;margin-bottom:8px}
-    .found-box p{font-size:0.9rem;color:var(--ink-2);margin-bottom:20px;line-height:1.6}
-    .found-box .duration{font-size:1.9rem;font-weight:800;color:#4ade80;margin-bottom:8px}
-    .found-emoji{font-size:3.8rem;margin-bottom:12px;display:block;animation:bounceIn 0.5s cubic-bezier(.34,1.56,.64,1) 0.2s both}
+    .found-box{background:var(--surface);border-radius:var(--radius-lg);padding:28px 24px;width:100%;max-width:400px;text-align:center;border:1px solid rgba(255,61,138,0.3);box-shadow:0 0 0 1px rgba(255,61,138,0.1),0 8px 48px rgba(255,61,138,0.15);animation:foundPop 0.38s cubic-bezier(.34,1.56,.64,1)}
+    .found-label{font-family:var(--mono);font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.12em;color:var(--magenta);margin-bottom:6px}
+    .found-box h2{font-size:1.2rem;font-weight:800;margin-bottom:6px;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.03em}
+    .found-box p{font-size:0.88rem;color:var(--ink-2);margin-bottom:16px;line-height:1.6}
+    .found-box .duration{font-size:1.7rem;font-weight:800;color:#4ade80;margin-bottom:6px;font-family:var(--mono)}
+    .found-emoji{font-size:2.8rem;margin-bottom:10px;display:block;animation:bounceIn 0.5s cubic-bezier(.34,1.56,.64,1) 0.2s both}
     /* ── Pause screen ── */
     #pauseScreen{display:none;position:fixed;inset:0;background:rgba(5,6,16,.97);z-index:800;align-items:center;justify-content:center;text-align:center;flex-direction:column;gap:16px}
     #pauseScreen.open{display:flex;animation:fadeInFast 0.3s ease}
@@ -301,14 +302,16 @@
 <!-- ── Found modal ───────────────────────────────────── -->
 <div id="foundModal">
   <div class="found-box">
-    <img id="foundPhoto" style="width:100%;max-height:180px;object-fit:cover;border-radius:12px;margin-bottom:12px;display:none" alt="photo du trésor">
-    <div id="foundPhotoStrip" style="display:none;margin-bottom:12px"></div>
-    <div class="found-emoji" id="foundEmoji">🎉</div>
+    <img id="foundPhoto" style="width:100%;max-height:160px;object-fit:cover;border-radius:10px;margin-bottom:10px;display:none" alt="photo du trésor">
+    <div id="foundPhotoStrip" style="display:none;margin-bottom:10px"></div>
+    <div class="found-emoji" id="foundEmoji">🎁</div>
+    <div class="found-label" id="foundLabel">RÉSULTAT</div>
     <h2 id="foundTitle">Trésor trouvé !</h2>
     <div class="duration" id="foundDuration"></div>
     <p id="foundDesc"></p>
-    <button class="btn-main" id="foundRetryBtn" style="display:none;margin-bottom:8px;background:var(--surface);border:1px solid var(--line-2)" onclick="_retryCheckin()">🔄 Réessayer</button>
-    <button class="btn-main" aria-label="Continuer le jeu" onclick="closeFound()">✅ Continuer</button>
+    <hr class="lp-line">
+    <button class="btn-main" id="foundRetryBtn" style="display:none;margin-bottom:8px;background:transparent;border:1px solid var(--line-2)" onclick="_retryCheckin()">Réessayer</button>
+    <button class="btn-primary" aria-label="Continuer le jeu" onclick="closeFound()">Continuer</button>
   </div>
 </div>
 
@@ -1391,10 +1394,11 @@ async function _doProcessFind(treasureId) {
 
 function showFoundResult(status, t, durationSec) {
   const modal = document.getElementById('foundModal');
-  const emoji = document.getElementById('foundEmoji');
-  const title = document.getElementById('foundTitle');
-  const dur   = document.getElementById('foundDuration');
-  const desc  = document.getElementById('foundDesc');
+  const emoji  = document.getElementById('foundEmoji');
+  const label  = document.getElementById('foundLabel');
+  const title  = document.getElementById('foundTitle');
+  const dur    = document.getElementById('foundDuration');
+  const desc   = document.getElementById('foundDesc');
 
   // Show photos if available and found
   const photoStrip = document.getElementById('foundPhotoStrip');
@@ -1411,6 +1415,7 @@ function showFoundResult(status, t, durationSec) {
   if (status === 'success') {
     if (t.type === 'fixed') {
       emoji.textContent = '✅';
+      label.textContent = 'BALISE CAPTURÉE';
       title.textContent = `"${tLabel(t)}" capturée !`;
       dur.textContent   = '';
       // Compte combien de fixes il reste
@@ -1433,17 +1438,20 @@ function showFoundResult(status, t, durationSec) {
       }
     } else {
       emoji.textContent = '🎁';
+      label.textContent = 'TRÉSOR DÉCOUVERT';
       title.textContent = `"${tLabel(t)}" trouvé !`;
       dur.textContent   = formatDuration(durationSec);
       desc.textContent  = 'Bravo ! Tu es le premier à l\'avoir récupéré.';
     }
   } else if (status === 'already') {
     emoji.textContent = '🔄';
+    label.textContent = 'DÉJÀ SCANNÉ';
     title.textContent = 'Déjà trouvé !';
     dur.textContent   = '';
     desc.textContent  = 'Tu as déjà scanné ce trésor.';
   } else {
     emoji.textContent = '🔒';
+    label.textContent = 'TROP TARD';
     title.textContent = 'Trop tard !';
     dur.textContent   = '';
     desc.textContent  = 'Ce trésor unique a déjà été récupéré par quelqu\'un d\'autre.';
