@@ -55,14 +55,7 @@
     .t-meta{font-size:0.68rem;color:#475569;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .t-actions{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:8px}
     .t-actions button{padding:6px 2px;border:none;border-radius:7px;cursor:pointer;font-size:0.68rem;font-weight:600;text-align:center}
-    .a-qr{background:#172554;color:#93c5fd}
-    .a-tog{background:#052e16;color:#4ade80}
-    .a-del{background:#450a0a;color:#f87171}
-    .a-rst{background:#422006;color:#fb923c}
-    .a-mov{background:#1c3351;color:#7dd3fc}
-    .a-ren{background:#1e3a2f;color:#86efac}
-    .a-pho{background:#2d1b69;color:#c4b5fd}
-    .a-qst{background:#1a2e1a;color:#86efac;border:1px solid #166534!important}
+
     .t-hint{font-size:0.72rem;color:#93c5fd;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .t-icon-row{display:flex;gap:3px;margin-top:8px;flex-wrap:wrap}
     .t-ico{flex:1;min-width:26px;padding:5px 2px;border:1px solid #334155;border-radius:7px;cursor:pointer;font-size:0.95rem;background:#0f172a;text-align:center;line-height:1}
@@ -374,7 +367,6 @@ async function init(){
     if(idx!==undefined&&navBtns[idx])showTab(savedTab,navBtns[idx]);
   }
 }
-async function loadQuests(){var res=await db.from('config').select('value').eq('key','quests').single();if(res.data&&res.data.value){try{questList=JSON.parse(res.data.value);}catch(e){questList=[];}}else{questList=[];}var ra=await db.from('config').select('value').eq('key','activeQuests').single();if(ra.data&&ra.data.value){try{activeQuests=JSON.parse(ra.data.value);}catch(e){activeQuests=[];}}else{var old=await db.from('config').select('value').eq('key','activeQuest').single();var ov=(old.data&&old.data.value)||'';activeQuests=ov?[ov]:[];}populateQuestSelectors();}
 function populateQuestSelectors(){var configs=[{id:'fQuestSelect',first:'— Sans quête —'},{id:'filterQuestFixed',first:'Toutes les quêtes'},{id:'filterQuestUnique',first:'Toutes les quêtes'},{id:'filterQuestQr',first:'Toutes les quêtes'},{id:'filterQuestMap',first:'Toutes les quêtes'},{id:'qrNewQuest',first:'— Aucune quête —'}];configs.forEach(function(c){var sel=document.getElementById(c.id);if(!sel)return;var cur=sel.value;while(sel.options.length>1)sel.remove(1);questList.forEach(function(q){var opt=document.createElement('option');opt.value=q;opt.textContent=q;sel.appendChild(opt);});if(cur)sel.value=cur;});document.getElementById('questField').style.display=questList.length?'block':'none';renderQuestListAdmin();}
 function renderQuestListAdmin(){var el=document.getElementById('questListAdmin');if(!questList.length){el.innerHTML='<p style="font-size:0.78rem;color:#475569">Aucune quête définie.</p>';return;}el.innerHTML=questList.map(function(q,i){var on=activeQuests.indexOf(q)>=0;var qEsc=escHtml(q);var msg=escHtml(rewardMessages[q]||'');return '<div style="background:#0f172a;border:1px solid #1e293b;border-radius:10px;margin-bottom:8px;overflow:hidden">'+'<div style="display:flex;align-items:center;gap:8px;padding:8px 10px">'+'<button onclick="toggleQuestActive(\'' + q.replace(/'/g,"\\'") + '\')" title="'+(on?'Désactiver':'Activer')+' pour les joueurs" style="font-size:1.1rem;background:none;border:none;cursor:pointer;padding:0;line-height:1">'+(on?'🟢':'⚫')+'</button>'+'<span style="flex:1;font-size:0.85rem;font-weight:600">'+qEsc+'</span>'+'<button onclick="renameQuest('+i+')" title="Renommer" style="padding:4px 8px;background:#1e293b;border:1px solid #334155;border-radius:6px;color:#93c5fd;cursor:pointer;font-size:0.75rem">✏️</button>'+'<button onclick="deleteQuest('+i+')" style="padding:4px 10px;background:#450a0a;border:none;border-radius:6px;color:#f87171;cursor:pointer;font-size:0.75rem">🗑</button>'+'</div>'+'<div style="padding:0 10px 8px">'+'<input type="text" id="rewardMsg_'+i+'" data-quest="'+qEsc+'" value="'+msg+'" placeholder="Message récompense quand tous les fixes sont trouvés..." '+'style="width:100%;padding:7px 10px;background:#1e293b;border:1px solid #334155;border-radius:7px;color:#f1f5f9;font-size:0.78rem;box-sizing:border-box" '+'oninput="rewardMessages[this.dataset.quest]=this.value">'+'</div>'+'</div>';}).join('');}
 async function addQuest(){var inp=document.getElementById('newQuestName');var name=inp.value.trim();if(!name)return;if(questList.indexOf(name)>=0){alert('Cette quête existe déjà.');return;}questList.push(name);inp.value='';await db.from('config').upsert({key:'quests',value:JSON.stringify(questList)});populateQuestSelectors();}
@@ -396,7 +388,7 @@ async function saveTreasure(){var btn=document.getElementById('saveBtn');var st=
   btn.disabled=false;btn.textContent='Enregistrer le tresor';if(res.error){showStatus(st,'err','Erreur: '+res.error.message);return;}showStatus(st,'ok',label+' enregistre'+(uploadedUrls.length?' avec '+uploadedUrls.length+' photo(s)':'')+'!');showQR(id,label,currentType);document.getElementById('fLabel').value='';document.getElementById('fHint').value='';document.getElementById('fQrNum').value='';document.getElementById('fQrSelect').value='';document.getElementById('fQrNum').style.display='none';document.getElementById('photoInput').value='';photoDataUrls=[];renderPhotoStrip();loadQrLov();}
 async function loadTreasureList(type,elId){var el=document.getElementById(elId);el.innerHTML='<p style="color:#475569;text-align:center;padding:40px">Chargement</p>';var filterId=type==='fixed'?'filterQuestFixed':'filterQuestUnique';var questFilter=document.getElementById(filterId)?document.getElementById(filterId).value:'';var q=db.from('treasures').select('*').eq('type',type);if(questFilter)q=q.eq('quest',questFilter);var res=await q.order('placed_at',{ascending:false});if(res.error){el.innerHTML='<p style="color:#f87171;padding:16px">'+escHtml(res.error.message)+'</p>';return;}if(!res.data.length){el.innerHTML='<p style="color:#475569;text-align:center;padding:40px">Aucun trésor'+(questFilter?' pour cette quête':'')+' pour l\'instant</p>';return;}var cards=res.data.map(function(t){var found=t.found_by&&t.found_by.length>0;var date=new Date(t.placed_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'short'});var sl=(t.label||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');var photos=getPhotoUrls(t.photo_url);var safePhoto=safeImgUrl(photos[0]||'');// Photo pleine largeur
   var photoHtml=safePhoto?'<img src="'+escHtml(safePhoto)+'" style="width:100%;height:80px;object-fit:cover;border-radius:7px;margin-bottom:6px;display:block" loading="lazy">':'';
-  var questBadge=t.quest?'<span style="background:#1c3351;color:#7dd3fc;font-size:0.6rem;font-weight:600;padding:2px 5px;border-radius:7px">'+escHtml(t.quest)+'</span>':'';
+  var questBadge=t.quest?'<span data-quest-badge="" style="background:#1c3351;color:#7dd3fc;font-size:0.6rem;font-weight:600;padding:2px 5px;border-radius:7px">'+escHtml(t.quest)+'</span>':'';
     // Compteur joueurs pour balises fixes (trouvées par plusieurs)
     var fixedFoundCount=t.type==='fixed'&&t.found_by?t.found_by.split(',').filter(Boolean).length:0;
     var fixedCountHtml=fixedFoundCount?'<span style="color:#4ade80;font-size:0.65rem;font-weight:700">👥 '+fixedFoundCount+'</span>':'';
@@ -715,32 +707,18 @@ async function saveQuestModal(){
   var newQuest=document.getElementById('questModalSelect').value;
   var st=document.getElementById('questModalStatus');
   st.style.color='#94a3b8';st.textContent='Enregistrement…';
-  try {
-    var controller=new AbortController();
-    var timer=setTimeout(function(){controller.abort();},8000);
-    var patchRes=await fetch(SUPABASE_URL+'/rest/v1/treasures?id=eq.'+encodeURIComponent(id),{
-      method:'PATCH',
-      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
-      body:JSON.stringify({quest:newQuest}),
-      signal:controller.signal
-    });
-    clearTimeout(timer);
-    if(!patchRes.ok){
-      var errTxt=await patchRes.text();
-      st.style.color='#f87171';st.textContent='Erreur HTTP '+patchRes.status+' : '+errTxt;
-      return;
-    }
-  } catch(e) {
-    st.style.color='#f87171';st.textContent='Erreur réseau : '+(e.message||e);
+  var res=await db.from('treasures').update({quest:newQuest||null}).eq('id',id);
+  if(res.error){
+    st.style.color='#f87171';st.textContent='Erreur : '+res.error.message;
     return;
   }
   // Mise à jour DOM
   var card=document.getElementById('lbl_'+id)?.closest('.t-card');
   if(card){
     var head=card.querySelector('.t-head');
-    var old=head?.querySelector('.badge[style*="7dd3fc"]');
+    var old=head?.querySelector('[data-quest-badge]');
     if(old)old.remove();
-    if(newQuest&&head){var sp=document.createElement('span');sp.className='badge';sp.style.cssText='background:#1c3351;color:#7dd3fc;font-size:0.6rem';sp.textContent=newQuest;head.insertBefore(sp,head.firstChild);}
+    if(newQuest&&head){var sp=document.createElement('span');sp.setAttribute('data-quest-badge','');sp.className='badge';sp.style.cssText='background:#1c3351;color:#7dd3fc;font-size:0.6rem';sp.textContent=newQuest;head.insertBefore(sp,head.firstChild);}
   }
   st.style.color='#4ade80';st.textContent='✅ Quête mise à jour !';
   setTimeout(closeQuestModal,800);

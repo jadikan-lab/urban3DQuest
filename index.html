@@ -297,8 +297,10 @@ let playerAccuracy = null; // GPS accuracy in meters
 let gpsHistory   = []; // last N positions for smoothing
 let nearestFixed = null;
 let lbInterval   = null;
-let geoWatch     = null;
-let lastHapticZone = null;
+let geoWatch        = null;
+let playerMarker    = null; // GPS position marker on miniMap
+let accuracyCircle  = null; // GPS accuracy circle on miniMap
+let lastHapticZone  = null;
 let directionLayers = []; // arrow markers on minimap
 let compassArrowMode = true; // toggle: show direction arrows on minimap
 let mapFollowing = true; // true = map follows GPS, false = user is panning freely
@@ -594,6 +596,9 @@ async function loadTreasures() {
   } else {
     treasures = data;
   }
+  // Sync fixedTotal from actual DB count — stays accurate even if config key 'fixedTotal' is stale
+  const actualFixed = treasures.filter(t => t.type === 'fixed').length;
+  if (actualFixed > 0) fixedTotal = actualFixed;
 }
 
 // ── Map ──────────────────────────────────────────────
@@ -691,8 +696,7 @@ function startGeoWatch() {
     document.getElementById('radarBar').textContent = '📍 GPS non disponible sur cet appareil';
     return;
   }
-  let playerMarker = null;
-  let accuracyCircle = null;
+  if (geoWatch !== null) return; // already watching
   geoWatch = navigator.geolocation.watchPosition(pos => {
     // Smooth GPS: keep last 5 positions, weighted average
     gpsHistory.push({ lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy });
@@ -800,7 +804,7 @@ function updateRadar() {
   const fab = document.getElementById('captureFab');
 
   if (!myPseudo) {
-    bar.textContent = '👀 Mode invité — exploration carte uniquement';
+    bar.textContent = '👀 Mode invité — carte visible · pas de score · tape en haut pour jouer';
     bar.className = '';
     fab.style.display = 'none';
     nearestFixed = null;
@@ -1567,11 +1571,17 @@ document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
     if (lbInterval) { clearInterval(lbInterval); lbInterval = null; }
     stopCompassInterval();
+    if (geoWatch !== null) { navigator.geolocation.clearWatch(geoWatch); geoWatch = null; }
   } else {
+    startGeoWatch();
     if (myPseudo || activeTab === 'scores') startLbPolling();
     if (activeTab === 'explore') startCompassInterval();
     updateRadar();
   }
+});
+
+window.addEventListener('beforeunload', () => {
+  if (geoWatch !== null) navigator.geolocation.clearWatch(geoWatch);
 });
 
 // ── Tabs ─────────────────────────────────────────────
