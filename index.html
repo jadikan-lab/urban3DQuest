@@ -545,7 +545,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.9.0';
+const GAME_VERSION = 'v3.9.1';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -1541,17 +1541,32 @@ async function startLiveQRScan() {
       () => {}
     );
     status.className = '';
-    status.textContent = '📷 Vise le code QR du polaroid';
+    status.textContent = '📷 Vise le QR · Tapote si flou';
     try {
       const caps = html5QrInst.getRunningTrackCapabilities();
       if (caps) {
-        const constraints = {};
-        if (caps.focusMode && caps.focusMode.includes('continuous')) constraints.focusMode = 'continuous';
-        if (caps.focusDistance) constraints.focusDistance = caps.focusDistance.min;
-        if (Object.keys(constraints).length) await html5QrInst.applyVideoConstraints({ advanced: [constraints] });
+        if (caps.focusMode && caps.focusMode.includes('continuous')) {
+          await html5QrInst.applyVideoConstraints({ advanced: [{ focusMode: 'continuous' }] });
+        }
         if (caps.torch) document.getElementById('qrTorchBtn').style.display = 'flex';
       }
     } catch(e) {}
+    // Tap-to-refocus : un tap sur la vidéo déclenche une remise au point
+    const readerDiv = document.getElementById('qrReader');
+    readerDiv.addEventListener('click', async () => {
+      if (!html5QrInst) return;
+      try {
+        const caps = html5QrInst.getRunningTrackCapabilities();
+        if (!caps) return;
+        if (caps.focusMode && caps.focusMode.includes('single-shot')) {
+          await html5QrInst.applyVideoConstraints({ advanced: [{ focusMode: 'single-shot' }] });
+          await new Promise(r => setTimeout(r, 300));
+        }
+        if (caps.focusMode && caps.focusMode.includes('continuous')) {
+          await html5QrInst.applyVideoConstraints({ advanced: [{ focusMode: 'continuous' }] });
+        }
+      } catch(e) {}
+    }, { passive: true });
   } catch(err) {
     html5QrInst = null;
     status.textContent = '⚠️ Caméra refusée. Utilise la photo de secours.';
