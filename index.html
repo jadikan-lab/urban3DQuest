@@ -550,7 +550,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.7.0';
+const GAME_VERSION = 'v3.8.0';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -614,7 +614,7 @@ function initEnvUI() {
   if (SUPABASE_ENV.name !== 'stg') return;
   document.body.classList.add('env-stg');
   const banner = document.getElementById('envBanner');
-  if (banner) banner.textContent = 'PREPROD STG · BASE DE TEST';
+  if (banner) banner.textContent = 'PREPROD STG ' + GAME_VERSION + ' · BASE DE TEST';
 }
 
 initEnvUI();
