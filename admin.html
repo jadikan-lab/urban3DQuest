@@ -679,10 +679,12 @@ async function downloadQrZip(){var btn=document.getElementById('zipBtn');var ids
 async function loadQrLov(){var generated=JSON.parse(localStorage.getItem('u3dq_qr_generated')||'[]');var sel=document.getElementById('fQrSelect');var info=document.getElementById('fQrInfo');sel.innerHTML='<option value="">— Aucun QR (ID auto) —</option>';var manOpt=document.createElement('option');manOpt.value='__manual__';manOpt.textContent='✏️ Saisir manuellement';sel.appendChild(manOpt);if(!generated.length){info.textContent='Aucun QR généré — allez dans l\'onglet QR pour en créer';info.style.color='#fb923c';return;}var res=await db.from('treasures').select('id');var used=new Set((res.data||[]).map(function(t){return t.id;}));var available=generated.filter(function(id){return!used.has(id);});var metaLov=JSON.parse(localStorage.getItem('u3dq_qr_meta')||'{}');available.forEach(function(id,idx){var opt=document.createElement('option');opt.value=id;var m=metaLov[id]||{};var suffix=(m.quest?' ['+m.quest+']':'')+(m.objet?' — '+m.objet:'');opt.textContent=(idx===0?'⬆ PROCHAIN : ':'')+id+suffix;sel.appendChild(opt);});var total=generated.length;info.textContent=available.length+' QR disponibles sur '+total+' générés'+(available.length===0?' — tous déjà posés':'');info.style.color=available.length===0?'#fb923c':'#475569';if(available.length>0){sel.value=available[0];document.getElementById('fQrNum').style.display='none';}}
 function onQrSelectChange(){var v=document.getElementById('fQrSelect').value;var inp=document.getElementById('fQrNum');if(v==='__manual__'){inp.style.display='block';inp.focus();}else{inp.style.display='none';inp.value=v;}}
 var _questTargetId=null;
+var _questTargetBtn=null;
 function changeQuest(btn){
   var id=btn.dataset.tid;
   var currentQuest=btn.dataset.quest||'';
   _questTargetId=id;
+  _questTargetBtn=btn;
   var sub=document.getElementById('questModalLabel');
   sub.textContent='Balise : '+( document.getElementById('lbl_'+id)?.textContent||id );
   var sel=document.getElementById('questModalSelect');
@@ -715,11 +717,13 @@ async function saveQuestModal(){
   // Mise à jour DOM
   var card=document.getElementById('lbl_'+id)?.closest('.t-card');
   if(card){
-    var head=card.querySelector('.t-head');
-    var old=head?.querySelector('[data-quest-badge]');
+    var meta=card.querySelector('.t-meta');
+    var old=meta?.querySelector('[data-quest-badge]');
     if(old)old.remove();
-    if(newQuest&&head){var sp=document.createElement('span');sp.setAttribute('data-quest-badge','');sp.className='badge';sp.style.cssText='background:#1c3351;color:#7dd3fc;font-size:0.6rem';sp.textContent=newQuest;head.insertBefore(sp,head.firstChild);}
+    if(newQuest&&meta){var sp=document.createElement('span');sp.setAttribute('data-quest-badge','');sp.style.cssText='background:#1c3351;color:#7dd3fc;font-size:0.6rem;font-weight:600;padding:2px 5px;border-radius:7px';sp.textContent=newQuest;meta.insertBefore(sp,meta.firstChild);}
   }
+  // Met à jour l'attribut du bouton pour la prochaine ouverture du modal
+  if(_questTargetBtn)_questTargetBtn.dataset.quest=newQuest;
   st.style.color='#4ade80';st.textContent='✅ Quête mise à jour !';
   setTimeout(closeQuestModal,800);
 }
