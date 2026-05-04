@@ -386,7 +386,7 @@
 <div id="envBanner">Preprod STG · Base de test</div>
 <header>
   <h1>🏙 Urban3DQuest</h1>
-  <span id="modeChip" class="mode-fixed">📌 Balises</span>
+  <span id="modeChip" class="mode-fixed">� La Série</span>
   <span id="gpsChip" title="Précision GPS">
     <span id="gpsDot"></span>
     <span id="gpsLabel">GPS…</span>
@@ -400,11 +400,11 @@
   </button>
   <button aria-label="Balises" role="tab" aria-selected="false" id="navBalises" onclick="showTab('balises',this)">
     <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2C7.686 2 5 4.8 5 8.2c0 4.8 6 11.8 6 11.8s6-7 6-11.8C17 4.8 14.314 2 11 2z"/><circle cx="11" cy="8" r="2.2"/></svg></span>
-    <span class="nav-label">Balises</span>
+    <span class="nav-label">La Série</span>
   </button>
   <button aria-label="Carnet" role="tab" aria-selected="false" id="navCarnet" onclick="showTab('carnet',this)">
     <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="14" height="18" rx="2"/><line x1="8" y1="7" x2="14" y2="7"/><line x1="8" y1="11" x2="14" y2="11"/><line x1="8" y1="15" x2="11" y2="15"/></svg></span>
-    <span class="nav-label">Carnet</span>
+    <span class="nav-label">Collection</span>
   </button>
   <button aria-label="Classement" role="tab" aria-selected="false" id="navScores" onclick="showTab('scores',this)">
     <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="12" width="5" height="8" rx="1"/><rect x="8.5" y="7" width="5" height="13" rx="1"/><rect x="15" y="3" width="5" height="17" rx="1"/></svg></span>
@@ -416,15 +416,15 @@
   </button>
 </nav>
 <div id="gameModeBar">
-  <button id="modeFixedBtn" class="gm-btn gm-fixed active" onclick="setGameMode('fixed')">📌 Mission Balises</button>
-  <button id="modeUniqueBtn" class="gm-btn gm-unique" onclick="setGameMode('unique')">🎁 Chasse Trésors</button>
+  <button id="modeFixedBtn" class="gm-btn gm-fixed active" onclick="setGameMode('fixed')">� La Série</button>
+  <button id="modeUniqueBtn" class="gm-btn gm-unique" onclick="setGameMode('unique')">⚡ Le Déclic</button>
 </div>
-<div id="gameModeHint">Valide des points de passage avec QR pour progresser.</div>
+<div id="gameModeHint">Complète le parcours, un polaroid après l'autre.</div>
 
 <!-- ── Explorer (carte + boussole fusionnées) ────────── -->
 <div id="panelExplore" class="panel active">
   <div id="miniMap" style="position:relative">
-    <button id="arrowToggleBtn" onclick="toggleCompassArrows()" style="position:absolute;bottom:14px;right:10px;z-index:1000;background:rgba(255,255,255,.9);border:1.5px solid var(--line-2);border-radius:12px;color:var(--ink);font-size:0.75rem;font-weight:700;padding:7px 12px;cursor:pointer;backdrop-filter:blur(6px)">Balises fixes</button>
+    <button id="arrowToggleBtn" onclick="toggleCompassArrows()" style="position:absolute;bottom:14px;right:10px;z-index:1000;background:rgba(255,255,255,.9);border:1.5px solid var(--line-2);border-radius:12px;color:var(--ink);font-size:0.75rem;font-weight:700;padding:7px 12px;cursor:pointer;backdrop-filter:blur(6px)">Polaroids</button>
     <button id="locateMeBtn" onclick="recenterMap()" style="position:absolute;bottom:14px;left:10px;z-index:1000;background:rgba(255,255,255,.9);border:1.5px solid var(--line-2);border-radius:12px;color:var(--ink-2);font-size:1.1rem;padding:7px 11px;cursor:pointer;backdrop-filter:blur(6px);display:none" title="Recentrer sur ma position"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="10" r="2.5" fill="currentColor"/><line x1="10" y1="1" x2="10" y2="4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="10" y1="15.5" x2="10" y2="19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="1" y1="10" x2="4.5" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="15.5" y1="10" x2="19" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
     <button id="compassPermBtn" onclick="requestCompassPermission()" style="display:none;position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1000;padding:8px 16px;background:linear-gradient(135deg,#3b82f6,#6366f1);border:none;border-radius:12px;color:#fff;font-size:0.82rem;font-weight:700;cursor:pointer;backdrop-filter:blur(6px)">🧭 Activer le compas (iOS)</button>
     <div id="compassDebug" style="display:none;position:absolute;top:10px;left:10px;z-index:1000;font-size:0.68rem;color:var(--ink-2);line-height:1.6;padding:8px 12px;background:rgba(255,255,255,.92);border-radius:8px;max-width:220px;border:1px solid var(--line-2)"></div>
@@ -450,7 +450,7 @@
 <!-- ── Carnet ─────────────────────────────────────── -->
 <div id="panelCarnet" class="panel">
   <div class="cn-header">
-    <span class="cn-header-title">Journal d’expédition</span>
+    <span class="cn-header-title">Ma collection</span>
     <span class="cn-header-count" id="carnetCount"></span>
   </div>
   <div id="carnetList"></div>
@@ -461,7 +461,7 @@
 <!-- ── Balises ─────────────────────────────────────── -->
 <div id="panelBalises" class="panel">
   <div class="bl-header">
-    <div class="bl-header-top">Balises fixées</div>
+    <div class="bl-header-top">La Série</div>
     <div class="bl-header-count" id="balisesCount">—</div>
   </div>
   <div id="balisList"></div>
@@ -485,12 +485,12 @@
 <div id="radarBar"></div>
 
 <!-- ── Capture FAB (balises fixes GPS) ──────────────── -->
-<button id="captureFab" onclick="captureFixed()" aria-label="Capturer la balise fixe">📸 Capturer !</button>
+<button id="captureFab" onclick="captureFixed()" aria-label="Révéler ce polaroid">📷 Révéler ce polaroid</button>
 
 <!-- ── Progress bar ──────────────────────────────────── -->
 <div id="progressBar">
   <div class="pb-label">
-    <span>🎯 Balises fixes trouvées</span>
+    <span>📷 Polaroids révélés</span>
     <strong id="pbCount">0 / 5</strong>
   </div>
   <div class="pb-track"><div class="pb-fill" id="pbFill" style="width:0%"></div></div>
@@ -501,9 +501,9 @@
   <div class="found-box">
     <img id="foundPhoto" style="width:100%;max-height:160px;object-fit:cover;border-radius:10px;margin-bottom:10px;display:none" alt="photo du trésor">
     <div id="foundPhotoStrip" style="display:none;margin-bottom:10px"></div>
-    <div class="found-emoji" id="foundEmoji">🎁</div>
-    <div class="found-label" id="foundLabel">RÉSULTAT</div>
-    <h2 id="foundTitle">Trésor trouvé !</h2>
+    <div class="found-emoji" id="foundEmoji">📷</div>
+    <div class="found-label" id="foundLabel">RÉVÉLATION</div>
+    <h2 id="foundTitle">Polaroid révélé !</h2>
     <div class="duration" id="foundDuration"></div>
     <p id="foundDesc"></p>
     <hr class="lp-line">
@@ -518,16 +518,16 @@
   <canvas id="qrWorkCanvas"></canvas>
   <div id="qrUI">
     <div style="font-size:2.5rem">📷</div>
-    <div id="qrStatus">Scan en direct recommandé, photo en secours.</div>
+    <div id="qrStatus">Vise le polaroid pour le révéler.</div>
     <div id="qrVideoWrap"><video id="qrVideo" playsinline muted></video><div id="qrGuide"></div></div>
-    <button id="qrLiveBtn" onclick="startLiveQRScan()">📡 Scanner en direct</button>
+    <button id="qrLiveBtn" onclick="startLiveQRScan()">� Révéler en direct</button>
     <button id="qrTorchBtn" onclick="toggleQRTorch()">💡 Lampe</button>
     <div id="qrPreviewWrap"><img id="qrPreviewImg" alt="preview"></div>
     <label id="qrPhotoBtn">
-      📷 Prendre une photo (secours)
+      📷 Photo du polaroid (secours)
       <input type="file" accept="image/*" capture="environment" id="qrFileInput" style="display:none">
     </label>
-    <div id="qrTips" style="font-size:0.86rem;color:var(--ink-2);display:none;max-width:380px;text-align:center">Astuce: rapproche-toi du QR, évite les reflets et assure-toi qu'il occupe une bonne part de l'image. Si le scan direct ne démarre pas, utilise la photo de secours.</div>
+    <div id="qrTips" style="font-size:0.86rem;color:var(--ink-2);display:none;max-width:380px;text-align:center">Astuce : rapproche-toi du polaroid, évite les reflets et assure-toi qu'il occupe bien l'image. Si le scan direct ne démarre pas, utilise la photo de secours.</div>
     <button id="qrCloseBtn" onclick="closeQRScanner()" aria-label="Annuler le scan QR">✕ Annuler</button>
   </div>
 </div>
@@ -887,13 +887,13 @@ function _doCheckin() {
   // Cas 1 : ID spécifique (QR par balise)
   if (targetId && targetId !== '1') {
     const t = treasures.find(t => t.id === targetId);
-    if (!t) { _checkinError('Balise introuvable — elle a peut-être été retirée.'); return; }
+    if (!t) { _checkinError('Polaroid introuvable — il a peut-être été retiré.'); return; }
     if (t.found_by && t.found_by.split(',').includes(myPseudo)) {
-      _checkinError('Tu as déjà validé cette balise ! 📌'); return;
+      _checkinError('Tu as déjà révélé ce polaroid. 📷'); return;
     }
     const dist = haversine(playerLat, playerLng, t.lat, t.lng);
     if (dist > proximityR) {
-      _checkinError(`Tu es à ${Math.round(dist)}m de "${tLabel(t)}" — trop loin pour valider.\nApproche-toi à moins de ${proximityR}m.`, t.id);
+      _checkinError(`Tu es à ${Math.round(dist)}m de "${tLabel(t)}" — trop loin pour révéler.\nApproche-toi à moins de ${proximityR}m.`, t.id);
       return;
     }
     processFindById(t.id);
@@ -906,12 +906,12 @@ function _doCheckin() {
     if (t.found_by && t.found_by.split(',').includes(myPseudo)) return false;
     return true;
   });
-  if (!candidates.length) { _checkinError('Tu as déjà trouvé toutes les balises fixes ! 🏆'); return; }
+  if (!candidates.length) { _checkinError('Tu as révélé tous les polaroids ! 🏆'); return; }
   const nearest = candidates
     .map(t => ({ ...t, dist: haversine(playerLat, playerLng, t.lat, t.lng) }))
     .sort((a, b) => a.dist - b.dist)[0];
   if (nearest.dist > proximityR) {
-    _checkinError(`Tu es à ${Math.round(nearest.dist)}m — trop loin pour valider.\nApproche-toi à moins de ${proximityR}m.`, nearest.id);
+    _checkinError(`Tu es à ${Math.round(nearest.dist)}m — trop loin pour révéler.\nApproche-toi à moins de ${proximityR}m.`, nearest.id);
     return;
   }
   processFindById(nearest.id);
@@ -921,7 +921,7 @@ let _lastCheckinId = null; // pour le bouton Réessayer
 
 function _checkinError(msg, retryId) {
   document.getElementById('foundEmoji').textContent = '📍';
-  document.getElementById('foundTitle').textContent = 'QR scanné !';
+  document.getElementById('foundTitle').textContent = 'Polaroid trouvé !';
   document.getElementById('foundDuration').textContent = '';
   document.getElementById('foundDesc').textContent = msg;
   document.getElementById('foundPhotoStrip').style.display = 'none';
@@ -967,19 +967,19 @@ function updateModeUI() {
 
   if (chip) {
     chip.className = activeGameMode === 'fixed' ? 'mode-fixed' : 'mode-unique';
-    chip.textContent = activeGameMode === 'fixed' ? '📌 Balises' : '🎁 Trésors';
+    chip.textContent = activeGameMode === 'fixed' ? '� La Série' : '⚡ Le Déclic';
   }
 
   if (hint) {
     hint.textContent = activeGameMode === 'fixed'
-      ? 'Valide des points de passage avec QR pour progresser.'
-      : 'Capture des trésors uniques avant les autres joueurs.';
+      ? 'Complète le parcours, un polaroid après l\'autre.'
+      : 'Sois le premier à déclencher — un seul gagnant.';
   }
 
   if (pbLabel) {
     pbLabel.textContent = activeGameMode === 'fixed'
-      ? '🎯 Balises fixes trouvées'
-      : '🎁 Trésors uniques capturés';
+      ? '📷 Polaroids révélés'
+      : '⚡ Déclics empoché';
   }
 
   if (arrowBtn) arrowBtn.style.display = activeGameMode === 'fixed' ? 'block' : 'none';
@@ -1089,14 +1089,14 @@ function renderMarkers() {
     const opacity = isTaken && !isMine ? 0.4 : 1;
 
     const popup = isTaken && !isMine
-      ? `<b>${escHtml(tLabel(t))}</b><br>🔒 Déjà récupéré`
+      ? `<b>${escHtml(tLabel(t))}</b><br>🔒 Déclic déjà pris`
       : (() => {
           const urls = getPhotoUrls(t.photo_url);
           const safeUrls = urls.map(safeImgUrl).filter(Boolean);
           const ph = safeUrls.map(u =>
             `<img src="${escHtml(u)}" onclick="openPhotoViewer('${jsSingleQuoted(u)}')" style="width:100%;max-height:180px;object-fit:cover;border-radius:8px;margin-bottom:6px;display:block;cursor:zoom-in">`
           ).join('');
-          return `<div style="min-width:220px">${ph}<b style="font-size:0.95rem">${escHtml(tLabel(t))}</b><br><span style="font-size:0.82em;color:#888">${t.type === 'fixed' ? '📌 Balise fixe' : '🎁 Balise unique'}</span>${t.hint ? `<br><span style="font-size:0.82em;color:#93c5fd">💡 ${escHtml(t.hint)}</span>` : ''}${safeUrls.length ? `<br><span style="font-size:0.75em;color:#64748b">👆 Tap photo pour agrandir</span>` : ''}</div>`;
+          return `<div style="min-width:220px">${ph}<b style="font-size:0.95rem">${escHtml(tLabel(t))}</b><br><span style="font-size:0.82em;color:#888">${t.type === 'fixed' ? '� La Série' : '⚡ Le Déclic'}</span>${t.hint ? `<br><span style="font-size:0.82em;color:#93c5fd">💡 ${escHtml(t.hint)}</span>` : ''}${safeUrls.length ? `<br><span style="font-size:0.75em;color:#64748b">👆 Tap photo pour agrandir</span>` : ''}</div>`;
         })();
 
     // Unique treasures not yet found: fuzzy circle — center is randomly OFFSET from
@@ -1219,7 +1219,7 @@ function destinationPoint(lat, lng, bearing, distM) {
 // Human-readable label for a treasure (never shows raw ID or generic "sans nom")
 function tLabel(t) {
   if (t.label && t.label.trim()) return t.label.trim();
-  return t.type === 'fixed' ? '📌 Balise fixe' : '🎁 Trésor unique';
+  return t.type === 'fixed' ? '� Polaroid' : '⚡ Déclic';
 }
 
 function distLabel(d) {
@@ -1261,7 +1261,7 @@ function updateRadar() {
       .filter(t => !(t.found_by && t.found_by.split(',').includes(myPseudo)));
 
     if (!uniqueLeft.length) {
-      bar.textContent = '✅ Tous les trésors uniques ont été capturés !';
+      bar.textContent = '✅ Tous les déclics ont été pris !';
       bar.className = '';
       fab.style.display = 'none';
       nearestFixed = null;
@@ -1275,15 +1275,15 @@ function updateRadar() {
 
     const uniqueDist = Math.round(nearestU.d);
     if (uniqueDist <= proximityR) {
-      bar.textContent = `🎁 Zone de capture à portée ! Ouvre la fiche et valide au QR.${accStr}`;
+      bar.textContent = `Cherche bien, il est là.${accStr}`;
       bar.className = 'very-near';
       if (lastHapticZone !== 'unique-capture') { lastHapticZone = 'unique-capture'; haptic([100, 50, 100, 50, 200]); }
     } else if (uniqueDist <= proximityR * 5) {
-      bar.textContent = `🎁 Trésor proche : ${distLabel(uniqueDist)}${accStr}`;
+      bar.textContent = `Tu chauffes — il est tout près.${accStr}`;
       bar.className = 'near';
       if (lastHapticZone !== 'unique-near') { lastHapticZone = 'unique-near'; haptic([80, 60, 80]); }
     } else {
-      bar.textContent = `🎁 Chasse aux trésors : cherche les zones violettes sur la carte${accStr}`;
+      bar.textContent = `Un polaroid se cache dans ce quartier…${accStr}`;
       bar.className = '';
       if (lastHapticZone !== 'unique-far') { lastHapticZone = 'unique-far'; }
     }
@@ -1298,7 +1298,7 @@ function updateRadar() {
     .filter(t => !(t.found_by && t.found_by.split(',').includes(myPseudo)));
 
   if (!fixedLeft.length) {
-    bar.textContent = '✅ Toutes les balises fixes sont validées !';
+    bar.textContent = '✅ Ta série est complète !';
     bar.className = '';
     fab.style.display = 'none';
     nearestFixed = null;
@@ -1314,20 +1314,20 @@ function updateRadar() {
   const label = distLabel(dist);
 
   if (dist > proximityR * 5) {
-    bar.textContent = `🧭 📌 Mission balises : ${label}${accStr}`;
+    bar.textContent = `Un polaroid se cache dans ce quartier…${accStr}`;
     bar.className = gpsWeak ? 'near' : '';
     fab.style.display = 'none';
     nearestFixed = null;
     if (lastHapticZone !== 'far') { lastHapticZone = 'far'; }
   } else if (dist > proximityR) {
-    bar.textContent = `🔥 Tu approches d'une balise : ${label}${accStr}`;
+    bar.textContent = `Tu chauffes — il est tout près.${accStr}`;
     bar.className = 'near';
     fab.style.display = 'none';
     nearestFixed = null;
     if (lastHapticZone !== 'near') { lastHapticZone = 'near'; haptic([80, 60, 80]); }
   } else {
     const canCapture = !gpsWeak || playerAccuracy < proximityR * 1.5;
-    bar.textContent = `📌 Balise fixe à portée !${gpsWeak ? ' ⚠️ GPS faible' : ''}${accStr}`;
+    bar.textContent = `Cherche bien, il est là.${gpsWeak ? ' ⚠️ GPS faible' : ''}${accStr}`;
     bar.className = 'very-near';
     nearestFixed = canCapture ? nearestF.t : null;
     fab.style.display = (activeTab === 'explore' && canCapture) ? 'block' : 'none';
@@ -1336,7 +1336,7 @@ function updateRadar() {
 }
 
 async function captureFixed() {
-  if (!myPseudo) { _checkinError('Mode invité: connecte-toi pour capturer une balise.'); return; }
+  if (!myPseudo) { _checkinError('Mode invité : connecte-toi pour révéler des polaroids.'); return; }
   if (!nearestFixed) return;
   haptic([50, 30, 50]);
   openQRScanner(nearestFixed.id);
@@ -1524,7 +1524,7 @@ function updateCompass() {
             : '';
           const hintHtml = t.hint ? `<div style="font-size:0.8rem;color:#93c5fd;margin-top:4px">💡 ${escHtml(t.hint)}</div>` : '';
           const inRangeHtml = inRange
-            ? `<button onclick="gameMap.closePopup();openQRScanner('${t.id.replace(/'/g,"\\'")}');" style="margin-top:8px;width:100%;padding:8px;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:8px;color:#fff;font-weight:700;cursor:pointer;font-size:0.85rem">� Scanner le QR !</button>`
+            ? `<button onclick="gameMap.closePopup();openQRScanner('${t.id.replace(/'/g,"\\'")}');" style="margin-top:8px;width:100%;padding:8px;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:8px;color:#fff;font-weight:700;cursor:pointer;font-size:0.85rem">� Révéler ce polaroid</button>`
             : `<div style="font-size:0.75rem;color:#64748b;margin-top:6px;text-align:center">${distStr} — approche-toi</div>`;
           const popupContent = `<div style="min-width:220px">${photoHtml}<b style="font-size:0.95rem">${escHtml(tLabel(t))}</b>${hintHtml}${inRangeHtml}</div>`;
           arrowMarker.bindPopup(popupContent, { maxWidth: 280, className: 'dark-popup' });
@@ -1559,7 +1559,7 @@ function openQRScanner(beaconId) {
   qrExpectedId = beaconId || null;
   const status = document.getElementById('qrStatus');
   status.className = '';
-  status.textContent = 'Scan en direct en cours…';
+  status.textContent = 'Révélation en cours…';
   document.getElementById('qrPreviewWrap').style.display = 'none';
   document.getElementById('qrVideoWrap').style.display = 'none';
   document.getElementById('qrTorchBtn').style.display = 'none';
@@ -1600,7 +1600,7 @@ async function startLiveQRScan() {
     await video.play();
     videoWrap.style.display = 'block';
     status.className = '';
-    status.textContent = '📡 Scan en direct : vise le QR';
+    status.textContent = '� Révélation en direct : vise le polaroid';
     qrLiveRunning = true;
     scanQRFromLiveVideo();
   } catch (err) {
@@ -1780,7 +1780,7 @@ async function handleQRPhoto(input) {
   stopLiveQRScan();
   const status = document.getElementById('qrStatus');
   status.className = '';
-  status.textContent = '🔍 Analyse en cours…';
+  status.textContent = '🔍 Révélation en cours…';
   document.getElementById('qrTips').style.display = 'none';
 
   const file = input.files[0];
@@ -1802,7 +1802,7 @@ async function handleQRPhoto(input) {
       if (decoded) {
         await _qrHandleResult(decoded);
       } else {
-        status.textContent = '❌ QR non reconnu — réessaie en te rapprochant et en éclairant bien le QR';
+        status.textContent = '❌ Polaroid non reconnu — réessaie en te rapprochant et en éclairant bien le polaroid';
         status.className = 'qr-err';
         haptic([80, 60, 80]);
         document.getElementById('qrTips').style.display = 'block';
@@ -1876,7 +1876,7 @@ async function _qrHandleResult(raw) {
   const status = document.getElementById('qrStatus');
   const match  = raw.match(/[?&](?:checkin|found)=([^&\s]+)/);
   if (!match) {
-    status.textContent = '⚠️ Ce QR n\'appartient pas au jeu — cherche le bon !';
+    status.textContent = '⚠️ Ce code n\'appartient pas au jeu — cherche le bon polaroid !';
     status.className = 'qr-err';
     haptic([80, 60, 80]);
     qrDecodeLocked = false;
@@ -1885,14 +1885,14 @@ async function _qrHandleResult(raw) {
   const scannedId = decodeURIComponent(match[1]);
 
   if (qrExpectedId && scannedId !== qrExpectedId) {
-    status.textContent = '⚠️ Mauvaise balise — cherche le bon QR !';
+    status.textContent = '⚠️ Mauvais polaroid — cherche le bon !';
     status.className = 'qr-err';
     haptic([80, 60, 80]);
     qrDecodeLocked = false;
     startLiveQRScan();
     _resetQRInput(); // permettre de retenter immédiatement
   } else {
-    status.textContent = '✅ Balise validée !';
+    status.textContent = '✅ Polaroid révélé !';
     status.className = 'qr-ok';
     haptic([80, 40, 160]);
     await new Promise(r => setTimeout(r, 400));
@@ -1964,11 +1964,11 @@ async function processFindById(treasureId) {
 }
 
 async function _doProcessFind(treasureId) {
-  if (!myPseudo) { _checkinError('Mode invité: connecte-toi pour valider une balise.'); return; }
+  if (!myPseudo) { _checkinError('Mode invité : connecte-toi pour révéler des polaroids.'); return; }
   // Fetch treasure fresh from DB
   const { data: t, error } = await db.from('treasures').select('*').eq('id', treasureId).single();
-  if (error || !t) { _checkinError('Trésor introuvable — il a peut-être été retiré.'); return; }
-  if (!t.visible)  { _checkinError('Ce trésor n\'est pas encore actif.'); return; }
+  if (error || !t) { _checkinError('Polaroid introuvable — il a peut-être été retiré.'); return; }
+  if (!t.visible)  { _checkinError('Ce polaroid n\'est pas encore actif.'); return; }
 
   // Check if already found by me
   const foundList = (t.found_by || '').split(',').filter(Boolean);
@@ -1997,7 +1997,7 @@ async function _doProcessFind(treasureId) {
     if (t.type === 'unique') {
       showFoundResult('taken', t);
     } else {
-      _checkinError('Validation impossible pour le moment. Réessaie dans quelques secondes.');
+      _checkinError('Révélation impossible pour le moment. Réessaie dans quelques secondes.');
     }
     return;
   }
@@ -2049,9 +2049,9 @@ function showFoundResult(status, t, durationSec) {
 
   if (status === 'success') {
     if (t.type === 'fixed') {
-      emoji.textContent = '✅';
-      label.textContent = 'BALISE CAPTURÉE';
-      title.textContent = `"${tLabel(t)}" capturée !`;
+      emoji.textContent = '📷';
+      label.textContent = 'POLAROID RÉVÉLÉ';
+      title.textContent = `Polaroid révélé. Ta série s\'allonge.`;
       dur.textContent   = '';
       // Compte combien de fixes il reste
       const remaining = treasures.filter(tr =>
@@ -2060,36 +2060,36 @@ function showFoundResult(status, t, durationSec) {
         tr.id !== t.id
       ).length;
       if (remaining > 0) {
-        desc.textContent = `Bravo ! Il te reste ${remaining} balise${remaining > 1 ? 's' : ''} fixe${remaining > 1 ? 's' : ''} à trouver. Continue !`;
+        desc.textContent = `Il te reste ${remaining} polaroid${remaining > 1 ? 's' : ''} à révéler. Continue !`;
       } else {
         // All fixed found — fetch reward message from config
-        desc.textContent = '🏆 Incroyable ! Tu as trouvé toutes les balises fixes !';
+        desc.textContent = '🏆 Incroyable ! Ta série est complète !';
         db.from('config').select('key,value').then(({ data: cfgData }) => {
           if (!cfgData) return;
           const cfg = Object.fromEntries(cfgData.map(r => [r.key, r.value]));
           const msg = activeQuests.map(q => cfg['rewardMessage_'+q]).find(m => m) || cfg['rewardMessage'] || '';
-          if (msg) desc.innerHTML = `🏆 Tu as trouvé toutes les balises fixes !<br><br>📍 <strong>${escHtml(msg)}</strong>`;
+          if (msg) desc.innerHTML = `🏆 Ta série est complète !<br><br>📍 <strong>${escHtml(msg)}</strong>`;
         });
       }
     } else {
-      emoji.textContent = '🎁';
-      label.textContent = 'TRÉSOR DÉCOUVERT';
-      title.textContent = `"${tLabel(t)}" trouvé !`;
+      emoji.textContent = '⚡';
+      label.textContent = 'DÉCLIC !';
+      title.textContent = `Déclic ! Tu es le seul à l'avoir.`;
       dur.textContent   = formatDuration(durationSec);
-      desc.textContent  = 'Bravo ! Tu es le premier à l\'avoir récupéré.';
+      desc.textContent  = '';
     }
   } else if (status === 'already') {
     emoji.textContent = '🔄';
-    label.textContent = 'DÉJÀ SCANNÉ';
-    title.textContent = 'Déjà trouvé !';
+    label.textContent = 'DÉJÀ RÉVÉLÉ';
+    title.textContent = 'Tu as déjà révélé ce polaroid.';
     dur.textContent   = '';
-    desc.textContent  = 'Tu as déjà scanné ce trésor.';
+    desc.textContent  = '';
   } else {
     emoji.textContent = '🔒';
     label.textContent = 'TROP TARD';
     title.textContent = 'Trop tard !';
     dur.textContent   = '';
-    desc.textContent  = 'Ce trésor unique a déjà été récupéré par quelqu\'un d\'autre.';
+    desc.textContent  = 'Trop tard. Ce déclic a déjà été pris.';
   }
   modal.classList.add('open');
 }
@@ -2215,7 +2215,7 @@ async function loadLeaderboard() {
   } else {
     myCardEl.innerHTML = `<div class="my-card" style="text-align:center;padding:14px">
       <div class="my-card-pseudo">${escHtml(myPseudo)}</div>
-      <div class="my-card-sub" style="margin-top:4px">Tu n'as pas encore trouvé de trésor — en avant !</div>
+      <div class="my-card-sub" style="margin-top:4px">Tu n'as pas encore révélé de polaroid — en avant !</div>
     </div>`;
   }
 
@@ -2255,7 +2255,7 @@ async function loadLeaderboard() {
 
       // All done badge
       const doneBadge = p.allFixed
-        ? `<span class="lb-badge lb-badge-done">✓ Toutes les balises</span>`
+        ? `<span class="lb-badge lb-badge-done">✓ Série complète</span>`
         : '';
 
       // Reward message (only for the player themselves if all done)
@@ -2374,19 +2374,19 @@ async function loadCarnet() {
       .order('created_at', { ascending: false });
     if (error) throw error;
     if (!evts || evts.length === 0) {
-      el.innerHTML = `<div class="cn-empty"><span class="cn-empty-icon">🌍</span><span class="cn-empty-label">Aucune découverte pour l’instant</span></div>`;
+      el.innerHTML = `<div class="cn-empty"><span class="cn-empty-icon">🌍</span><span class="cn-empty-label">Aucun polaroid révélé pour l’instant</span></div>`;
       countEl.textContent = '';
       return;
     }
-    countEl.textContent = `${evts.length} trouvé${evts.length > 1 ? 's' : ''}`;
+    countEl.textContent = `${evts.length} révélé${evts.length > 1 ? 's' : ''}`;
     // Build a quick lookup from treasures already loaded in memory
     const tMap = Object.fromEntries(treasures.map(t => [t.id, t]));
     el.innerHTML = evts.map(ev => {
       const t = tMap[ev.treasure_id];
       const label = t ? escHtml(tLabel(t)) : escHtml(ev.treasure_id);
       const isUnique = ev.treasure_type === 'unique';
+      const typeLabel = isUnique ? 'Le Déclic' : 'La Série';
       const typeClass = isUnique ? 'cn-unique' : 'cn-fixed';
-      const typeLabel = isUnique ? 'Unique' : 'Balise fixe';
       const date = new Date(ev.created_at).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
       const durStr = ev.duration_sec ? `⏱ ${formatDuration(ev.duration_sec)}` : '';
       // Photo
@@ -2395,7 +2395,7 @@ async function loadCarnet() {
         const url = safeImgUrl(getPhotoUrls(t.photo_url)[0]);
         if (url) photoHtml = `<img class="cn-thumb" src="${escHtml(url)}" alt="" loading="lazy" onclick="openPhotoViewer('${jsSingleQuoted(url)}')" style="cursor:zoom-in">`;
       }
-      if (!photoHtml) photoHtml = `<div class="cn-thumb-placeholder">${isUnique ? '🎁' : '📌'}</div>`;
+      if (!photoHtml) photoHtml = `<div class="cn-thumb-placeholder">${isUnique ? '⚡' : '📷'}</div>`;
       const hintHtml = t && t.hint ? `<div class="cn-hint">${escHtml(t.hint)}</div>` : '';
       return `<div class="cn-card ${typeClass}">
         ${photoHtml}
@@ -2458,8 +2458,8 @@ function updateNearestCard() {
   _nearestTreasure = pool[0];
   const count = pool.length;
   const header = isUniqueMode
-    ? `${count} TRÉSOR${count > 1 ? 'S' : ''} À CAPTURER`
-    : `${count} BALISE${count > 1 ? 'S' : ''} LES PLUS PROCHES`;
+    ? `${count} DÉCLIC${count > 1 ? 'S' : ''} À CHASSER`
+    : `${count} POLAROID${count > 1 ? 'S' : ''} LES PLUS PROCHES`;
 
   el.style.display = 'flex';
   el.innerHTML = `<div class="nl-header">${header}</div>` +
@@ -2473,7 +2473,7 @@ function updateNearestCard() {
         <div class="nl-dot" style="background:${color};box-shadow:0 0 6px ${color}55"></div>
         <div class="nl-name">${escHtml(shortName)}</div>
         <div class="nl-dist">${escHtml(dist)}</div>
-        <div class="nl-arr">${isUniqueMode ? '🎁' : '↗'}</div>
+        <div class="nl-arr">${isUniqueMode ? '⚡' : '↗'}</div>
       </div>`;
     }).join('');
 }
@@ -2493,7 +2493,7 @@ function revealFixedClueFromSheet(id) {
 function openTreasureSheet(t) {
   const isMine   = t.found_by && t.found_by.split(',').includes(myPseudo);
   const isTaken  = t.type === 'unique' && t.found_by && t.found_by.length > 0;
-  const typeLabel = t.type === 'fixed' ? 'Balise fixe 📌' : 'Balise unique 🎁';
+  const typeLabel = t.type === 'fixed' ? 'Polaroid · La Série' : 'Polaroid · Le Déclic';
   const isFixedLocked = t.type === 'fixed' && !isMine;
   const urls     = getPhotoUrls(t.photo_url);
   const safeUrls = urls.map(safeImgUrl).filter(Boolean);
@@ -2506,9 +2506,9 @@ function openTreasureSheet(t) {
   const photoHtml = (canShowFixedMedia ? safeUrls : []).map(u =>
     `<img src="${escHtml(u)}" onclick="openPhotoViewer('${jsSingleQuoted(u)}')" class="ts-photo">`
   ).join('');
-  const badge = isMine ? '<span class="ts-badge ts-badge-found">✓ Trouvé</span>'
-    : isTaken ? '<span class="ts-badge ts-badge-taken">🔒 Pris</span>'
-    : '<span class="ts-badge ts-badge-open">· À trouver</span>';
+  const badge = isMine ? '<span class="ts-badge ts-badge-found">✓ Révélé</span>'
+    : isTaken ? '<span class="ts-badge ts-badge-taken">🔒 Déclic pris</span>'
+    : '<span class="ts-badge ts-badge-open">· À révéler</span>';
   const cta = (!isMine && !isTaken && t.type === 'unique' && t.lat && t.lng)
     ? `<button class="ts-cta" onclick="recenterOn(${t.lat},${t.lng})">M'y emmener →</button>` : '';
   const clueCta = (isFixedLocked && !clueUnlocked)
@@ -2547,7 +2547,7 @@ function loadBalises() {
   const fixed = treasures.filter(t => t.type === 'fixed');
   const count = document.getElementById('balisesCount');
   const foundCount = fixed.filter(t => t.found_by && t.found_by.split(',').includes(myPseudo)).length;
-  if (count) count.textContent = foundCount + ' / ' + fixed.length + ' trouvées';
+  if (count) count.textContent = foundCount + ' / ' + fixed.length + ' révélés';
 
   const sorted = fixed
     .map(t => ({ ...t, _dist: playerLat !== null ? haversine(playerLat, playerLng, t.lat, t.lng) : Infinity }))
@@ -2565,7 +2565,7 @@ function loadBalises() {
       <div class="bl-num" style="background:${bg}">${i+1}</div>
       <div class="bl-info">
         <div class="bl-item-name">${escHtml(tLabel(t))}</div>
-        <div class="bl-item-sub">${distStr ? escHtml(distStr) + ' · ' : ''}${isMine ? '✓ Trouvé' : 'À trouver'}</div>
+        <div class="bl-item-sub">${distStr ? escHtml(distStr) + ' · ' : ''}${isMine ? '✓ Révélé' : 'À révéler'}</div>
       </div>
       <div class="bl-arr">${isMine ? '✓' : '→'}</div>
     </div>`;
@@ -2597,9 +2597,9 @@ async function loadMoi() {
     <div class="moi-avatar" style="background:${grad}">${escHtml(pseudo.charAt(0))}</div>
     <div class="moi-pseudo">${escHtml(pseudo)}</div>
     <div class="moi-grid">
-      <div class="moi-tile"><div class="moi-tile-val">${myFixed}</div><div class="moi-tile-lbl">Balises fixes</div></div>
-      <div class="moi-tile"><div class="moi-tile-val">${myUnique}</div><div class="moi-tile-lbl">Uniques</div></div>
-      <div class="moi-tile"><div class="moi-tile-val">${myFixed + myUnique}</div><div class="moi-tile-lbl">Total trouvé</div></div>
+      <div class="moi-tile"><div class="moi-tile-val">${myFixed}</div><div class="moi-tile-lbl">La Série</div></div>
+      <div class="moi-tile"><div class="moi-tile-val">${myUnique}</div><div class="moi-tile-lbl">Le Déclic</div></div>
+      <div class="moi-tile"><div class="moi-tile-val">${myFixed + myUnique}</div><div class="moi-tile-lbl">Total révélé</div></div>
       <div class="moi-tile"><div class="moi-tile-val">${rank}</div><div class="moi-tile-lbl">Classement</div></div>
     </div>
     ${myPseudo ? `<button class="moi-logout" onclick="logoutPlayer()">Se déconnecter</button>` : ''}
