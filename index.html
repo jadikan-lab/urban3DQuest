@@ -209,15 +209,18 @@
     #qrOverlay{display:none;position:fixed;inset:0;background:var(--bg);z-index:2000;flex-direction:column;align-items:center;justify-content:center}
     #qrOverlay.open{display:flex}
     #qrCanvas{display:none}
+    #qrWorkCanvas{display:none}
     #qrUI{display:flex;flex-direction:column;align-items:center;gap:18px;padding:32px 24px calc(32px + env(safe-area-inset-bottom));width:100%;max-width:420px}
     #qrStatus{color:var(--ink);font-size:1rem;font-weight:700;text-align:center;line-height:1.5;font-family:var(--mono)}
     #qrStatus.qr-ok{color:#4ade80}
     #qrStatus.qr-err{color:#f87171}
-    #qrVideoWrap{width:100%;border-radius:14px;overflow:hidden;display:none;border:2px solid var(--line-2);background:#000}
+    #qrVideoWrap{width:100%;border-radius:14px;overflow:hidden;display:none;border:2px solid var(--line-2);background:#000;position:relative}
     #qrVideo{width:100%;display:block;max-height:50vh;object-fit:cover;background:#000}
+    #qrGuide{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:56%;aspect-ratio:1/1;border:2px solid rgba(255,255,255,.92);border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,.22);pointer-events:none}
     #qrPreviewWrap{width:100%;border-radius:14px;overflow:hidden;display:none;border:2px solid var(--line-2)}
     #qrPreviewImg{width:100%;display:block;max-height:50vh;object-fit:contain;background:var(--surface)}
     #qrLiveBtn{display:flex;align-items:center;justify-content:center;gap:10px;padding:16px 0;background:linear-gradient(135deg,#059669,#16a34a);border:none;border-radius:14px;color:#fff;font-size:1.05rem;font-weight:800;cursor:pointer;width:100%;min-height:56px;letter-spacing:.02em;box-shadow:0 4px 20px rgba(5,150,105,.35);font-family:var(--display)}
+    #qrTorchBtn{display:none;align-items:center;justify-content:center;gap:10px;padding:12px 0;background:linear-gradient(135deg,#374151,#111827);border:none;border-radius:12px;color:#fff;font-size:0.95rem;font-weight:700;cursor:pointer;width:100%;min-height:48px;letter-spacing:.02em;box-shadow:0 3px 16px rgba(17,24,39,.3);font-family:var(--display)}
     #qrPhotoBtn{display:flex;align-items:center;justify-content:center;gap:10px;padding:16px 0;background:linear-gradient(135deg,#2563eb,#4f46e5);border:none;border-radius:14px;color:#fff;font-size:1.05rem;font-weight:800;cursor:pointer;width:100%;min-height:56px;letter-spacing:.02em;box-shadow:0 4px 20px rgba(37,99,235,.4);font-family:var(--display)}
     #qrCloseBtn{padding:14px 0;background:var(--bg);border:1px solid var(--line-2);border-radius:12px;color:var(--ink);font-size:1rem;font-weight:700;cursor:pointer;min-height:52px;width:100%;backdrop-filter:blur(6px);font-family:var(--display)}
 
@@ -510,11 +513,13 @@
 <!-- ── QR Scanner overlay ──────────────────────────── -->
 <div id="qrOverlay">
   <canvas id="qrCanvas"></canvas>
+  <canvas id="qrWorkCanvas"></canvas>
   <div id="qrUI">
     <div style="font-size:2.5rem">📷</div>
     <div id="qrStatus">Scan en direct recommandé, photo en secours.</div>
-    <div id="qrVideoWrap"><video id="qrVideo" playsinline muted></video></div>
+    <div id="qrVideoWrap"><video id="qrVideo" playsinline muted></video><div id="qrGuide"></div></div>
     <button id="qrLiveBtn" onclick="startLiveQRScan()">📡 Scanner en direct</button>
+    <button id="qrTorchBtn" onclick="toggleQRTorch()">💡 Lampe</button>
     <div id="qrPreviewWrap"><img id="qrPreviewImg" alt="preview"></div>
     <label id="qrPhotoBtn">
       📷 Prendre une photo (secours)
@@ -1517,6 +1522,12 @@ let qrStream = null;
 let qrLiveFrame = null;
 let qrLiveRunning = false;
 let qrDecodeLocked = false;
+let qrTrack = null;
+let qrTorchOn = false;
+let qrScanInFlight = false;
+const qrBarcodeDetector = ('BarcodeDetector' in window)
+  ? new BarcodeDetector({ formats: ['qr_code'] })
+  : null;
 
 function openQRScanner(beaconId) {
   qrExpectedId = beaconId || null;
@@ -1525,6 +1536,7 @@ function openQRScanner(beaconId) {
   status.textContent = 'Scan en direct en cours…';
   document.getElementById('qrPreviewWrap').style.display = 'none';
   document.getElementById('qrVideoWrap').style.display = 'none';
+  document.getElementById('qrTorchBtn').style.display = 'none';
   qrDecodeLocked = false;
   _resetQRInput();
   document.getElementById('qrOverlay').classList.add('open');
@@ -1550,8 +1562,14 @@ async function startLiveQRScan() {
   try {
     qrStream = await navigator.mediaDevices.getUserMedia({
       audio: false,
-      video: { facingMode: { ideal: 'environment' } }
+      video: {
+        facingMode: { ideal: 'environment' },
+        width: { ideal: 1920 },
+        height: { ideal: 1080 }
+      }
     });
+    qrTrack = qrStream.getVideoTracks()[0] || null;
+    await enhanceQRTrack();
     video.srcObject = qrStream;
     await video.play();
     videoWrap.style.display = 'block';
@@ -1569,6 +1587,7 @@ async function startLiveQRScan() {
 
 function stopLiveQRScan() {
   qrLiveRunning = false;
+  qrScanInFlight = false;
   if (qrLiveFrame) {
     cancelAnimationFrame(qrLiveFrame);
     qrLiveFrame = null;
@@ -1577,36 +1596,144 @@ function stopLiveQRScan() {
   if (video) video.srcObject = null;
   const videoWrap = document.getElementById('qrVideoWrap');
   if (videoWrap) videoWrap.style.display = 'none';
+  const torchBtn = document.getElementById('qrTorchBtn');
+  if (torchBtn) {
+    torchBtn.style.display = 'none';
+    torchBtn.textContent = '💡 Lampe';
+  }
   if (qrStream) {
     qrStream.getTracks().forEach(t => t.stop());
     qrStream = null;
   }
+  qrTrack = null;
+  qrTorchOn = false;
 }
 
 function scanQRFromLiveVideo() {
   if (!qrLiveRunning) return;
+  if (qrScanInFlight) { qrLiveFrame = requestAnimationFrame(scanQRFromLiveVideo); return; }
+  qrScanInFlight = true;
+
   const video = document.getElementById('qrVideo');
   const canvas = document.getElementById('qrCanvas');
+  const work = document.getElementById('qrWorkCanvas');
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-  if (video && video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0) {
+  const done = () => {
+    qrScanInFlight = false;
+    if (qrLiveRunning) qrLiveFrame = requestAnimationFrame(scanQRFromLiveVideo);
+  };
+
+  if (!video || video.readyState < 2 || video.videoWidth <= 0 || video.videoHeight <= 0) {
+    done();
+    return;
+  }
+
+  (async () => {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // Fast path on supported browsers: native detector is usually better on tiny QR.
+    if (qrBarcodeDetector) {
+      try {
+        const hits = await qrBarcodeDetector.detect(video);
+        if (hits && hits.length && hits[0].rawValue) {
+          qrLiveRunning = false;
+          await _qrHandleResult(hits[0].rawValue);
+          done();
+          return;
+        }
+      } catch(e) {
+        // Fallback to jsQR below
+      }
+    }
+
     try {
-      const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const code = jsQR(data.data, data.width, data.height, { inversionAttempts: 'attemptBoth' });
-      if (code && code.data) {
+      const raw = decodeLiveFrameWithCrops(canvas, work);
+      if (raw) {
         qrLiveRunning = false;
-        _qrHandleResult(code.data);
+        await _qrHandleResult(raw);
+        done();
         return;
       }
     } catch(e) {
       // Ignore per-frame decode errors and continue scanning
     }
-  }
+    done();
+  })();
+}
 
-  qrLiveFrame = requestAnimationFrame(scanQRFromLiveVideo);
+function decodeCanvasQR(canvas, x, y, w, h) {
+  if (w < 40 || h < 40) return '';
+  const tmp = document.getElementById('qrWorkCanvas');
+  const tctx = tmp.getContext('2d', { willReadFrequently: true });
+  const target = 960;
+  tmp.width = target;
+  tmp.height = target;
+  tctx.clearRect(0, 0, target, target);
+  tctx.drawImage(canvas, x, y, w, h, 0, 0, target, target);
+  const data = tctx.getImageData(0, 0, target, target);
+  const code = jsQR(data.data, data.width, data.height, { inversionAttempts: 'attemptBoth' });
+  return code && code.data ? code.data : '';
+}
+
+function decodeLiveFrameWithCrops(canvas) {
+  const w = canvas.width;
+  const h = canvas.height;
+
+  // 1) Whole frame
+  const full = decodeCanvasQR(canvas, 0, 0, w, h);
+  if (full) return full;
+
+  // 2) Center-first crops (best for guided framing) then side crops for off-center QR
+  const regions = [
+    [0.18, 0.18, 0.64, 0.64],
+    [0.28, 0.28, 0.44, 0.44],
+    [0.00, 0.18, 0.60, 0.64],
+    [0.40, 0.18, 0.60, 0.64],
+    [0.18, 0.00, 0.64, 0.60],
+    [0.18, 0.40, 0.64, 0.60]
+  ];
+  for (const r of regions) {
+    const x = Math.round(r[0] * w);
+    const y = Math.round(r[1] * h);
+    const rw = Math.round(r[2] * w);
+    const rh = Math.round(r[3] * h);
+    const hit = decodeCanvasQR(canvas, x, y, rw, rh);
+    if (hit) return hit;
+  }
+  return '';
+}
+
+async function enhanceQRTrack() {
+  if (!qrTrack || !qrTrack.getCapabilities) return;
+  try {
+    const caps = qrTrack.getCapabilities();
+    if (caps.focusMode && caps.focusMode.includes('continuous')) {
+      await qrTrack.applyConstraints({ advanced: [{ focusMode: 'continuous' }] });
+    }
+    if (caps.torch) {
+      const torchBtn = document.getElementById('qrTorchBtn');
+      if (torchBtn) torchBtn.style.display = 'flex';
+    }
+  } catch(e) {
+    // Some browsers expose capabilities but reject constraints; keep scanning.
+  }
+}
+
+async function toggleQRTorch() {
+  if (!qrTrack || !qrTrack.getCapabilities) return;
+  try {
+    const caps = qrTrack.getCapabilities();
+    if (!caps.torch) return;
+    qrTorchOn = !qrTorchOn;
+    await qrTrack.applyConstraints({ advanced: [{ torch: qrTorchOn }] });
+    const btn = document.getElementById('qrTorchBtn');
+    if (btn) btn.textContent = qrTorchOn ? '💡 Lampe ON' : '💡 Lampe';
+  } catch(e) {
+    qrTorchOn = false;
+  }
 }
 
 function _resetQRInput() {
