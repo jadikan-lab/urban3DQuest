@@ -546,7 +546,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.9.8';
+const GAME_VERSION = 'v3.9.9';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -595,7 +595,6 @@ async function sha256(str) {
 }
 
 async function logoutPlayer() {
-  if (!confirm('Se déconnecter ?')) return;
   const pseudo = myPseudo;
   if (pseudo) {
     await db.from('players').update({ session_token: null }).eq('pseudo', pseudo);
@@ -2506,8 +2505,11 @@ async function loadMoi() {
       <div class="moi-tile"><div class="moi-tile-val">${myFixed + myUnique}</div><div class="moi-tile-lbl">Total révélé</div></div>
       <div class="moi-tile"><div class="moi-tile-val">${rank}</div><div class="moi-tile-lbl">Classement</div></div>
     </div>
-    ${myPseudo ? `<button class="moi-logout" onclick="logoutPlayer()">Se déconnecter</button>` : ''}
+    ${myPseudo ? `<button class="moi-logout" id="logoutBtn">Se déconnecter</button>` : ''}
   `;
+  // addEventListener garanti même si le bouton est injecté dynamiquement
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) logoutBtn.addEventListener('click', logoutPlayer);
 }
 </script>
 </body>
