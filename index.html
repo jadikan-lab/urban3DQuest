@@ -4,32 +4,49 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
   <title>Urban3DQuest v4</title>
-  <meta name="theme-color" content="#0f172a">
+  <meta name="theme-color" content="#050610">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" media="print" onload="this.media='all'">
   <style>
-    /* ── THÈME TERRAIN — dark, outdoor, militaire/GPS ── */
+    /* ── DESIGN SYSTEM — Jadikan light painting ── */
+    :root{
+      --magenta:#ff3d8a;--cyan:#00e5ff;--amber:#ffb020;--violet:#a855f7;
+      --bg:#050610;--bg-2:#0a0c1a;--surface:#0f1124;--surface-2:#161830;
+      --ink:#f4f1ec;--ink-2:#b8b3c4;--ink-3:#6e6a82;
+      --line:rgba(244,241,236,0.10);--line-2:rgba(244,241,236,0.20);
+      --map-bg:#07081a;--map-stroke:rgba(244,241,236,0.06);--map-water:#0a0d22;--map-ink:rgba(244,241,236,0.30);
+      --glow-magenta:0 0 14px rgba(255,61,138,0.55),0 0 30px rgba(255,61,138,0.25);
+      --glow-cyan:0 0 14px rgba(0,229,255,0.55),0 0 30px rgba(0,229,255,0.25);
+      --glow-amber:0 0 14px rgba(255,176,32,0.55),0 0 30px rgba(255,176,32,0.25);
+      --glow-violet:0 0 14px rgba(168,85,247,0.55),0 0 30px rgba(168,85,247,0.25);
+      --display:'Space Grotesk',ui-sans-serif,system-ui,sans-serif;
+      --mono:'JetBrains Mono',ui-monospace,monospace;
+      --radius-sm:8px;--radius:14px;--radius-lg:22px;
+    }
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:system-ui,sans-serif;background:#0f172a;color:#e2e8f0;height:100dvh;overflow:hidden;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
+    body{font-family:var(--display);background:var(--bg);color:var(--ink);height:100dvh;overflow:hidden;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top);-webkit-font-smoothing:antialiased}
     #bgMap{position:fixed;inset:0;z-index:0}
     /* ── Pseudo screen ── */
-    #pseudoScreen{position:fixed;inset:0;background:linear-gradient(180deg,rgba(15,23,42,.55) 0%,rgba(15,23,42,.75) 100%);z-index:500;display:flex;align-items:center;justify-content:center;padding:24px}
-    .ps-box{width:100%;max-width:360px;text-align:center;background:rgba(15,23,42,.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(148,163,184,.18);border-radius:24px;padding:32px 28px;box-shadow:0 8px 48px rgba(0,0,0,.6);animation:slideUp 0.45s cubic-bezier(.16,1,.3,1)}
+    #pseudoScreen{position:fixed;inset:0;background:linear-gradient(180deg,rgba(5,6,16,.55) 0%,rgba(5,6,16,.75) 100%);z-index:500;display:flex;align-items:center;justify-content:center;padding:24px}
+    .ps-box{width:100%;max-width:360px;text-align:center;background:rgba(5,6,16,.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(244,241,236,.18);border-radius:24px;padding:32px 28px;box-shadow:0 8px 48px rgba(0,0,0,.6);animation:slideUp 0.45s cubic-bezier(.16,1,.3,1)}
     .ps-logo{font-size:2.8rem;margin-bottom:8px}
     .ps-title{font-size:1.6rem;font-weight:800;letter-spacing:-.02em;background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
-    .ps-sub{font-size:0.9rem;color:#cbd5e1;margin-bottom:28px;line-height:1.6}
-    .ps-box input{width:100%;padding:14px;background:rgba(30,41,59,.9);border:2px solid #334155;border-radius:12px;color:#f1f5f9;font-size:1.1rem;text-align:center;margin-bottom:12px;letter-spacing:.05em}
+    .ps-sub{font-size:0.9rem;color:var(--ink-2);margin-bottom:28px;line-height:1.6}
+    .ps-box input{width:100%;padding:14px;background:rgba(15,17,36,.9);border:2px solid var(--line-2);border-radius:12px;color:var(--ink);font-size:1.1rem;text-align:center;margin-bottom:12px;letter-spacing:.05em;font-family:var(--display)}
     .ps-box input:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.2)}
     /* ── Bouton principal ── */
     .btn-main{width:100%;padding:16px;min-height:56px;border:none;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;font-size:1.05rem;font-weight:800;cursor:pointer;box-shadow:0 4px 20px rgba(99,102,241,.4);transition:transform 0.1s,opacity 0.2s;letter-spacing:0.02em}
     .btn-main:active{transform:scale(0.97);opacity:0.9}
     .btn-main:disabled{opacity:0.5;cursor:default}
     /* ── Header ── */
-    header{background:#0f172a;padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #1e293b}
-    header h1{font-size:0.82rem;flex:1;color:#94a3b8;letter-spacing:0.04em;font-weight:700}
-    .pseudo-chip{background:#172554;color:#93c5fd;padding:4px 10px;border-radius:20px;font-size:0.78rem;font-weight:600}
+    header{background:var(--bg);padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line)}
+    header h1{font-size:0.82rem;flex:1;color:var(--ink-2);letter-spacing:0.04em;font-weight:700;font-family:var(--mono);text-transform:uppercase}
+    .pseudo-chip{background:rgba(0,229,255,0.12);color:var(--cyan);padding:4px 10px;border-radius:20px;font-size:0.78rem;font-weight:600;font-family:var(--mono)}
     /* ── GPS chip — point de statut ── */
-    #gpsChip{display:flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;font-size:0.78rem;font-weight:700;background:#1e293b;border:1px solid #334155;color:#94a3b8;cursor:default;transition:all 0.4s}
-    #gpsDot{width:8px;height:8px;border-radius:50%;background:#475569;flex-shrink:0;transition:background 0.4s}
+    #gpsChip{display:flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;font-size:0.78rem;font-weight:700;background:var(--surface);border:1px solid var(--line-2);color:var(--ink-2);cursor:default;transition:all 0.4s;font-family:var(--mono)}
+    #gpsDot{width:8px;height:8px;border-radius:50%;background:var(--ink-3);flex-shrink:0;transition:background 0.4s}
     #gpsChip.gps-ok{border-color:#16a34a;color:#4ade80;background:rgba(22,163,74,.12)}
     #gpsChip.gps-ok #gpsDot{background:#4ade80;box-shadow:0 0 6px #22c55e}
     #gpsChip.gps-mid{border-color:#d97706;color:#fbbf24;background:rgba(217,119,6,.1)}
@@ -37,19 +54,19 @@
     #gpsChip.gps-bad{border-color:#dc2626;color:#f87171;background:rgba(220,38,38,.15);animation:pulse 0.8s infinite}
     #gpsChip.gps-bad #gpsDot{background:#f87171}
     /* ── Navigation ── */
-    nav{display:flex;background:#1e293b;border-bottom:1px solid #334155;padding:0 2px}
-    nav button{flex:1;padding:13px 4px;min-height:52px;background:none;border:none;color:#64748b;font-size:0.8rem;font-weight:700;cursor:pointer;letter-spacing:0.01em;transition:color 0.15s,background 0.15s;display:flex;flex-direction:column;align-items:center;gap:2px}
+    nav{display:flex;background:var(--surface);border-bottom:1px solid var(--line-2);padding:0 2px}
+    nav button{flex:1;padding:13px 4px;min-height:52px;background:none;border:none;color:var(--ink-3);font-size:0.8rem;font-weight:700;cursor:pointer;letter-spacing:0.01em;transition:color 0.15s,background 0.15s;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--display)}
     .nav-icon{font-size:1.35rem;line-height:1}
     .nav-label{font-size:0.7rem;font-weight:700;letter-spacing:.02em}
-    nav button.active{color:#f1f5f9;border-bottom:3px solid #3b82f6;background:rgba(59,130,246,.1);font-weight:800}
+    nav button.active{color:var(--ink);border-bottom:3px solid var(--magenta);background:rgba(255,61,138,.1);font-weight:800}
     nav button:active{background:rgba(255,255,255,.06)}
     /* ── Panels ── */
     .panel{display:none!important}
     .panel.active{display:block!important;flex:1;overflow:hidden;min-height:0}
     #panelExplore.active{display:flex!important;flex-direction:column;flex:1;overflow:hidden;min-height:0}
-    #miniMap{flex:1;border-bottom:2px solid #334155;min-height:0;position:relative}
+    #miniMap{flex:1;border-bottom:2px solid var(--line-2);min-height:0;position:relative}
     /* ── Radar bar ── */
-    #radarBar{position:fixed;bottom:calc(42px + 12px);left:50%;transform:translateX(-50%);background:rgba(30,41,59,.97);border:1px solid #334155;border-radius:24px;padding:10px 26px;font-size:0.9rem;font-weight:700;color:#94a3b8;z-index:200;display:none;white-space:nowrap;backdrop-filter:blur(8px);box-shadow:0 -4px 24px rgba(0,0,0,.5);letter-spacing:0.01em}
+    #radarBar{position:fixed;bottom:calc(42px + 12px);left:50%;transform:translateX(-50%);background:rgba(15,17,36,.97);border:1px solid var(--line-2);border-radius:24px;padding:10px 26px;font-size:0.9rem;font-weight:700;color:var(--ink-2);z-index:200;display:none;white-space:nowrap;backdrop-filter:blur(8px);box-shadow:0 -4px 24px rgba(0,0,0,.5);letter-spacing:0.01em;font-family:var(--mono)}
     #radarBar.near{color:#fbbf24;border-color:#d97706;background:rgba(69,26,3,.97);box-shadow:0 -4px 24px rgba(251,191,36,.25)}
     #radarBar.very-near{color:#4ade80;border-color:#16a34a;background:rgba(5,46,22,.97);animation:pulse 1s infinite;box-shadow:0 -4px 28px rgba(34,197,94,.35);font-size:0.95rem}
     /* ── Keyframes ── */
@@ -60,80 +77,80 @@
     @keyframes bounceIn{0%{transform:scale(0.7);opacity:0}60%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}
     @keyframes fadeInFast{from{opacity:0}to{opacity:1}}
     /* ── Leaflet dark popup ── */
-    .dark-popup .leaflet-popup-content-wrapper{background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.6);padding:4px;font-size:0.9rem}
-    .dark-popup .leaflet-popup-tip{background:#1e293b}
+    .dark-popup .leaflet-popup-content-wrapper{background:var(--surface);color:var(--ink);border:1px solid var(--line-2);border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.6);padding:4px;font-size:0.9rem}
+    .dark-popup .leaflet-popup-tip{background:var(--surface)}
     .dark-popup .leaflet-popup-close-button{color:#cbd5e1!important;font-size:1.1rem!important;padding:6px 8px!important}
     /* ── Photo viewer ── */
     #photoViewer{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;align-items:center;justify-content:center;flex-direction:column;padding:16px}
     #photoViewer.open{display:flex}
     #photoViewer img{max-width:100%;max-height:80vh;object-fit:contain;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,.8)}
-    #photoViewer button{margin-top:18px;padding:14px 36px;background:#1e293b;border:1px solid #334155;border-radius:10px;color:#e2e8f0;font-size:1rem;cursor:pointer;min-height:52px}
+    #photoViewer button{margin-top:18px;padding:14px 36px;background:var(--surface);border:1px solid var(--line-2);border-radius:10px;color:var(--ink);font-size:1rem;cursor:pointer;min-height:52px;font-family:var(--display)}
     /* ── Compass panel ── */
     #compassStatus{text-align:center;font-size:0.78rem;color:#cbd5e1;padding:6px 0 4px}
     #compassPermBtn{display:none;width:100%;padding:10px 20px;background:linear-gradient(135deg,#3b82f6,#6366f1);border:none;border-radius:12px;color:#fff;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:14px;min-height:48px}
-    .cmp-card{background:#1e293b;border-radius:16px;padding:16px 14px;margin-bottom:12px;display:flex;align-items:center;gap:14px;border:2px solid #334155;transition:border-color .4s}
+    .cmp-card{background:var(--surface);border-radius:16px;padding:16px 14px;margin-bottom:12px;display:flex;align-items:center;gap:14px;border:2px solid var(--line-2);transition:border-color .4s}
     .cmp-card.in-range{border-color:#22c55e;box-shadow:0 0 20px rgba(34,197,94,.25)}
     .cmp-arrow-wrap{width:80px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
     .cmp-arrow-wrap svg{transition:transform .35s ease}
     .cmp-info{flex:1;min-width:0}
     .cmp-label{font-weight:700;font-size:1.05rem;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .cmp-dist{font-size:0.88rem;color:#cbd5e1;margin-bottom:6px}
-    .cmp-hint{font-size:0.8rem;color:#93c5fd;margin-bottom:8px}
+    .cmp-dist{font-size:0.88rem;color:var(--ink-2);margin-bottom:6px}
+    .cmp-hint{font-size:0.8rem;color:var(--cyan);margin-bottom:8px}
     .cmp-capture{width:100%;padding:10px;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:10px;color:#fff;font-weight:800;cursor:pointer;font-size:0.95rem;box-shadow:0 2px 12px rgba(34,197,94,.4);min-height:52px}
     /* ── Capture FAB ── */
     #captureFab{position:fixed;bottom:calc(42px + 14px);right:18px;padding:16px 24px;min-height:56px;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:16px;font-size:1.05rem;font-weight:800;color:#fff;cursor:pointer;z-index:1000;box-shadow:0 4px 24px rgba(34,197,94,.5);display:none;animation:pulse 1.2s infinite;letter-spacing:0.03em;transition:transform 0.1s}
     #captureFab:active{transform:scale(0.94)}
     /* ── Progress bar ── */
-    #progressBar{position:fixed;bottom:0;left:0;right:0;background:#1e293b;border-top:1px solid #334155;padding:8px 16px 12px;z-index:200;display:none;padding-bottom:calc(8px + env(safe-area-inset-bottom))}
-    #progressBar .pb-label{display:flex;justify-content:space-between;font-size:0.78rem;color:#94a3b8;margin-bottom:6px}
-    #progressBar .pb-label strong{color:#f1f5f9;font-size:0.84rem}
-    #progressBar .pb-track{height:12px;background:#0f172a;border-radius:8px;overflow:hidden;border:1px solid #334155}
+    #progressBar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--line-2);padding:8px 16px 12px;z-index:200;display:none;padding-bottom:calc(8px + env(safe-area-inset-bottom))}
+    #progressBar .pb-label{display:flex;justify-content:space-between;font-size:0.78rem;color:var(--ink-2);margin-bottom:6px;font-family:var(--mono)}
+    #progressBar .pb-label strong{color:var(--ink);font-size:0.84rem}
+    #progressBar .pb-track{height:12px;background:var(--bg);border-radius:8px;overflow:hidden;border:1px solid var(--line-2)}
     #progressBar .pb-fill{height:100%;background:linear-gradient(90deg,#3b82f6,#6366f1);border-radius:8px;transition:width 0.6s cubic-bezier(.16,1,.3,1);min-width:0}
     /* ── Leaderboard ── */
     #panelScores{flex:1;overflow-y:auto;padding:12px 14px 24px;max-width:560px;margin:0 auto;width:100%}
-    .lb-header{text-align:center;padding:14px 0 8px;font-size:0.74rem;color:#cbd5e1;text-transform:uppercase;letter-spacing:.1em}
-    .lb-row{display:flex;align-items:center;gap:10px;padding:13px 16px;background:#1e293b;border-radius:14px;margin-bottom:8px;border:1px solid #334155;transition:transform 0.12s ease}
+    .lb-header{text-align:center;padding:14px 0 8px;font-size:0.74rem;color:var(--ink-2);text-transform:uppercase;letter-spacing:.1em;font-family:var(--mono)}
+    .lb-row{display:flex;align-items:center;gap:10px;padding:13px 16px;background:var(--surface);border-radius:14px;margin-bottom:8px;border:1px solid var(--line);transition:transform 0.12s ease}
     .lb-row:active{transform:translateX(3px)}
-    .lb-row.lb-me{border-color:#3b82f6;background:linear-gradient(135deg,#1e3a5f,#1e293b)}
-    .lb-row.lb-top1{background:linear-gradient(135deg,#2d1f00,#1e293b);border-color:#fbbf24}
-    .lb-row.lb-top2{background:linear-gradient(135deg,#1a1f2e,#1e293b);border-color:#94a3b8}
-    .lb-row.lb-top3{background:linear-gradient(135deg,#1f1208,#1e293b);border-color:#c2855a}
+    .lb-row.lb-me{border-color:var(--magenta);background:linear-gradient(135deg,rgba(255,61,138,.15),var(--surface))}
+    .lb-row.lb-top1{background:linear-gradient(135deg,rgba(251,191,36,.12),var(--surface));border-color:#fbbf24}
+    .lb-row.lb-top2{background:linear-gradient(135deg,rgba(180,180,200,.06),var(--surface));border-color:var(--ink-3)}
+    .lb-row.lb-top3{background:linear-gradient(135deg,rgba(194,133,90,.1),var(--surface));border-color:#c2855a}
     .lb-rank{font-size:1.5rem;width:34px;text-align:center;flex-shrink:0}
     .lb-body{flex:1;min-width:0}
-    .lb-name{font-weight:800;font-size:1rem;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .lb-name{font-weight:800;font-size:1rem;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .lb-me .lb-name::after{content:' 👈';font-weight:400}
-    .lb-score{font-size:0.84rem;color:#cbd5e1;margin-top:2px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-    .lb-score strong{color:#f1f5f9;font-size:0.88rem}
-    .lb-pbar{height:6px;background:#0f172a;border-radius:4px;overflow:hidden;border:1px solid #334155;margin-top:6px}
+    .lb-score{font-size:0.84rem;color:var(--ink-2);margin-top:2px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .lb-score strong{color:var(--ink);font-size:0.88rem}
+    .lb-pbar{height:6px;background:var(--bg);border-radius:4px;overflow:hidden;border:1px solid var(--line);margin-top:6px}
     .lb-pfill{height:100%;border-radius:4px;transition:width 0.5s ease}
-    .lb-badge{display:inline-flex;align-items:center;gap:3px;background:#0f2942;border:1px solid #1d4ed8;border-radius:8px;color:#93c5fd;font-size:0.74rem;padding:3px 8px}
-    .lb-badge-done{background:#14532d;border-color:#16a34a;color:#4ade80}
+    .lb-badge{display:inline-flex;align-items:center;gap:3px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);border-radius:8px;color:var(--cyan);font-size:0.74rem;padding:3px 8px}
+    .lb-badge-done{background:rgba(74,222,128,0.12);border-color:#16a34a;color:#4ade80}
     .lb-time{font-size:0.78rem;color:#4ade80;font-weight:700}
-    .lb-sep{height:1px;background:#1e293b;margin:4px 0 10px}
-    .lb-you-sep{text-align:center;font-size:0.7rem;color:#334155;padding:4px 0 2px}
-    .lb-refresh{font-size:0.7rem;color:#334155;text-align:center;padding:10px;margin-top:2px}
+    .lb-sep{height:1px;background:var(--line);margin:4px 0 10px}
+    .lb-you-sep{text-align:center;font-size:0.7rem;color:var(--ink-3);padding:4px 0 2px}
+    .lb-refresh{font-size:0.7rem;color:var(--ink-3);text-align:center;padding:10px;margin-top:2px}
     /* ── Ma carte ── */
-    .my-card{background:linear-gradient(135deg,#1e3a5f,#1a2744);border:2px solid #3b82f6;border-radius:16px;padding:16px 18px;margin-bottom:14px;position:relative}
+    .my-card{background:linear-gradient(135deg,rgba(255,61,138,.15),var(--surface));border:2px solid var(--magenta);border-radius:16px;padding:16px 18px;margin-bottom:14px;position:relative}
     .my-card-rank{position:absolute;top:12px;right:14px;font-size:1.5rem}
-    .my-card-pseudo{font-size:1.05rem;font-weight:800;color:#f1f5f9;margin-bottom:2px}
-    .my-card-sub{font-size:0.78rem;color:#94a3b8;margin-bottom:10px}
+    .my-card-pseudo{font-size:1.05rem;font-weight:800;color:var(--ink);margin-bottom:2px}
+    .my-card-sub{font-size:0.78rem;color:var(--ink-2);margin-bottom:10px;font-family:var(--mono)}
     .my-card-stats{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
-    .my-card-stats strong{font-size:1.1rem;color:#f1f5f9}
-    .my-card-stats span{font-size:0.78rem;color:#cbd5e1}
-    .my-card-bar{height:8px;background:#0f172a;border-radius:4px;overflow:hidden;border:1px solid #1e3a5f}
+    .my-card-stats strong{font-size:1.1rem;color:var(--ink)}
+    .my-card-stats span{font-size:0.78rem;color:var(--ink-2)}
+    .my-card-bar{height:8px;background:var(--bg);border-radius:4px;overflow:hidden;border:1px solid rgba(255,61,138,.3)}
     .my-card-fill{height:100%;background:linear-gradient(90deg,#3b82f6,#6366f1);border-radius:4px;transition:width .6s ease}
     .my-card-done{height:100%;background:linear-gradient(90deg,#22c55e,#16a34a);border-radius:4px}
-    .lb-divider{font-size:0.68rem;color:#475569;text-transform:uppercase;letter-spacing:.1em;text-align:center;padding:6px 0 8px}
+    .lb-divider{font-size:0.68rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:.1em;text-align:center;padding:6px 0 8px;font-family:var(--mono)}
     /* ── Modal trésor trouvé ── */
     #foundModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:700;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
     #foundModal.open{display:flex}
-    .found-box{background:#1e293b;border-radius:24px;padding:32px 26px;width:100%;max-width:400px;text-align:center;border:1px solid #334155;animation:foundPop 0.38s cubic-bezier(.34,1.56,.64,1)}
+    .found-box{background:var(--surface);border-radius:24px;padding:32px 26px;width:100%;max-width:400px;text-align:center;border:1px solid var(--line-2);animation:foundPop 0.38s cubic-bezier(.34,1.56,.64,1)}
     .found-box h2{font-size:1.35rem;font-weight:800;margin-bottom:8px}
-    .found-box p{font-size:0.9rem;color:#cbd5e1;margin-bottom:20px;line-height:1.6}
+    .found-box p{font-size:0.9rem;color:var(--ink-2);margin-bottom:20px;line-height:1.6}
     .found-box .duration{font-size:1.9rem;font-weight:800;color:#4ade80;margin-bottom:8px}
     .found-emoji{font-size:3.8rem;margin-bottom:12px;display:block;animation:bounceIn 0.5s cubic-bezier(.34,1.56,.64,1) 0.2s both}
     /* ── Pause screen ── */
-    #pauseScreen{display:none;position:fixed;inset:0;background:rgba(15,23,42,.97);z-index:800;align-items:center;justify-content:center;text-align:center;flex-direction:column;gap:16px}
+    #pauseScreen{display:none;position:fixed;inset:0;background:rgba(5,6,16,.97);z-index:800;align-items:center;justify-content:center;text-align:center;flex-direction:column;gap:16px}
     #pauseScreen.open{display:flex;animation:fadeInFast 0.3s ease}
     /* ── Boutons carte ── */
     #arrowToggleBtn{min-height:48px!important;min-width:48px!important;padding:10px 16px!important;font-size:0.8rem!important;font-weight:700!important;transition:transform .1s}
@@ -141,17 +158,17 @@
     #locateMeBtn{min-height:48px!important;min-width:48px!important;padding:10px!important;transition:transform .1s}
     #locateMeBtn:active{transform:scale(0.9)}
     /* ── QR Scanner overlay ── */
-    #qrOverlay{display:none;position:fixed;inset:0;background:#0f172a;z-index:2000;flex-direction:column;align-items:center;justify-content:center}
+    #qrOverlay{display:none;position:fixed;inset:0;background:var(--bg);z-index:2000;flex-direction:column;align-items:center;justify-content:center}
     #qrOverlay.open{display:flex}
     #qrCanvas{display:none}
     #qrUI{display:flex;flex-direction:column;align-items:center;gap:18px;padding:32px 24px calc(32px + env(safe-area-inset-bottom));width:100%;max-width:420px}
-    #qrStatus{color:#f1f5f9;font-size:1rem;font-weight:700;text-align:center;line-height:1.5}
+    #qrStatus{color:var(--ink);font-size:1rem;font-weight:700;text-align:center;line-height:1.5;font-family:var(--mono)}
     #qrStatus.qr-ok{color:#4ade80}
     #qrStatus.qr-err{color:#f87171}
-    #qrPreviewWrap{width:100%;border-radius:14px;overflow:hidden;display:none;border:2px solid #334155}
-    #qrPreviewImg{width:100%;display:block;max-height:50vh;object-fit:contain;background:#1e293b}
-    #qrPhotoBtn{display:flex;align-items:center;justify-content:center;gap:10px;padding:16px 0;background:linear-gradient(135deg,#2563eb,#4f46e5);border:none;border-radius:14px;color:#fff;font-size:1.05rem;font-weight:800;cursor:pointer;width:100%;min-height:56px;letter-spacing:.02em;box-shadow:0 4px 20px rgba(37,99,235,.4)}
-    #qrCloseBtn{padding:14px 0;background:rgba(30,41,59,.9);border:1px solid #334155;border-radius:12px;color:#f1f5f9;font-size:1rem;font-weight:700;cursor:pointer;min-height:52px;width:100%;backdrop-filter:blur(6px)}
+    #qrPreviewWrap{width:100%;border-radius:14px;overflow:hidden;display:none;border:2px solid var(--line-2)}
+    #qrPreviewImg{width:100%;display:block;max-height:50vh;object-fit:contain;background:var(--surface)}
+    #qrPhotoBtn{display:flex;align-items:center;justify-content:center;gap:10px;padding:16px 0;background:linear-gradient(135deg,#2563eb,#4f46e5);border:none;border-radius:14px;color:#fff;font-size:1.05rem;font-weight:800;cursor:pointer;width:100%;min-height:56px;letter-spacing:.02em;box-shadow:0 4px 20px rgba(37,99,235,.4);font-family:var(--display)}
+    #qrCloseBtn{padding:14px 0;background:rgba(15,17,36,.9);border:1px solid var(--line-2);border-radius:12px;color:var(--ink);font-size:1rem;font-weight:700;cursor:pointer;min-height:52px;width:100%;backdrop-filter:blur(6px);font-family:var(--display)}
   </style>
 </head>
 <body>
@@ -171,7 +188,7 @@
     </div>
     <p id="pseudoErr" style="color:#f87171;font-size:0.78rem;margin-bottom:10px;display:none"></p>
     <button class="btn-main" id="startBtn" onclick="startGame()">🚀 Rejoindre le jeu</button>
-    <button class="btn-main" id="guestBtn" onclick="continueAsGuest()" style="margin-top:10px;background:#1e293b;border:1px solid #334155">👀 Voir la carte en invité</button>
+    <button class="btn-main" id="guestBtn" onclick="continueAsGuest()" style="margin-top:10px;background:var(--surface);border:1px solid var(--line-2)">👀 Voir la carte en invité</button>
   </div>
 </div>
 
@@ -193,9 +210,9 @@
 <div id="panelExplore" class="panel active">
   <div id="miniMap" style="position:relative">
     <button id="arrowToggleBtn" onclick="toggleCompassArrows()" style="position:absolute;bottom:14px;right:10px;z-index:1000;background:rgba(30,58,138,.88);border:2px solid #3b82f6;border-radius:12px;color:#93c5fd;font-size:0.75rem;font-weight:700;padding:7px 12px;cursor:pointer;backdrop-filter:blur(6px)">📌 Balises fixes</button>
-    <button id="locateMeBtn" onclick="recenterMap()" style="position:absolute;bottom:14px;left:10px;z-index:1000;background:rgba(15,23,42,.88);border:2px solid #334155;border-radius:12px;color:#94a3b8;font-size:1.1rem;padding:7px 11px;cursor:pointer;backdrop-filter:blur(6px);display:none" title="Recentrer sur ma position"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="10" r="2.5" fill="currentColor"/><line x1="10" y1="1" x2="10" y2="4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="10" y1="15.5" x2="10" y2="19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="1" y1="10" x2="4.5" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="15.5" y1="10" x2="19" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+    <button id="locateMeBtn" onclick="recenterMap()" style="position:absolute;bottom:14px;left:10px;z-index:1000;background:rgba(5,6,16,.88);border:2px solid var(--line-2);border-radius:12px;color:var(--ink-2);font-size:1.1rem;padding:7px 11px;cursor:pointer;backdrop-filter:blur(6px);display:none" title="Recentrer sur ma position"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="10" r="2.5" fill="currentColor"/><line x1="10" y1="1" x2="10" y2="4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="10" y1="15.5" x2="10" y2="19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="1" y1="10" x2="4.5" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="15.5" y1="10" x2="19" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
     <button id="compassPermBtn" onclick="requestCompassPermission()" style="display:none;position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1000;padding:8px 16px;background:linear-gradient(135deg,#3b82f6,#6366f1);border:none;border-radius:12px;color:#fff;font-size:0.82rem;font-weight:700;cursor:pointer;backdrop-filter:blur(6px)">🧭 Activer le compas (iOS)</button>
-    <div id="compassDebug" style="display:none;position:absolute;top:10px;left:10px;z-index:1000;font-size:0.68rem;color:#94a3b8;line-height:1.6;padding:8px 12px;background:rgba(15,23,42,.9);border-radius:8px;max-width:220px"></div>
+    <div id="compassDebug" style="display:none;position:absolute;top:10px;left:10px;z-index:1000;font-size:0.68rem;color:var(--ink-2);line-height:1.6;padding:8px 12px;background:rgba(5,6,16,.9);border-radius:8px;max-width:220px"></div>
   </div>
 </div>
 
@@ -208,9 +225,9 @@
 <!-- ── Leaderboard ───────────────────────────────────── -->
 <div id="panelScores" class="panel">
   <div id="myCard"></div>
-  <div id="lbList"><p style="color:#475569;text-align:center;padding:40px">Chargement…</p></div>
+  <div id="lbList"><p style="color:var(--ink-3);text-align:center;padding:40px">Chargement…</p></div>
   <div class="lb-refresh" id="lbRefresh"></div>
-  <div style="text-align:center;font-size:0.62rem;color:#1e293b;padding-bottom:8px" id="gameVersion"></div>
+  <div style="text-align:center;font-size:0.62rem;color:var(--ink-3);padding-bottom:8px" id="gameVersion"></div>
 </div>
 
 <!-- ── Radar bar ─────────────────────────────────────── -->
@@ -237,7 +254,7 @@
     <h2 id="foundTitle">Trésor trouvé !</h2>
     <div class="duration" id="foundDuration"></div>
     <p id="foundDesc"></p>
-    <button class="btn-main" id="foundRetryBtn" style="display:none;margin-bottom:8px;background:#1e293b;border:1px solid #334155" onclick="_retryCheckin()">🔄 Réessayer</button>
+    <button class="btn-main" id="foundRetryBtn" style="display:none;margin-bottom:8px;background:var(--surface);border:1px solid var(--line-2)" onclick="_retryCheckin()">🔄 Réessayer</button>
     <button class="btn-main" aria-label="Continuer le jeu" onclick="closeFound()">✅ Continuer</button>
   </div>
 </div>
@@ -253,7 +270,7 @@
       📷 Prendre une photo
       <input type="file" accept="image/*" capture="environment" id="qrFileInput" style="display:none">
     </label>
-    <div id="qrTips" style="font-size:0.86rem;color:#94a3b8;display:none;max-width:380px;text-align:center">Astuce: rapproche-toi du QR, évite les reflets et assure-toi qu'il occupe une bonne part de l'image.</div>
+    <div id="qrTips" style="font-size:0.86rem;color:var(--ink-2);display:none;max-width:380px;text-align:center">Astuce: rapproche-toi du QR, évite les reflets et assure-toi qu'il occupe une bonne part de l'image.</div>
     <button id="qrCloseBtn" onclick="closeQRScanner()" aria-label="Annuler le scan QR">✕ Annuler</button>
   </div>
 </div>
@@ -262,7 +279,7 @@
 <div id="pauseScreen">
   <div style="font-size:3rem">⏸</div>
   <h2>Jeu en pause</h2>
-  <p style="color:#64748b;font-size:0.85rem">L'organisateur a mis le jeu en pause.<br>Patiente…</p>
+  <p style="color:var(--ink-2);font-size:0.85rem">L'organisateur a mis le jeu en pause.<br>Patiente…</p>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

@@ -4,83 +4,102 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
   <title>Urban3DQuest · Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <style>
+    /* ── DESIGN SYSTEM — Jadikan light painting ── */
+    :root{
+      --magenta:#ff3d8a;--cyan:#00e5ff;--amber:#ffb020;--violet:#a855f7;
+      --bg:#050610;--bg-2:#0a0c1a;--surface:#0f1124;--surface-2:#161830;
+      --ink:#f4f1ec;--ink-2:#b8b3c4;--ink-3:#6e6a82;
+      --line:rgba(244,241,236,0.10);--line-2:rgba(244,241,236,0.20);
+      --glow-magenta:0 0 14px rgba(255,61,138,0.55),0 0 30px rgba(255,61,138,0.25);
+      --glow-cyan:0 0 14px rgba(0,229,255,0.55),0 0 30px rgba(0,229,255,0.25);
+      --glow-amber:0 0 14px rgba(255,176,32,0.55),0 0 30px rgba(255,176,32,0.25);
+      --glow-violet:0 0 14px rgba(168,85,247,0.55),0 0 30px rgba(168,85,247,0.25);
+      --display:'Space Grotesk',ui-sans-serif,system-ui,sans-serif;
+      --mono:'JetBrains Mono',ui-monospace,monospace;
+      --radius-sm:8px;--radius:14px;--radius-lg:22px;
+    }
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:system-ui,sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh}
-    header{background:#1e293b;padding:12px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;border-bottom:1px solid #334155}
+    body{font-family:var(--display);background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased}
+    header{background:var(--surface);padding:12px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;border-bottom:1px solid var(--line-2)}
     header h1{font-size:1rem;flex:1}
-    .dot{width:10px;height:10px;border-radius:50%;background:#475569;flex-shrink:0}
+    .dot{width:10px;height:10px;border-radius:50%;background:var(--ink-3);flex-shrink:0}
     .dot.ok{background:#4ade80}
-    nav{display:flex;background:#1e293b;border-bottom:1px solid #334155}
-    nav button{flex:1;padding:10px 2px;background:none;border:none;color:#64748b;font-size:0.68rem;cursor:pointer}
-    nav button.active{color:#f1f5f9;border-bottom:2px solid #3b82f6}
+    nav{display:flex;background:var(--surface);border-bottom:1px solid var(--line-2)}
+    nav button{flex:1;padding:10px 2px;background:none;border:none;color:var(--ink-3);font-family:var(--display);font-size:0.68rem;cursor:pointer}
+    nav button.active{color:var(--ink);border-bottom:2px solid var(--magenta)}
     .panel{display:none;padding:16px;max-width:600px;margin:0 auto}
     .panel.active{display:block}
     /* ── Player cards ── */
-    .p-card{background:#1e293b;border-radius:10px;padding:14px;margin-bottom:10px}
+    .p-card{background:var(--surface);border-radius:10px;padding:14px;margin-bottom:10px}
     .p-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
     .p-name{font-weight:700;font-size:0.95rem;flex:1}
     .p-score{font-size:0.78rem;color:#4ade80;background:#052e16;padding:3px 8px;border-radius:10px}
     .p-found-list{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
-    .p-found-badge{font-size:0.68rem;padding:2px 7px;border-radius:8px;background:#172554;color:#93c5fd;font-family:monospace}
+    .p-found-badge{font-size:0.68rem;padding:2px 7px;border-radius:8px;background:rgba(0,229,255,0.12);color:var(--cyan);font-family:var(--mono)}
     .field{margin-bottom:14px}
-    .field label{display:block;font-size:0.72rem;color:#94a3b8;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
-    .field input,.field textarea{width:100%;padding:11px 12px;background:#1e293b;border:1px solid #334155;border-radius:9px;color:#f1f5f9;font-size:0.9rem}
+    .field label{display:block;font-size:0.72rem;color:var(--ink-2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em;font-family:var(--mono)}
+    .field input,.field textarea{width:100%;padding:11px 12px;background:var(--surface);border:1px solid var(--line-2);border-radius:9px;color:var(--ink);font-size:0.9rem;font-family:var(--display)}
     .field textarea{min-height:72px;resize:vertical}
     .photo-preview{width:100%;max-height:220px;object-fit:cover;border-radius:9px;margin-top:8px;display:none}
-    .geo-bar{padding:10px 14px;background:#1e293b;border:1px solid #334155;border-radius:9px;font-size:0.8rem;color:#94a3b8;margin-bottom:14px;cursor:pointer}
+    .geo-bar{padding:10px 14px;background:var(--surface);border:1px solid var(--line-2);border-radius:9px;font-size:0.8rem;color:var(--ink-2);margin-bottom:14px;cursor:pointer}
     .type-row{display:flex;gap:8px}
-    .type-btn{flex:1;padding:12px 8px;border:2px solid #334155;border-radius:9px;background:#1e293b;color:#64748b;cursor:pointer;text-align:center;font-size:0.82rem;line-height:1.4;transition:all .2s}
-    .type-btn.active{border-color:#3b82f6;color:#93c5fd;background:#172554}
+    .type-btn{flex:1;padding:12px 8px;border:2px solid var(--line-2);border-radius:9px;background:var(--surface);color:var(--ink-3);cursor:pointer;text-align:center;font-size:0.82rem;line-height:1.4;transition:all .2s}
+    .type-btn.active{border-color:var(--magenta);color:var(--magenta);background:rgba(255,61,138,0.1)}
     .toggle-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-    .toggle{width:44px;height:24px;background:#334155;border-radius:12px;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+    .toggle{width:44px;height:24px;background:var(--line-2);border-radius:12px;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
     .toggle.on{background:#22c55e}
     .toggle::after{content:'';position:absolute;width:20px;height:20px;background:#fff;border-radius:50%;top:2px;left:2px;transition:left .2s}
     .toggle.on::after{left:22px}
-    .btn{width:100%;padding:14px;border:none;border-radius:10px;background:#3b82f6;color:#fff;font-size:0.95rem;font-weight:600;cursor:pointer;margin-bottom:8px}
-    .btn:disabled{background:#1e293b;color:#475569}
+    .btn{width:100%;padding:14px;border:none;border-radius:10px;background:var(--magenta);color:#fff;font-size:0.95rem;font-weight:600;cursor:pointer;margin-bottom:8px;font-family:var(--display)}
+    .btn:disabled{background:var(--surface);color:var(--ink-3)}
     .status{padding:10px 14px;border-radius:9px;font-size:0.82rem;margin-bottom:12px;display:none}
     .status.ok{background:#14532d;color:#4ade80;display:block}
     .status.err{background:#450a0a;color:#f87171;display:block}
     .t-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-    .t-card{background:#1e293b;border-radius:10px;padding:10px;min-width:0}
+    .t-card{background:var(--surface);border-radius:10px;padding:10px;min-width:0}
     .t-head{display:flex;align-items:center;gap:4px;margin-bottom:5px;flex-wrap:wrap}
     .badge{padding:2px 8px;border-radius:10px;font-size:0.68rem;font-weight:700;text-transform:uppercase}
-    .b-fixed{background:#172554;color:#93c5fd}
-    .b-unique{background:#2e1065;color:#c4b5fd}
-    .b-found{background:#14532d;color:#4ade80}
-    .b-hidden{background:#431407;color:#fb923c}
+    .b-fixed{background:rgba(0,229,255,0.12);color:var(--cyan)}
+    .b-unique{background:rgba(168,85,247,0.12);color:var(--violet)}
+    .b-found{background:rgba(74,222,128,0.12);color:#4ade80}
+    .b-hidden{background:rgba(251,146,60,0.12);color:#fb923c}
     .t-label{font-weight:600;font-size:0.8rem;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .t-meta{font-size:0.68rem;color:#475569;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .t-meta{font-size:0.68rem;color:var(--ink-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .t-actions{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:8px}
     .t-actions button{padding:6px 2px;border:none;border-radius:7px;cursor:pointer;font-size:0.68rem;font-weight:600;text-align:center}
 
-    .t-hint{font-size:0.72rem;color:#93c5fd;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .t-hint{font-size:0.72rem;color:var(--cyan);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .t-icon-row{display:flex;gap:3px;margin-top:8px;flex-wrap:wrap}
-    .t-ico{flex:1;min-width:26px;padding:5px 2px;border:1px solid #334155;border-radius:7px;cursor:pointer;font-size:0.95rem;background:#0f172a;text-align:center;line-height:1}
+    .t-ico{flex:1;min-width:26px;padding:5px 2px;border:1px solid var(--line-2);border-radius:7px;cursor:pointer;font-size:0.95rem;background:var(--bg);text-align:center;line-height:1}
     .t-ico-del{background:#450a0a!important;border-color:#7f1d1d!important}
     .t-ico-warn{background:#422006!important;border-color:#78350f!important}
     .t-ico-qr{background:#172554!important;border-color:#1e3a8a!important}
     #adminMap{height:calc(100vh - 156px - 48px - 46px);border-radius:10px;overflow:hidden}
-    .stat-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #334155;font-size:0.85rem}
+    .stat-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:0.85rem}
     .stat-row:last-child{border:none}
-    #pwScreen{position:fixed;inset:0;background:#0f172a;z-index:500;display:flex;align-items:center;justify-content:center}
-    #pwBox{background:#1e293b;padding:32px 24px;border-radius:16px;text-align:center;width:90%;max-width:340px}
+    select{width:100%;padding:8px 12px;background:var(--surface);border:1px solid var(--line-2);border-radius:9px;color:var(--ink);font-size:0.9rem;font-family:var(--display)}
+    .loading-text{color:var(--ink-3);text-align:center;padding:40px}
+    #pwScreen{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;align-items:center;justify-content:center}
+    #pwBox{background:var(--surface);padding:32px 24px;border-radius:16px;text-align:center;width:90%;max-width:340px}
     #pwBox h2{margin-bottom:6px;font-size:1.1rem}
-    #pwBox p{font-size:0.78rem;color:#64748b;margin-bottom:20px}
-    #pwBox input{width:100%;padding:12px;background:#0f172a;border:1px solid #334155;border-radius:9px;color:#f1f5f9;font-size:1rem;margin-bottom:12px}
+    #pwBox p{font-size:0.78rem;color:var(--ink-3);margin-bottom:20px}
+    #pwBox input{width:100%;padding:12px;background:var(--bg);border:1px solid var(--line-2);border-radius:9px;color:var(--ink);font-size:1rem;margin-bottom:12px;font-family:var(--display)}
     .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:400;align-items:flex-end;justify-content:center}
     .modal.open{display:flex}
-    .modal-box{background:#1e293b;border-radius:20px 20px 0 0;padding:28px 24px;width:100%;max-width:480px;text-align:center}
+    .modal-box{background:var(--surface);border-radius:20px 20px 0 0;padding:28px 24px;width:100%;max-width:480px;text-align:center}
     .modal-box h2{font-size:1rem;margin-bottom:4px}
-    .modal-sub{font-size:0.72rem;color:#64748b;margin-bottom:16px;word-break:break-all}
+    .modal-sub{font-size:0.72rem;color:var(--ink-3);margin-bottom:16px;word-break:break-all}
     #qrWrap{display:flex;justify-content:center;background:#fff;padding:12px;border-radius:10px;margin-bottom:12px}
-    .qr-url{font-size:0.68rem;color:#475569;margin-bottom:14px;word-break:break-all}
+    .qr-url{font-size:0.68rem;color:var(--ink-3);margin-bottom:14px;word-break:break-all}
     /* ── QR screen preview ── */
     .qr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px}
-    .qr-card{background:#1e293b;border-radius:10px;padding:10px;text-align:center}
-    .qr-card-id{font-size:0.72rem;font-weight:700;margin-bottom:6px;color:#93c5fd;letter-spacing:.04em;font-family:monospace}
+    .qr-card{background:var(--surface);border-radius:10px;padding:10px;text-align:center}
+    .qr-card-id{font-size:0.72rem;font-weight:700;margin-bottom:6px;color:var(--cyan);letter-spacing:.04em;font-family:var(--mono)}
     .qr-card canvas,.qr-card img{width:80px!important;height:80px!important}
     /* ── Print sheet (hidden on screen) ── */
     #printSheet{display:none}
@@ -121,7 +140,7 @@
 <div id="panelAdd" class="panel active">
   <div id="stAdd" class="status"></div>
   <div class="field">
-    <label>Photos <span style="color:#475569;font-weight:normal;text-transform:none">(appuie plusieurs fois pour en ajouter)</span></label>
+    <label>Photos <span style="color:var(--ink-3);font-weight:normal;text-transform:none">(appuie plusieurs fois pour en ajouter)</span></label>
     <input type="file" accept="image/*" capture="environment" id="photoInput" onchange="addPhoto(event)" style="margin-bottom:8px">
     <div id="photoStrip" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px"></div>
   </div>
@@ -135,8 +154,8 @@
     <textarea id="fHint" placeholder="Indice visible par les joueurs"></textarea>
   </div>
   <div class="field" id="questField" style="display:none">
-    <label>Quête <span style="color:#475569;font-weight:normal;text-transform:none">(optionnel)</span></label>
-    <select id="fQuestSelect" style="width:100%;padding:11px 12px;background:#1e293b;border:1px solid #334155;border-radius:9px;color:#f1f5f9;font-size:0.9rem">
+    <label>Quête <span style="color:var(--ink-3);font-weight:normal;text-transform:none">(optionnel)</span></label>
+    <select id="fQuestSelect">
       <option value="">— Sans quête —</option>
     </select>
   </div>
@@ -153,34 +172,34 @@
   </div>
   <div class="field">
     <label>Numéro QR pré-collé</label>
-    <select id="fQrSelect" onchange="onQrSelectChange()" style="width:100%;padding:11px 12px;background:#1e293b;border:1px solid #334155;border-radius:9px;color:#f1f5f9;font-size:0.9rem;margin-bottom:6px">
+    <select id="fQrSelect" onchange="onQrSelectChange()" style="margin-bottom:6px">
       <option value="">⏳ Chargement…</option>
     </select>
     <input type="text" id="fQrNum" placeholder="ex: QR-003" style="text-transform:uppercase;display:none;margin-top:0">
-    <div id="fQrInfo" style="font-size:0.72rem;color:#475569;margin-top:4px"></div>
+    <div id="fQrInfo" style="font-size:0.72rem;color:var(--ink-3);margin-top:4px"></div>
   </div>
   <button class="btn" id="saveBtn" onclick="saveTreasure()">Enregistrer le tresor</button>
 </div>
 <div id="panelFixed" class="panel">
   <div id="stFixed" class="status"></div>
-  <select id="filterQuestFixed" onchange="loadTreasureList('fixed','fixedList')" style="width:100%;padding:8px 12px;background:#1e293b;border:1px solid #334155;border-radius:9px;color:#f1f5f9;font-size:0.82rem;margin-bottom:10px">
+  <select id="filterQuestFixed" onchange="loadTreasureList('fixed','fixedList')" style="margin-bottom:10px;font-size:0.82rem">
     <option value="">Toutes les quêtes</option>
   </select>
-  <div id="fixedList"><p style="color:#475569;text-align:center;padding:40px">Chargement</p></div>
+  <div id="fixedList"><p class="loading-text">Chargement</p></div>
 </div>
 <div id="panelUnique" class="panel">
   <div id="stUnique" class="status"></div>
-  <select id="filterQuestUnique" onchange="loadTreasureList('unique','uniqueList')" style="width:100%;padding:8px 12px;background:#1e293b;border:1px solid #334155;border-radius:9px;color:#f1f5f9;font-size:0.82rem;margin-bottom:10px">
+  <select id="filterQuestUnique" onchange="loadTreasureList('unique','uniqueList')" style="margin-bottom:10px;font-size:0.82rem">
     <option value="">Toutes les quêtes</option>
   </select>
-  <div id="uniqueList"><p style="color:#475569;text-align:center;padding:40px">Chargement</p></div>
+  <div id="uniqueList"><p class="loading-text">Chargement</p></div>
 </div>
 <div id="panelPlayers" class="panel">
-  <div id="playersList"><p style="color:#475569;text-align:center;padding:40px">Chargement</p></div>
+  <div id="playersList"><p class="loading-text">Chargement</p></div>
 </div>
 <div id="panelMap" class="panel" style="padding:8px">
-  <div id="relocateBanner" style="display:none;padding:10px 14px;background:#1c3351;border:1px solid #1d4ed8;border-radius:10px;margin-bottom:8px;font-size:0.82rem;color:#93c5fd;line-height:1.5"></div>
-  <select id="filterQuestMap" onchange="initMap()" style="width:100%;padding:8px 12px;background:#1e293b;border:1px solid #334155;border-radius:9px;color:#f1f5f9;font-size:0.82rem;margin-bottom:8px">
+  <div id="relocateBanner" style="display:none;padding:10px 14px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);border-radius:10px;margin-bottom:8px;font-size:0.82rem;color:var(--cyan);line-height:1.5"></div>
+  <select id="filterQuestMap" onchange="initMap()" style="margin-bottom:8px;font-size:0.82rem">
     <option value="">Toutes les quêtes</option>
   </select>
   <div id="adminMap"></div>
