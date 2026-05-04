@@ -706,7 +706,9 @@ function changeQuest(btn){
     });
   }
   document.getElementById('questModalStatus').textContent='';
-  document.getElementById('questModal').classList.add('open');
+  var modal=document.getElementById('questModal');
+  modal.style.display='flex';
+  modal.classList.add('open');
 }
 async function saveQuestModal(){
   var id=_questTargetId;
@@ -743,7 +745,7 @@ async function saveQuestModal(){
   st.style.color='#4ade80';st.textContent='✅ Quête mise à jour !';
   setTimeout(closeQuestModal,800);
 }
-function closeQuestModal(){document.getElementById('questModal').classList.remove('open');}
+function closeQuestModal(){var modal=document.getElementById('questModal');modal.classList.remove('open');modal.style.display='none';}
 var _photoChangeTargetId=null;
 function changePhoto(id){
   _photoChangeTargetId=id;
