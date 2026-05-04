@@ -56,7 +56,7 @@
     /* ── Navigation ── */
     nav{display:flex;background:var(--surface);border-bottom:1px solid var(--line-2);padding:0 2px}
     nav button{flex:1;padding:13px 4px;min-height:52px;background:none;border:none;color:var(--ink-3);font-size:0.8rem;font-weight:700;cursor:pointer;letter-spacing:0.01em;transition:color 0.15s,background 0.15s;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--display)}
-    .nav-icon{font-size:1.35rem;line-height:1}
+    .nav-icon{display:flex;align-items:center;justify-content:center;width:22px;height:22px}
     .nav-label{font-size:0.7rem;font-weight:700;letter-spacing:.02em}
     nav button.active{color:var(--ink);border-bottom:3px solid var(--magenta);background:rgba(255,61,138,.1);font-weight:800}
     nav button:active{background:rgba(26,24,38,.05)}
@@ -358,11 +358,26 @@
   <span class="pseudo-chip" id="headerPseudo" onclick="onHeaderPseudoClick()" style="cursor:pointer"></span>
 </header>
 <nav>
-  <button aria-label="Carte" id="navExplore" class="active" onclick="showTab('explore',this)"><span class="nav-icon">🗺</span><span class="nav-label">Carte</span></button>
-  <button aria-label="Balises" id="navBalises" onclick="showTab('balises',this)"><span class="nav-icon">📍</span><span class="nav-label">Balises</span></button>
-  <button aria-label="Carnet" id="navCarnet" onclick="showTab('carnet',this)"><span class="nav-icon">📖</span><span class="nav-label">Carnet</span></button>
-  <button aria-label="Classement" id="navScores" onclick="showTab('scores',this)"><span class="nav-icon">🏆</span><span class="nav-label">Classement</span></button>
-  <button aria-label="Moi" id="navMoi" onclick="showTab('moi',this)"><span class="nav-icon">👤</span><span class="nav-label">Moi</span></button>
+  <button aria-label="Carte" id="navExplore" class="active" onclick="showTab('explore',this)">
+    <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="1,4 8,1 14,5 21,2 21,18 14,21 8,17 1,20"/><line x1="8" y1="1" x2="8" y2="17"/><line x1="14" y1="5" x2="14" y2="21"/></svg></span>
+    <span class="nav-label">Carte</span>
+  </button>
+  <button aria-label="Balises" id="navBalises" onclick="showTab('balises',this)">
+    <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2C7.686 2 5 4.8 5 8.2c0 4.8 6 11.8 6 11.8s6-7 6-11.8C17 4.8 14.314 2 11 2z"/><circle cx="11" cy="8" r="2.2"/></svg></span>
+    <span class="nav-label">Balises</span>
+  </button>
+  <button aria-label="Carnet" id="navCarnet" onclick="showTab('carnet',this)">
+    <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="14" height="18" rx="2"/><line x1="8" y1="7" x2="14" y2="7"/><line x1="8" y1="11" x2="14" y2="11"/><line x1="8" y1="15" x2="11" y2="15"/></svg></span>
+    <span class="nav-label">Carnet</span>
+  </button>
+  <button aria-label="Classement" id="navScores" onclick="showTab('scores',this)">
+    <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="12" width="5" height="8" rx="1"/><rect x="8.5" y="7" width="5" height="13" rx="1"/><rect x="15" y="3" width="5" height="17" rx="1"/></svg></span>
+    <span class="nav-label">Classement</span>
+  </button>
+  <button aria-label="Moi" id="navMoi" onclick="showTab('moi',this)">
+    <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="7" r="4"/><path d="M2 20c0-4.418 4.03-8 9-8s9 3.582 9 8"/></svg></span>
+    <span class="nav-label">Moi</span>
+  </button>
 </nav>
 
 <!-- ── Explorer (carte + boussole fusionnées) ────────── -->
