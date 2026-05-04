@@ -89,7 +89,7 @@
     #panelExplore.active{display:flex!important;flex-direction:column;flex:1;overflow:hidden;min-height:0;position:relative}
     #miniMap{flex:1;border-bottom:2px solid var(--line-2);min-height:0;position:relative}
     /* ── Radar bar ── */
-    #radarBar{position:fixed;top:100px;bottom:auto;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.97);border:1px solid var(--line-2);border-radius:24px;padding:10px 26px;font-size:0.9rem;font-weight:700;color:var(--ink-2);z-index:200;display:none;white-space:nowrap;backdrop-filter:blur(8px);box-shadow:0 2px 20px rgba(26,24,38,.12);letter-spacing:0.01em;font-family:var(--mono)}
+    #radarBar{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.97);border:1px solid var(--line-2);border-radius:24px;padding:10px 26px;font-size:0.9rem;font-weight:700;color:var(--ink-2);z-index:200;display:none;white-space:nowrap;backdrop-filter:blur(8px);box-shadow:0 2px 20px rgba(26,24,38,.12);letter-spacing:0.01em;font-family:var(--mono)}
     #radarBar.near{color:#d97706;border-color:#d97706;background:rgba(255,252,235,.97);box-shadow:0 2px 20px rgba(217,119,6,.15)}
     #radarBar.very-near{color:#16a34a;border-color:#16a34a;background:rgba(240,255,244,.97);animation:pulse 1s infinite;box-shadow:0 2px 24px rgba(22,163,74,.2);font-size:0.95rem}
     /* ── Keyframes ── */
@@ -123,7 +123,7 @@
     .cmp-hint{font-size:0.8rem;color:var(--cyan);margin-bottom:8px}
     .cmp-capture{width:100%;padding:10px;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:10px;color:#fff;font-weight:800;cursor:pointer;font-size:0.95rem;box-shadow:0 2px 12px rgba(34,197,94,.4);min-height:52px}
     /* ── Capture FAB ── */
-    #captureFab{position:fixed;bottom:calc(42px + 14px);right:18px;padding:16px 24px;min-height:56px;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:16px;font-size:1.05rem;font-weight:800;color:#fff;cursor:pointer;z-index:1000;box-shadow:0 4px 24px rgba(34,197,94,.5);display:none;animation:pulse 1.2s infinite;letter-spacing:0.03em;transition:transform 0.1s}
+    #captureFab{position:fixed;bottom:calc(58px + env(safe-area-inset-bottom));right:18px;padding:16px 24px;min-height:56px;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:16px;font-size:1.05rem;font-weight:800;color:#fff;cursor:pointer;z-index:1000;box-shadow:0 4px 24px rgba(34,197,94,.5);display:none;animation:pulse 1.2s infinite;letter-spacing:0.03em;transition:transform 0.1s}
     #captureFab:active{transform:scale(0.94)}
     /* ── Progress bar ── */
     #progressBar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--line-2);padding:8px 16px 12px;z-index:200;display:none;padding-bottom:calc(8px + env(safe-area-inset-bottom))}
@@ -413,6 +413,7 @@
     <button id="locateMeBtn" onclick="recenterMap()" style="position:absolute;bottom:14px;left:10px;z-index:1000;background:rgba(255,255,255,.9);border:1.5px solid var(--line-2);border-radius:12px;color:var(--ink-2);font-size:1.1rem;padding:7px 11px;cursor:pointer;backdrop-filter:blur(6px);display:none" title="Recentrer sur ma position"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="10" r="2.5" fill="currentColor"/><line x1="10" y1="1" x2="10" y2="4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="10" y1="15.5" x2="10" y2="19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="1" y1="10" x2="4.5" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="15.5" y1="10" x2="19" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
     <button id="compassPermBtn" onclick="requestCompassPermission()" style="display:none;position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1000;padding:8px 16px;background:linear-gradient(135deg,#3b82f6,#6366f1);border:none;border-radius:12px;color:#fff;font-size:0.82rem;font-weight:700;cursor:pointer;backdrop-filter:blur(6px)">🧭 Activer le compas (iOS)</button>
     <div id="compassDebug" style="display:none;position:absolute;top:10px;left:10px;z-index:1000;font-size:0.68rem;color:var(--ink-2);line-height:1.6;padding:8px 12px;background:rgba(255,255,255,.92);border-radius:8px;max-width:220px;border:1px solid var(--line-2)"></div>
+    <div id="radarBar"></div>
   </div>
   <div id="nearestList"></div>
 </div>
@@ -458,9 +459,6 @@
     <div id="tsBody"></div>
   </div>
 </div>
-
-<!-- ── Radar bar ─────────────────────────────────────── -->
-<div id="radarBar"></div>
 
 <!-- ── Capture FAB (balises fixes GPS) ──────────────── -->
 <button id="captureFab" onclick="captureFixed()" aria-label="Révéler ce polaroid">📷 Révéler ce polaroid</button>
