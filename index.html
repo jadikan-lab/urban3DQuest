@@ -546,7 +546,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.10.0';
+const GAME_VERSION = 'v3.10.1';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -1167,18 +1167,32 @@ function startGeoWatch() {
   }
   if (geoWatch !== null) return; // already watching
 
-  // iOS fix: prime GPS with a fast coarse position first (no high accuracy),
-  // then watchPosition with high accuracy + timeout to avoid staying grey forever.
+  // Show "searching" state immediately so the chip is never stuck grey
+  const chip = document.getElementById('gpsChip');
+  const lbl  = document.getElementById('gpsLabel');
+  if (chip && lbl) { lbl.textContent = '…'; chip.className = 'gps-mid'; }
+
+  // iOS fix: warmup with coarse position (WiFi/cell), accepts positions up to 2min old
   navigator.geolocation.getCurrentPosition(
     pos => _onGeoSuccess(pos),
-    () => {}, // ignore error on warmup
-    { enableHighAccuracy: false, timeout: 5000, maximumAge: 30000 }
+    () => {}, // ignore warmup error — watchPosition will handle it
+    { enableHighAccuracy: false, timeout: 8000, maximumAge: 120000 }
   );
 
+  // watchPosition: try high accuracy, but fall back gracefully via timeout
   geoWatch = navigator.geolocation.watchPosition(pos => {
     _onGeoSuccess(pos);
   }, err => {
     _onGeoError(err);
+    // On timeout (code 3), retry watchPosition without high accuracy (iOS fallback)
+    if (err.code === 3 && geoWatch !== null) {
+      navigator.geolocation.clearWatch(geoWatch);
+      geoWatch = navigator.geolocation.watchPosition(
+        pos => _onGeoSuccess(pos),
+        err2 => _onGeoError(err2),
+        { enableHighAccuracy: false, maximumAge: 10000, timeout: 20000 }
+      );
+    }
   }, { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 });
 }
 
