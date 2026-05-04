@@ -76,6 +76,16 @@
     .nav-label{font-size:0.7rem;font-weight:700;letter-spacing:.02em}
     nav button.active{color:var(--ink);border-bottom:3px solid var(--magenta);background:rgba(255,61,138,.1);font-weight:800}
     nav button:active{background:rgba(26,24,38,.05)}
+    /* ── Game mode switch ── */
+    #gameModeBar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface);border-bottom:1px solid var(--line)}
+    .gm-btn{flex:1;min-height:42px;padding:8px 10px;border-radius:12px;border:1px solid var(--line-2);background:var(--bg);color:var(--ink-2);font-family:var(--mono);font-size:0.68rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;cursor:pointer}
+    .gm-btn.active{color:#fff;border-color:transparent;box-shadow:0 4px 14px rgba(26,24,38,.15)}
+    .gm-fixed.active{background:linear-gradient(135deg,#0284c7,#0ea5e9)}
+    .gm-unique.active{background:linear-gradient(135deg,#a21caf,#db2777)}
+    #gameModeHint{padding:0 12px 8px;background:var(--surface);border-bottom:1px solid var(--line);font-size:0.7rem;color:var(--ink-3);font-family:var(--mono)}
+    #modeChip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:0.68rem;font-weight:700;font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase;border:1px solid transparent}
+    #modeChip.mode-fixed{background:rgba(14,165,233,.12);color:#0369a1;border-color:rgba(14,165,233,.32)}
+    #modeChip.mode-unique{background:rgba(219,39,119,.12);color:#be185d;border-color:rgba(219,39,119,.32)}
     /* ── Panels ── */
     .panel{display:none!important}
     .panel.active{display:block!important;flex:1;overflow:hidden;min-height:0}
@@ -368,6 +378,7 @@
 <div id="envBanner">Preprod STG · Base de test</div>
 <header>
   <h1>🏙 Urban3DQuest</h1>
+  <span id="modeChip" class="mode-fixed">📌 Balises</span>
   <span id="gpsChip" title="Précision GPS">
     <span id="gpsDot"></span>
     <span id="gpsLabel">GPS…</span>
@@ -396,6 +407,11 @@
     <span class="nav-label">Moi</span>
   </button>
 </nav>
+<div id="gameModeBar">
+  <button id="modeFixedBtn" class="gm-btn gm-fixed active" onclick="setGameMode('fixed')">📌 Mission Balises</button>
+  <button id="modeUniqueBtn" class="gm-btn gm-unique" onclick="setGameMode('unique')">🎁 Chasse Trésors</button>
+</div>
+<div id="gameModeHint">Valide des points de passage avec QR pour progresser.</div>
 
 <!-- ── Explorer (carte + boussole fusionnées) ────────── -->
 <div id="panelExplore" class="panel active">
@@ -582,6 +598,7 @@ let mapFollowing = true; // true = map follows GPS, false = user is panning free
 let lastArrowLat = null, lastArrowLng = null, lastArrowHeading = null; // throttle
 const ARROW_PALETTE = ['#f472b6', '#fb923c', '#22d3ee', '#a78bfa', '#4ade80'];
 let myToken = localStorage.getItem('u3dq_token') || ''; // session token for single-session enforcement
+let activeGameMode = (localStorage.getItem('u3dq_game_mode') || 'fixed') === 'unique' ? 'unique' : 'fixed';
 
 // ── Startup ──────────────────────────────────────────
 let bgMap = null;
@@ -782,6 +799,7 @@ async function continueAsGuest() {
 // ── Init game ────────────────────────────────────────
 async function initGame(pendingFoundId) {
   updateHeader();
+  updateModeUI();
   document.getElementById('radarBar').style.display = 'block';
 
   // Load config
@@ -919,6 +937,55 @@ function updateHeader() {
     chip.textContent = '👤 Se connecter';
     chip.title = 'Cliquer pour rejoindre le jeu';
   }
+}
+
+function updateModeUI() {
+  const chip = document.getElementById('modeChip');
+  const fixedBtn = document.getElementById('modeFixedBtn');
+  const uniqueBtn = document.getElementById('modeUniqueBtn');
+  const hint = document.getElementById('gameModeHint');
+  const pbLabel = document.querySelector('#progressBar .pb-label span');
+  const arrowBtn = document.getElementById('arrowToggleBtn');
+
+  if (fixedBtn) fixedBtn.classList.toggle('active', activeGameMode === 'fixed');
+  if (uniqueBtn) uniqueBtn.classList.toggle('active', activeGameMode === 'unique');
+
+  if (chip) {
+    chip.className = activeGameMode === 'fixed' ? 'mode-fixed' : 'mode-unique';
+    chip.textContent = activeGameMode === 'fixed' ? '📌 Balises' : '🎁 Trésors';
+  }
+
+  if (hint) {
+    hint.textContent = activeGameMode === 'fixed'
+      ? 'Valide des points de passage avec QR pour progresser.'
+      : 'Capture des trésors uniques avant les autres joueurs.';
+  }
+
+  if (pbLabel) {
+    pbLabel.textContent = activeGameMode === 'fixed'
+      ? '🎯 Balises fixes trouvées'
+      : '🎁 Trésors uniques capturés';
+  }
+
+  if (arrowBtn) arrowBtn.style.display = activeGameMode === 'fixed' ? 'block' : 'none';
+}
+
+function setGameMode(mode) {
+  const nextMode = mode === 'unique' ? 'unique' : 'fixed';
+  if (activeGameMode === nextMode) return;
+  activeGameMode = nextMode;
+  localStorage.setItem('u3dq_game_mode', activeGameMode);
+  updateModeUI();
+  updateRadar();
+  updateNearestCard();
+  updateProgressBar();
+
+  lastArrowLat = null;
+  lastArrowLng = null;
+  lastArrowHeading = null;
+  directionLayers.forEach(l => gameMap && gameMap.removeLayer(l));
+  directionLayers = [];
+  updateCompass();
 }
 
 // Reconnexion depuis mode invité : rouvre l'écran pseudo
@@ -1172,14 +1239,51 @@ function updateRadar() {
   const accStr = playerAccuracy ? ` · GPS ±${Math.round(playerAccuracy)}m` : '';
   const gpsWeak = playerAccuracy && playerAccuracy > 40;
 
-  const candidates = treasures.filter(t => {
-    if (t.type === 'unique' && t.found_by && t.found_by.length > 0) return false; // already taken
-    if (t.found_by && t.found_by.split(',').includes(myPseudo)) return false; // already found by me
-    return true;
-  });
+  if (activeGameMode === 'unique') {
+    const uniqueLeft = treasures
+      .filter(t => t.type === 'unique')
+      .filter(t => !(t.found_by && t.found_by.length > 0))
+      .filter(t => !(t.found_by && t.found_by.split(',').includes(myPseudo)));
 
-  if (!candidates.length) {
-    bar.textContent = '✅ Tous les trésors trouvés !';
+    if (!uniqueLeft.length) {
+      bar.textContent = '✅ Tous les trésors uniques ont été capturés !';
+      bar.className = '';
+      fab.style.display = 'none';
+      nearestFixed = null;
+      lastHapticZone = null;
+      return;
+    }
+
+    const nearestU = uniqueLeft
+      .map(t => ({ t, d: haversine(playerLat, playerLng, t.lat, t.lng) }))
+      .sort((a, b) => a.d - b.d)[0];
+
+    const uniqueDist = Math.round(nearestU.d);
+    if (uniqueDist <= proximityR) {
+      bar.textContent = `🎁 Zone de capture à portée ! Ouvre la fiche et valide au QR.${accStr}`;
+      bar.className = 'very-near';
+      if (lastHapticZone !== 'unique-capture') { lastHapticZone = 'unique-capture'; haptic([100, 50, 100, 50, 200]); }
+    } else if (uniqueDist <= proximityR * 5) {
+      bar.textContent = `🎁 Trésor proche : ${distLabel(uniqueDist)}${accStr}`;
+      bar.className = 'near';
+      if (lastHapticZone !== 'unique-near') { lastHapticZone = 'unique-near'; haptic([80, 60, 80]); }
+    } else {
+      bar.textContent = `🎁 Chasse aux trésors : cherche les zones violettes sur la carte${accStr}`;
+      bar.className = '';
+      if (lastHapticZone !== 'unique-far') { lastHapticZone = 'unique-far'; }
+    }
+
+    fab.style.display = 'none';
+    nearestFixed = null;
+    return;
+  }
+
+  const fixedLeft = treasures
+    .filter(t => t.type === 'fixed')
+    .filter(t => !(t.found_by && t.found_by.split(',').includes(myPseudo)));
+
+  if (!fixedLeft.length) {
+    bar.textContent = '✅ Toutes les balises fixes sont validées !';
     bar.className = '';
     fab.style.display = 'none';
     nearestFixed = null;
@@ -1187,43 +1291,21 @@ function updateRadar() {
     return;
   }
 
-  // Separate nearest fixed vs nearest unique
-  let nearestF = null, minDistF = Infinity;
-  let nearestU = null, minDistU = Infinity;
-  candidates.forEach(t => {
-    const d = haversine(playerLat, playerLng, t.lat, t.lng);
-    if (t.type === 'fixed'  && d < minDistF) { minDistF = d; nearestF = t; }
-    if (t.type === 'unique' && d < minDistU) { minDistU = d; nearestU = t; }
-  });
+  const nearestF = fixedLeft
+    .map(t => ({ t, d: haversine(playerLat, playerLng, t.lat, t.lng) }))
+    .sort((a, b) => a.d - b.d)[0];
 
-  // Radar bar is driven by nearest FIXED only
-  // Unique beacons are visible on map — no distance hint needed
-  if (!nearestF) {
-    // No fixed left — check unique only for "à portée" QR prompt
-    if (nearestU && Math.round(minDistU) <= proximityR) {
-      bar.textContent = `🎁 Balise unique à portée — scanne le QR !${accStr}`;
-      bar.className = 'very-near';
-      if (lastHapticZone !== 'capture') { lastHapticZone = 'capture'; haptic([100, 50, 100, 50, 200]); }
-    } else {
-      bar.textContent = nearestU ? `🎁 Balises uniques visibles sur la carte${accStr}` : '✅ Tous les trésors trouvés !';
-      bar.className = '';
-    }
-    fab.style.display = 'none';
-    nearestFixed = null;
-    return;
-  }
-
-  const dist = Math.round(minDistF);
+  const dist = Math.round(nearestF.d);
   const label = distLabel(dist);
 
   if (dist > proximityR * 5) {
-    bar.textContent = `🧭 📌 Balise fixe : ${label}${accStr}`;
+    bar.textContent = `🧭 📌 Mission balises : ${label}${accStr}`;
     bar.className = gpsWeak ? 'near' : '';
     fab.style.display = 'none';
     nearestFixed = null;
     if (lastHapticZone !== 'far') { lastHapticZone = 'far'; }
   } else if (dist > proximityR) {
-    bar.textContent = `🔥 Tu approches ! ${label}${accStr}`;
+    bar.textContent = `🔥 Tu approches d'une balise : ${label}${accStr}`;
     bar.className = 'near';
     fab.style.display = 'none';
     nearestFixed = null;
@@ -1232,7 +1314,7 @@ function updateRadar() {
     const canCapture = !gpsWeak || playerAccuracy < proximityR * 1.5;
     bar.textContent = `📌 Balise fixe à portée !${gpsWeak ? ' ⚠️ GPS faible' : ''}${accStr}`;
     bar.className = 'very-near';
-    nearestFixed = canCapture ? nearestF : null;
+    nearestFixed = canCapture ? nearestF.t : null;
     fab.style.display = (activeTab === 'explore' && canCapture) ? 'block' : 'none';
     if (lastHapticZone !== 'capture') { lastHapticZone = 'capture'; haptic([100, 50, 100, 50, 200]); }
   }
@@ -1310,6 +1392,22 @@ function updateProgressBar() {
   const bar = document.getElementById('progressBar');
   if (!myPseudo) { bar.style.display = 'none'; return; }
   bar.style.display = 'block';
+  if (activeGameMode === 'unique') {
+    const uniqueTotal = treasures.filter(t => t.type === 'unique').length;
+    const myUniqueFound = treasures.filter(t =>
+      t.type === 'unique' &&
+      t.found_by && t.found_by.split(',').includes(myPseudo)
+    ).length;
+    const pct = uniqueTotal > 0 ? Math.min(100, Math.round(myUniqueFound / uniqueTotal * 100)) : 0;
+    document.getElementById('pbCount').textContent = myUniqueFound + ' / ' + uniqueTotal;
+    document.getElementById('pbFill').style.width = pct + '%';
+    document.getElementById('pbFill').style.background =
+      myUniqueFound >= uniqueTotal && uniqueTotal > 0
+        ? 'linear-gradient(90deg,#22c55e,#4ade80)'
+        : 'linear-gradient(90deg,#a21caf,#db2777)';
+    return;
+  }
+
   const myFixedFound = treasures.filter(t =>
     t.type === 'fixed' &&
     t.found_by && t.found_by.split(',').includes(myPseudo)
@@ -1317,7 +1415,6 @@ function updateProgressBar() {
   const pct = fixedTotal > 0 ? Math.min(100, Math.round(myFixedFound / fixedTotal * 100)) : 0;
   document.getElementById('pbCount').textContent = myFixedFound + ' / ' + fixedTotal;
   document.getElementById('pbFill').style.width = pct + '%';
-  // Color: green when complete
   document.getElementById('pbFill').style.background =
     myFixedFound >= fixedTotal
       ? 'linear-gradient(90deg,#22c55e,#4ade80)'
@@ -1352,7 +1449,7 @@ function updateCompass() {
       directionLayers.forEach(l => gameMap.removeLayer(l));
       directionLayers = [];
 
-      if (compassArrowMode) {
+      if (compassArrowMode && activeGameMode === 'fixed') {
         const unfoundFixed = treasures
           .filter(t => t.type === 'fixed' && !(t.found_by && t.found_by.split(',').includes(myPseudo)))
           .map(t => ({ ...t, dist: haversine(playerLat, playerLng, t.lat, t.lng) }))
@@ -2084,19 +2181,28 @@ let _nearestTreasure = null;
 function updateNearestCard() {
   const el = document.getElementById('nearestList');
   if (playerLat === null) { el.style.display = 'none'; return; }
-  const unfoundFixed = treasures
-    .filter(t => t.type === 'fixed' && t.lat && t.lng && !(t.found_by && t.found_by.split(',').includes(myPseudo)))
+  const isUniqueMode = activeGameMode === 'unique';
+  const pool = treasures
+    .filter(t => t.type === (isUniqueMode ? 'unique' : 'fixed'))
+    .filter(t => t.lat && t.lng)
+    .filter(t => !(t.found_by && t.found_by.split(',').includes(myPseudo)))
+    .filter(t => !isUniqueMode || !(t.found_by && t.found_by.length > 0))
     .map(t => ({ ...t, _dist: haversine(playerLat, playerLng, t.lat, t.lng) }))
     .sort((a, b) => a._dist - b._dist)
     .slice(0, 5);
-  if (!unfoundFixed.length) { el.style.display = 'none'; return; }
-  _nearestTreasure = unfoundFixed[0];
-  const count = unfoundFixed.length;
-  const plural = count > 1 ? 'S' : '';
+
+  if (!pool.length) { el.style.display = 'none'; return; }
+
+  _nearestTreasure = pool[0];
+  const count = pool.length;
+  const header = isUniqueMode
+    ? `${count} TRÉSOR${count > 1 ? 'S' : ''} À CAPTURER`
+    : `${count} BALISE${count > 1 ? 'S' : ''} LES PLUS PROCHES`;
+
   el.style.display = 'flex';
-  el.innerHTML = `<div class="nl-header">${count} BALISE${plural} LES PLUS PROCHES</div>` +
-    unfoundFixed.map((t, idx) => {
-      const color = ARROW_PALETTE[idx % ARROW_PALETTE.length];
+  el.innerHTML = `<div class="nl-header">${header}</div>` +
+    pool.map((t, idx) => {
+      const color = isUniqueMode ? '#db2777' : ARROW_PALETTE[idx % ARROW_PALETTE.length];
       const dist = t._dist < 1000 ? Math.round(t._dist) + '\u202fm' : (t._dist / 1000).toFixed(1) + '\u202fkm';
       const name = tLabel(t);
       const shortName = name.length > 28 ? name.slice(0, 27) + '\u2026' : name;
@@ -2105,7 +2211,7 @@ function updateNearestCard() {
         <div class="nl-dot" style="background:${color};box-shadow:0 0 6px ${color}55"></div>
         <div class="nl-name">${escHtml(shortName)}</div>
         <div class="nl-dist">${escHtml(dist)}</div>
-        <div class="nl-arr">↗</div>
+        <div class="nl-arr">${isUniqueMode ? '🎁' : '↗'}</div>
       </div>`;
     }).join('');
 }
