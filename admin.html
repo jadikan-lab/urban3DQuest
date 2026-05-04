@@ -23,12 +23,26 @@
       --mono:'JetBrains Mono',ui-monospace,monospace;
       --radius-sm:8px;--radius:14px;--radius-lg:22px;
     }
+    body.env-stg{
+      --bg:#120c08;
+      --bg-2:#1a120d;
+      --surface:#221611;
+      --surface-2:#2b1d16;
+      --line:rgba(255,237,213,0.12);
+      --line-2:rgba(255,237,213,0.24);
+      --ink-3:#c2a891;
+    }
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:var(--display);background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased}
-    header{background:var(--surface);padding:12px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;border-bottom:1px solid var(--line-2)}
-    header h1{font-size:1rem;flex:1}
+    body.env-stg{background:radial-gradient(circle at top,#3a2218 0%,var(--bg) 38%)}
+    header{background:var(--surface);padding:12px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;border-bottom:1px solid var(--line-2);flex-wrap:wrap}
+    header h1{font-size:1rem;flex:1;min-width:180px}
     .dot{width:10px;height:10px;border-radius:50%;background:var(--ink-3);flex-shrink:0}
     .dot.ok{background:#4ade80}
+    .env-switch{display:flex;align-items:center;gap:4px;padding:4px;background:var(--bg);border:1px solid var(--line-2);border-radius:999px}
+    .env-switch button{border:none;background:transparent;color:var(--ink-3);font-family:var(--mono);font-size:0.68rem;font-weight:700;letter-spacing:.08em;padding:7px 10px;border-radius:999px;cursor:pointer;transition:background .2s,color .2s}
+    .env-switch button.active{background:linear-gradient(135deg,rgba(255,61,138,.22),rgba(168,85,247,.22));color:var(--ink)}
+    .env-chip{font-family:var(--mono);font-size:0.68rem;font-weight:800;letter-spacing:.08em;padding:5px 9px;border-radius:999px;border:1px solid var(--line-2);color:var(--amber);background:rgba(255,176,32,0.12)}
     nav{display:flex;background:var(--surface);border-bottom:1px solid var(--line-2)}
     nav button{flex:1;padding:10px 2px;background:none;border:none;color:var(--ink-3);font-family:var(--display);font-size:0.68rem;cursor:pointer}
     nav button.active{color:var(--ink);border-bottom:2px solid var(--magenta)}
@@ -126,6 +140,11 @@
 </div>
 <header>
   <h1 id="adminTitle">Urban3DQuest Admin</h1>
+  <span class="env-chip" id="envChip">PROD</span>
+  <div class="env-switch" aria-label="Choix environnement">
+    <button id="envProdBtn" onclick="switchSupabaseEnv('prod')">PROD</button>
+    <button id="envStgBtn" onclick="switchSupabaseEnv('stg')">STG</button>
+  </div>
   <span class="dot" id="dbDot"></span>
 </header>
 <nav>
@@ -358,16 +377,52 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
-var SUPABASE_URL='https://jocfvobqfpygixrawnbq.supabase.co';
-var SUPABASE_KEY='sb_publishable_M8SxhXrmh17vrOf1WlOM6Q_ZNKNqQhM';
+var SUPABASE_ENVS={
+  prod:{
+    label:'PROD',
+    url:'https://jocfvobqfpygixrawnbq.supabase.co',
+    key:'sb_publishable_M8SxhXrmh17vrOf1WlOM6Q_ZNKNqQhM'
+  },
+  stg:{
+    label:'STG',
+    url:'https://uuofsgcwznuwcsaqsmzc.supabase.co',
+    key:'sb_publishable_LzvsvuvfbJvIL8eynQIC4A_dbJ9A2CF'
+  }
+};
+function resolveSupabaseEnv(){
+  var params=new URLSearchParams(location.search);
+  var requestedEnv=(params.get('env')||localStorage.getItem('u3dq_env')||'prod').toLowerCase();
+  var activeEnv=SUPABASE_ENVS[requestedEnv]?requestedEnv:'prod';
+  if(params.get('env'))localStorage.setItem('u3dq_env',activeEnv);
+  var config=SUPABASE_ENVS[activeEnv];
+  if(!config.key)throw new Error('Clé Supabase manquante pour l\'environnement '+config.label+'. Renseigne SUPABASE_ENVS.'+activeEnv+'.key.');
+  return Object.assign({name:activeEnv},config);
+}
+function switchSupabaseEnv(env){
+  if(!SUPABASE_ENVS[env]||env===SUPABASE_ENV.name)return;
+  localStorage.setItem('u3dq_env',env);
+  var params=new URLSearchParams(location.search);
+  params.set('env',env);
+  location.search='?'+params.toString();
+}
+var SUPABASE_ENV=resolveSupabaseEnv();
+var SUPABASE_URL=SUPABASE_ENV.url;
+var SUPABASE_KEY=SUPABASE_ENV.key;
 var GAME_BASE_URL='https://zzzanzzzibar.github.io/urban3DQuest';
 // Admin local password (easy to find/change)
 var ADMIN_PW='Urban2026!';
 var ADMIN_UI_VERSION='v3.6.0';
 var db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 var currentLoc=null,currentType='fixed',visVisible=true,gameActive=true,modeMap=true,modeCompass=true,photoDataUrls=[],adminMap=null,mapLayers=[],questList=[],activeQuests=[],rewardMessages={},relocate=null;
+if(SUPABASE_ENV.name==='stg')document.body.classList.add('env-stg');
 var _adminTitle=document.getElementById('adminTitle');
-if(_adminTitle)_adminTitle.textContent='Urban3DQuest Admin · '+ADMIN_UI_VERSION;
+if(_adminTitle)_adminTitle.textContent='Urban3DQuest Admin · '+ADMIN_UI_VERSION+' · '+SUPABASE_ENV.label;
+var _envChip=document.getElementById('envChip');
+if(_envChip)_envChip.textContent=SUPABASE_ENV.label;
+var _envProdBtn=document.getElementById('envProdBtn');
+if(_envProdBtn&&SUPABASE_ENV.name==='prod')_envProdBtn.classList.add('active');
+var _envStgBtn=document.getElementById('envStgBtn');
+if(_envStgBtn&&SUPABASE_ENV.name==='stg')_envStgBtn.classList.add('active');
 function escHtml(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function safeImgUrl(v){var s=String(v||'').trim();if(!s)return'';if(/^(https?:|data:image\/)/i.test(s))return s;return'';}
 function csvCell(v){var s=String(v??'');if(/^[=+\-@]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';}

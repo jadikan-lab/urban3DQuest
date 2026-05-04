@@ -27,10 +27,12 @@ create table treasures (
 
 -- ── Joueurs ───────────────────────────────────────────
 create table players (
-  pseudo       text primary key,
-  joined_at    timestamptz default now(),
-  score        bigint default 0,      -- somme des durées en secondes
-  found_count  integer default 0
+  pseudo         text primary key,
+  joined_at      timestamptz default now(),
+  score          bigint default 0,      -- somme des durées en secondes
+  found_count    integer default 0,
+  password_hash  text default '',       -- SHA-256 hex (hashed client-side)
+  session_token  text                   -- UUID; NULL = logged out; replaced on each new login
 );
 
 -- ── Log événements ────────────────────────────────────

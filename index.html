@@ -25,8 +25,18 @@
       --mono:'JetBrains Mono',ui-monospace,monospace;
       --radius-sm:8px;--radius:14px;--radius-lg:22px;
     }
+    body.env-stg{
+      --bg:#f2eee7;
+      --bg-2:#ebe2d6;
+      --surface:#fff8ef;
+      --surface-2:#f8efe1;
+      --line:rgba(154,52,18,0.10);
+      --line-2:rgba(154,52,18,0.18);
+    }
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:var(--display);background:var(--bg);color:var(--ink);height:100dvh;overflow:hidden;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top);-webkit-font-smoothing:antialiased}
+    #envBanner{display:none;background:repeating-linear-gradient(135deg,#7c2d12 0 14px,#9a3412 14px 28px);color:#fff7ed;border-bottom:1px solid rgba(255,255,255,.18);padding:10px 14px;font-size:0.74rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;text-align:center;font-family:var(--mono);box-shadow:0 6px 20px rgba(154,52,18,.25)}
+    body.env-stg #envBanner{display:block}
     #bgMap{position:fixed;inset:0;z-index:0}
     /* ── Pseudo screen ── */
     #pseudoScreen{position:fixed;inset:0;background:rgba(244,241,236,0.2);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);z-index:500;display:flex;align-items:flex-end;justify-content:center;padding:0}
@@ -36,12 +46,18 @@
     .ps-sub{font-size:0.75rem;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-3);margin-bottom:28px;line-height:1.8}
     .ps-box input{width:100%;padding:14px;background:var(--bg);border:2px solid var(--line-2);border-radius:12px;color:var(--ink);font-size:1.1rem;text-align:center;margin-bottom:12px;letter-spacing:.05em;font-family:var(--display)}
     .ps-box input:focus{outline:none;border-color:var(--magenta);box-shadow:0 0 0 3px rgba(255,61,138,.18)}
+    body.env-stg .ps-box{background:rgba(255,246,233,0.97);border:2px solid rgba(154,52,18,.22);box-shadow:0 -4px 40px rgba(154,52,18,.18)}
+    body.env-stg .ps-logo{color:#c2410c}
+    body.env-stg .ps-title{background:linear-gradient(135deg,#ea580c,#d97706);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+    body.env-stg .ps-sub::after{content:' · PRÉPROD'}
+    body.env-stg .ps-box input:focus{border-color:#ea580c;box-shadow:0 0 0 3px rgba(234,88,12,.18)}
     /* ── Bouton principal ── */
     .btn-main{width:100%;padding:16px;min-height:56px;border:none;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;font-size:1.05rem;font-weight:800;cursor:pointer;box-shadow:0 4px 20px rgba(99,102,241,.4);transition:transform 0.1s,opacity 0.2s;letter-spacing:0.02em}
     .btn-main:active{transform:scale(0.97);opacity:0.9}
     .btn-main:disabled{opacity:0.5;cursor:default}
     /* ── Header ── */
     header{background:var(--bg);padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line)}
+    body.env-stg header{background:linear-gradient(180deg,#f7efe3 0%,var(--bg) 100%)}
     header h1{font-size:0.82rem;flex:1;color:var(--ink-2);letter-spacing:0.04em;font-weight:700;font-family:var(--mono);text-transform:uppercase}
     .pseudo-chip{background:rgba(0,229,255,0.12);color:var(--cyan);padding:4px 10px;border-radius:20px;font-size:0.78rem;font-weight:600;font-family:var(--mono)}
     /* ── GPS chip — point de statut ── */
@@ -243,16 +259,15 @@
     /* Point GPS "moi" */
     .me-dot{width:16px;height:16px;border-radius:50%;background:#3b82f6;border:3px solid #fff;box-shadow:0 0 0 4px rgba(59,130,246,0.35)}
 
-    /* ── Nearest card (bas de la Carte) ── */
-    #nearestCard{background:var(--surface);border-top:1px solid var(--line);padding:12px 16px;display:none;flex-direction:row;align-items:center;gap:12px;cursor:pointer;box-shadow:0 -2px 16px rgba(26,24,38,.06);flex-shrink:0}
-    #nearestCard:active{background:var(--bg)}
-    .nc-thumb{width:48px;height:48px;border-radius:10px;object-fit:cover;flex-shrink:0;background:var(--bg)}
-    .nc-thumb-placeholder{width:48px;height:48px;border-radius:10px;flex-shrink:0;background:var(--surface-2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:1.4rem}
-    .nc-body{flex:1;min-width:0}
-    .nc-label{font-family:var(--mono);font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--magenta);margin-bottom:2px}
-    .nc-name{font-size:0.95rem;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .nc-sub{font-size:0.72rem;color:var(--ink-3);font-family:var(--mono);margin-top:1px}
-    .nc-arr{width:34px;height:34px;border-radius:50%;background:var(--ink);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--surface);font-size:0.9rem;font-weight:700}
+    /* ── Nearest list (bas de la Carte) ── */
+    #nearestList{background:var(--surface);border-top:1px solid var(--line);flex-shrink:0;display:none;flex-direction:column;box-shadow:0 -2px 16px rgba(26,24,38,.06)}
+    .nl-header{font-family:var(--mono);font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-3);padding:8px 16px 4px}
+    .nl-item{display:flex;align-items:center;gap:12px;padding:9px 16px;cursor:pointer;border-top:1px solid var(--line)}
+    .nl-item:active{background:var(--bg)}
+    .nl-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+    .nl-name{flex:1;min-width:0;font-size:0.88rem;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .nl-dist{font-family:var(--mono);font-size:0.72rem;color:var(--ink-3);flex-shrink:0;margin-right:4px}
+    .nl-arr{font-size:0.8rem;color:var(--ink-3);flex-shrink:0}
 
     /* ── Treasure sheet (bottom sheet au tap d'un pin) ── */
     #treasureSheet{display:none;position:fixed;inset:0;z-index:600}
@@ -337,8 +352,9 @@
   <div class="ps-box">
     <div class="ps-logo">Jadikan · Urban3DQuest</div>
     <div class="ps-title">Urban3DQuest</div>
-    <p class="ps-sub">Chasse au trésor urbaine — entre ton pseudo</p>
-    <input type="text" id="pseudoInput" placeholder="TON PSEUDO" maxlength="20" autocomplete="off" autocapitalize="characters">
+    <p class="ps-sub">Entre ton pseudo et ton mot de passe</p>
+    <input type="text" id="pseudoInput" placeholder="TON PSEUDO" maxlength="20" autocomplete="username" autocapitalize="characters">
+    <input type="password" id="passwordInput" placeholder="MOT DE PASSE" maxlength="64" autocomplete="current-password" style="margin-top:0;margin-bottom:12px">
     <div id="gameCodeWrap" style="display:none;margin-bottom:12px">
       <input type="text" id="gameCodeInput" placeholder="CODE D'ACCÈS" maxlength="20" autocomplete="off" autocapitalize="characters" style="border-color:#7c3aed;margin-bottom:0">
     </div>
@@ -349,6 +365,7 @@
 </div>
 
 <!-- ── Header ────────────────────────────────────────── -->
+<div id="envBanner">Preprod STG · Base de test</div>
 <header>
   <h1>🏙 Urban3DQuest</h1>
   <span id="gpsChip" title="Précision GPS">
@@ -388,15 +405,7 @@
     <button id="compassPermBtn" onclick="requestCompassPermission()" style="display:none;position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1000;padding:8px 16px;background:linear-gradient(135deg,#3b82f6,#6366f1);border:none;border-radius:12px;color:#fff;font-size:0.82rem;font-weight:700;cursor:pointer;backdrop-filter:blur(6px)">🧭 Activer le compas (iOS)</button>
     <div id="compassDebug" style="display:none;position:absolute;top:10px;left:10px;z-index:1000;font-size:0.68rem;color:var(--ink-2);line-height:1.6;padding:8px 12px;background:rgba(255,255,255,.92);border-radius:8px;max-width:220px;border:1px solid var(--line-2)"></div>
   </div>
-  <div id="nearestCard" onclick="onNearestCardClick()">
-    <div class="nc-thumb-placeholder" id="ncThumbWrap">📍</div>
-    <div class="nc-body">
-      <div class="nc-label" id="ncLabel">PLUS PROCHE</div>
-      <div class="nc-name" id="ncName">—</div>
-      <div class="nc-sub" id="ncSub"></div>
-    </div>
-    <div class="nc-arr">↗</div>
-  </div>
+  <div id="nearestList"></div>
 </div>
 
 <!-- ── Photo viewer overlay ──────────────────────────── -->
@@ -507,10 +516,38 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
 <script>
-const SUPABASE_URL = 'https://jocfvobqfpygixrawnbq.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_M8SxhXrmh17vrOf1WlOM6Q_ZNKNqQhM';
+const SUPABASE_ENVS = {
+  prod: {
+    label: 'PROD',
+    url: 'https://jocfvobqfpygixrawnbq.supabase.co',
+    key: 'sb_publishable_M8SxhXrmh17vrOf1WlOM6Q_ZNKNqQhM'
+  },
+  stg: {
+    label: 'STG',
+    url: 'https://uuofsgcwznuwcsaqsmzc.supabase.co',
+    key: 'sb_publishable_LzvsvuvfbJvIL8eynQIC4A_dbJ9A2CF'
+  }
+};
+
+function resolveSupabaseEnv() {
+  const params = new URLSearchParams(location.search);
+  const requestedEnv = (params.get('env') || localStorage.getItem('u3dq_env') || 'prod').toLowerCase();
+  const activeEnv = SUPABASE_ENVS[requestedEnv] ? requestedEnv : 'prod';
+
+  if (params.get('env')) localStorage.setItem('u3dq_env', activeEnv);
+
+  const config = SUPABASE_ENVS[activeEnv];
+  if (!config.key) {
+    throw new Error(`Clé Supabase manquante pour l'environnement ${config.label}. Renseigne SUPABASE_ENVS.${activeEnv}.key.`);
+  }
+  return { name: activeEnv, ...config };
+}
+
+const SUPABASE_ENV = resolveSupabaseEnv();
+const SUPABASE_URL = SUPABASE_ENV.url;
+const SUPABASE_KEY = SUPABASE_ENV.key;
 const GAME_VERSION = 'v3.7.0';
-document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION;
+document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let myPseudo     = localStorage.getItem('u3dq_pseudo') || '';
@@ -543,9 +580,36 @@ let directionLayers = []; // arrow markers on minimap
 let compassArrowMode = true; // toggle: show direction arrows on minimap
 let mapFollowing = true; // true = map follows GPS, false = user is panning freely
 let lastArrowLat = null, lastArrowLng = null, lastArrowHeading = null; // throttle
+const ARROW_PALETTE = ['#f472b6', '#fb923c', '#22d3ee', '#a78bfa', '#4ade80'];
+let myToken = localStorage.getItem('u3dq_token') || ''; // session token for single-session enforcement
 
 // ── Startup ──────────────────────────────────────────
 let bgMap = null;
+
+// SHA-256 via Web Crypto — no library needed
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function logoutPlayer() {
+  if (!confirm('Se déconnecter ?')) return;
+  if (myPseudo) {
+    await db.from('players').update({ session_token: null }).eq('pseudo', myPseudo);
+  }
+  localStorage.removeItem('u3dq_pseudo');
+  localStorage.removeItem('u3dq_token');
+  location.reload();
+}
+
+function initEnvUI() {
+  if (SUPABASE_ENV.name !== 'stg') return;
+  document.body.classList.add('env-stg');
+  const banner = document.getElementById('envBanner');
+  if (banner) banner.textContent = 'PREPROD STG · BASE DE TEST';
+}
+
+initEnvUI();
 
 window.addEventListener('load', async () => {
   // Attach QR file input handler (cloneNode approach requires JS init)
@@ -577,13 +641,27 @@ window.addEventListener('load', async () => {
     return;
   }
 
-  // Returning user: skip landing + bgMap entirely
+  // Returning user: verify session token then skip landing
   if (myPseudo) {
-    document.getElementById('pseudoScreen').style.display = 'none';
-    document.getElementById('bgMap').style.display = 'none';
-    if (checkin) sessionStorage.setItem('pendingCheckin', checkinId);
-    initGame(foundId);
-    return;
+    const { data: p } = await db.from('players').select('session_token,score,found_count').eq('pseudo', myPseudo).single();
+    const storedToken = localStorage.getItem('u3dq_token');
+    if (!p || !storedToken || p.session_token !== storedToken) {
+      // Session expired or taken over by another device
+      localStorage.removeItem('u3dq_pseudo');
+      localStorage.removeItem('u3dq_token');
+      myPseudo = ''; myToken = '';
+      const errEl = document.getElementById('pseudoErr');
+      if (errEl) { errEl.textContent = 'Ta session a expiré ou un autre appareil t\'a déconnecté. Reconnecte-toi.'; errEl.style.display = 'block'; }
+      // Fall through to show landing screen
+    } else {
+      myScore      = p.score      || 0;
+      myFoundCount = p.found_count || 0;
+      document.getElementById('pseudoScreen').style.display = 'none';
+      document.getElementById('bgMap').style.display = 'none';
+      if (checkin) sessionStorage.setItem('pendingCheckin', checkinId);
+      initGame(foundId);
+      return;
+    }
   }
 
   // New user: show animated landing with bgMap
@@ -608,11 +686,14 @@ function hideLanding() {
 
 // ── Register & start ─────────────────────────────────
 async function startGame() {
-  const input = document.getElementById('pseudoInput');
-  const err   = document.getElementById('pseudoErr');
-  const pseudo = input.value.trim().toUpperCase().replace(/[^A-Z0-9_\-]/g, '');
+  const input     = document.getElementById('pseudoInput');
+  const passInput = document.getElementById('passwordInput');
+  const err       = document.getElementById('pseudoErr');
+  const pseudo    = input.value.trim().toUpperCase().replace(/[^A-Z0-9_\-]/g, '');
+  const pass      = passInput ? passInput.value : '';
 
   if (pseudo.length < 2) { err.textContent = 'Pseudo trop court (min 2 caractères)'; err.style.display = 'block'; return; }
+  if (pass.length < 4)   { err.textContent = 'Mot de passe trop court (min 4 caractères)'; err.style.display = 'block'; return; }
 
   // Check game code if required
   if (gameCode) {
@@ -624,10 +705,17 @@ async function startGame() {
   document.getElementById('startBtn').disabled = true;
   document.getElementById('startBtn').textContent = '⏳ Connexion…';
 
+  const hash  = await sha256(pass);
+  const token = crypto.randomUUID();
+
   // Check/insert player
-  const { data: existing } = await db.from('players').select('pseudo,score,found_count').eq('pseudo', pseudo).single();
+  const { data: existing } = await db.from('players').select('pseudo,score,found_count,password_hash').eq('pseudo', pseudo).single();
   if (!existing) {
-    const { error } = await db.from('players').insert({ pseudo, joined_at: new Date().toISOString(), score: 0, found_count: 0 });
+    // New player — register
+    const { error } = await db.from('players').insert({
+      pseudo, joined_at: new Date().toISOString(), score: 0, found_count: 0,
+      password_hash: hash, session_token: token
+    });
     if (error && error.code !== '23505') {
       err.textContent = 'Erreur réseau : ' + error.message;
       err.style.display = 'block';
@@ -635,13 +723,40 @@ async function startGame() {
       document.getElementById('startBtn').textContent = '🚀 Rejoindre le jeu';
       return;
     }
+    if (error) {
+      // Race: pseudo registered between our read and insert → treat as login
+      const { data: raced } = await db.from('players').select('pseudo,score,found_count,password_hash').eq('pseudo', pseudo).single();
+      if (!raced || (raced.password_hash && raced.password_hash !== hash)) {
+        err.textContent = 'Pseudo déjà pris — choisis-en un autre ou entre ton mot de passe.';
+        err.style.display = 'block';
+        document.getElementById('startBtn').disabled = false;
+        document.getElementById('startBtn').textContent = '🚀 Rejoindre le jeu';
+        return;
+      }
+      myScore = raced.score || 0; myFoundCount = raced.found_count || 0;
+      await db.from('players').update({ session_token: token }).eq('pseudo', pseudo);
+    }
   } else {
+    // Existing player — verify password
+    if (existing.password_hash && existing.password_hash !== hash) {
+      err.textContent = 'Mot de passe incorrect.';
+      err.style.display = 'block';
+      document.getElementById('startBtn').disabled = false;
+      document.getElementById('startBtn').textContent = '🚀 Rejoindre le jeu';
+      return;
+    }
+    // If password_hash is empty (pre-auth player): accept any password and set it now (first-login claim)
+    const updates = { session_token: token };
+    if (!existing.password_hash) updates.password_hash = hash;
+    await db.from('players').update(updates).eq('pseudo', pseudo);
     myScore      = existing.score      || 0;
     myFoundCount = existing.found_count || 0;
   }
 
   myPseudo = pseudo;
+  myToken  = token;
   localStorage.setItem('u3dq_pseudo', pseudo);
+  localStorage.setItem('u3dq_token', token);
   hideLanding();
 
   const pending = sessionStorage.getItem('pendingFound');
@@ -1242,14 +1357,14 @@ function updateCompass() {
           .filter(t => t.type === 'fixed' && !(t.found_by && t.found_by.split(',').includes(myPseudo)))
           .map(t => ({ ...t, dist: haversine(playerLat, playerLng, t.lat, t.lng) }))
           .sort((a, b) => a.dist - b.dist)
-          .slice(0, 3);
+          .slice(0, 5);
 
         const arrowLen = 60;
 
-        unfoundFixed.forEach(t => {
+        unfoundFixed.forEach((t, idx) => {
           const bearing = bearingTo(playerLat, playerLng, t.lat, t.lng);
           const inRange = t.dist <= proximityR;
-          const color   = inRange ? '#22c55e' : t.dist < proximityR * 5 ? '#fbbf24' : '#60a5fa';
+          const color   = ARROW_PALETTE[idx % ARROW_PALETTE.length];
           const distStr = t.dist < 1000 ? `${Math.round(t.dist)}m` : `${(t.dist/1000).toFixed(1)}km`;
           const shortName = tLabel(t).length > 14 ? tLabel(t).slice(0, 13) + '…' : tLabel(t);
           const arrowLabel = `${shortName} · ${distStr}`;
@@ -1257,7 +1372,7 @@ function updateCompass() {
           const tip   = destinationPoint(playerLat, playerLng, bearing, arrowLen);
           const shaft = destinationPoint(playerLat, playerLng, bearing, arrowLen * 0.55);
 
-          const line = L.polyline([[playerLat, playerLng], tip], { color, weight: 3, opacity: 0.9 }).addTo(gameMap);
+          const line = L.polyline([[playerLat, playerLng], tip], { color, weight: 2.5, opacity: 0.85, dashArray: '6 5' }).addTo(gameMap);
 
           const arrowIcon = L.divIcon({
             html: `<svg width="28" height="36" viewBox="0 0 28 36" xmlns="http://www.w3.org/2000/svg" style="transform:rotate(${bearing}deg);transform-origin:50% 75%;display:block">
@@ -1940,6 +2055,17 @@ async function loadCarnet() {
 
 // ── Periodic refresh (treasures + config) ────────────
 setInterval(async () => {
+  // Session guard: if another device logged in with same credentials, force re-login
+  if (myPseudo && myToken) {
+    const { data: sp } = await db.from('players').select('session_token').eq('pseudo', myPseudo).single();
+    if (!sp || sp.session_token !== myToken) {
+      localStorage.removeItem('u3dq_pseudo');
+      localStorage.removeItem('u3dq_token');
+      alert('⚠️ Ta session a été prise par un autre appareil. Reconnecte-toi.');
+      location.reload();
+      return;
+    }
+  }
   const { data: cfg } = await db.from('config').select('*');
   if (cfg) {
     const c = Object.fromEntries(cfg.map(r => [r.key, r.value]));
@@ -1953,35 +2079,35 @@ setInterval(async () => {
   updateProgressBar();
 }, 15000);
 
-// ── Nearest card ─────────────────────────────────────
+// ── Nearest list ─────────────────────────────────────
 let _nearestTreasure = null;
 function updateNearestCard() {
-  if (playerLat === null) return;
-  const unfound = treasures.filter(t => {
-    if (!t.lat || !t.lng) return false;
-    if (t.found_by && t.found_by.split(',').includes(myPseudo)) return false;
-    return true;
-  });
-  if (!unfound.length) {
-    document.getElementById('nearestCard').style.display = 'none';
-    return;
-  }
-  const nearest = unfound
+  const el = document.getElementById('nearestList');
+  if (playerLat === null) { el.style.display = 'none'; return; }
+  const unfoundFixed = treasures
+    .filter(t => t.type === 'fixed' && t.lat && t.lng && !(t.found_by && t.found_by.split(',').includes(myPseudo)))
     .map(t => ({ ...t, _dist: haversine(playerLat, playerLng, t.lat, t.lng) }))
-    .sort((a, b) => a._dist - b._dist)[0];
-  _nearestTreasure = nearest;
-  const card = document.getElementById('nearestCard');
-  card.style.display = 'flex';
-  document.getElementById('ncName').textContent = tLabel(nearest);
-  const dist = nearest._dist < 1000 ? Math.round(nearest._dist) + ' m' : (nearest._dist / 1000).toFixed(1) + ' km';
-  document.getElementById('ncSub').textContent = dist + ' · ' + (nearest.type === 'fixed' ? 'Balise fixe' : 'Balise unique');
-  const wrap = document.getElementById('ncThumbWrap');
-  const urls = getPhotoUrls(nearest.photo_url);
-  if (urls.length) {
-    wrap.innerHTML = `<img src="${escHtml(safeImgUrl(urls[0]))}" style="width:52px;height:52px;object-fit:cover;border-radius:10px;display:block">`;
-  } else {
-    wrap.textContent = nearest.type === 'fixed' ? '📌' : '📍';
-  }
+    .sort((a, b) => a._dist - b._dist)
+    .slice(0, 5);
+  if (!unfoundFixed.length) { el.style.display = 'none'; return; }
+  _nearestTreasure = unfoundFixed[0];
+  const count = unfoundFixed.length;
+  const plural = count > 1 ? 'S' : '';
+  el.style.display = 'flex';
+  el.innerHTML = `<div class="nl-header">${count} BALISE${plural} LES PLUS PROCHES</div>` +
+    unfoundFixed.map((t, idx) => {
+      const color = ARROW_PALETTE[idx % ARROW_PALETTE.length];
+      const dist = t._dist < 1000 ? Math.round(t._dist) + '\u202fm' : (t._dist / 1000).toFixed(1) + '\u202fkm';
+      const name = tLabel(t);
+      const shortName = name.length > 28 ? name.slice(0, 27) + '\u2026' : name;
+      const safeId = t.id.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      return `<div class="nl-item" onclick="openTreasureSheet(treasures.find(x=>x.id==='${safeId}'))">
+        <div class="nl-dot" style="background:${color};box-shadow:0 0 6px ${color}55"></div>
+        <div class="nl-name">${escHtml(shortName)}</div>
+        <div class="nl-dist">${escHtml(dist)}</div>
+        <div class="nl-arr">↗</div>
+      </div>`;
+    }).join('');
 }
 function onNearestCardClick() {
   if (_nearestTreasure) openTreasureSheet(_nearestTreasure);
@@ -2087,7 +2213,7 @@ async function loadMoi() {
       <div class="moi-tile"><div class="moi-tile-val">${myFixed + myUnique}</div><div class="moi-tile-lbl">Total trouvé</div></div>
       <div class="moi-tile"><div class="moi-tile-val">${rank}</div><div class="moi-tile-lbl">Classement</div></div>
     </div>
-    ${myPseudo ? `<button class="moi-logout" onclick="if(confirm('Déconnexion ?')){localStorage.removeItem('u3dq_pseudo');location.reload();}">Se déconnecter</button>` : ''}
+    ${myPseudo ? `<button class="moi-logout" onclick="logoutPlayer()">Se déconnecter</button>` : ''}
   `;
 }
 </script>
