@@ -278,6 +278,14 @@
     .ts-cta{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 20px;padding:16px;background:var(--ink);border:none;border-radius:var(--radius);color:var(--surface);font-size:1.05rem;font-weight:800;cursor:pointer;width:calc(100% - 40px);letter-spacing:0.02em;font-family:var(--display)}
     .ts-cta:active{opacity:0.85}
     .ts-cta-taken{background:var(--line);color:var(--ink-3);cursor:default}
+    .ts-top-row{display:flex;align-items:center;gap:8px;padding:0 20px 12px}
+    .ts-type{font-family:var(--mono);font-size:0.64rem;color:var(--ink-3);margin-left:auto}
+    .ts-dist{font-family:var(--mono);font-size:0.72rem;color:var(--ink-3);padding:0 20px;margin-bottom:12px}
+    .ts-badge-found{background:rgba(74,222,128,0.12);border-color:rgba(74,222,128,0.35);color:#16a34a}
+    .ts-badge-taken{background:rgba(148,163,184,0.12);border-color:rgba(148,163,184,0.3);color:var(--ink-3)}
+    .ts-badge-open{background:rgba(99,102,241,0.08);border-color:rgba(99,102,241,0.25);color:#6366f1}
+    .ts-photos{padding:0 20px 8px}
+    .ts-hint{font-style:italic;font-size:0.86rem;color:var(--ink-2);line-height:1.6;margin:0 20px 16px;padding:10px 12px;background:var(--bg);border-radius:var(--radius-sm);border-left:3px solid #6366f1}
 
     /* ── Balises panel ── */
     #panelBalises{flex:1;overflow-y:auto;padding:0 14px 80px;max-width:560px;margin:0 auto;width:100%}
@@ -292,6 +300,9 @@
     .bl-name{font-size:0.95rem;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .bl-dist{font-family:var(--mono);font-size:0.7rem;color:var(--ink-3);margin-top:2px}
     .bl-arr{font-size:0.85rem;color:var(--ink-3)}
+    .bl-info{flex:1;min-width:0}
+    .bl-item-name{font-size:0.95rem;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .bl-item-sub{font-family:var(--mono);font-size:0.68rem;color:var(--ink-3);margin-top:2px}
     .bl-empty{text-align:center;padding:56px 20px;color:var(--ink-3);font-family:var(--mono);font-size:0.76rem;text-transform:uppercase;letter-spacing:0.06em}
 
     /* ── MOI panel ── */
@@ -308,6 +319,12 @@
     .moi-stat-key{font-family:var(--mono);font-size:0.6rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-3);margin-top:4px}
     .moi-btn{width:100%;padding:14px;background:transparent;border:1px solid var(--line-2);border-radius:var(--radius);color:var(--ink-2);font-size:0.9rem;font-weight:600;cursor:pointer;font-family:var(--display);margin-bottom:10px;text-align:center}
     .moi-btn-danger{border-color:rgba(248,113,113,0.4);color:#ef4444}
+    .moi-pseudo{font-size:1.6rem;font-weight:800;color:var(--ink);text-align:center;margin:12px 0 20px}
+    .moi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+    .moi-tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px 12px;text-align:center}
+    .moi-tile-val{font-size:1.6rem;font-weight:800;color:var(--ink);font-family:var(--mono)}
+    .moi-tile-lbl{font-family:var(--mono);font-size:0.6rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-3);margin-top:4px}
+    .moi-logout{width:100%;padding:14px;background:transparent;border:1px solid rgba(248,113,113,0.4);border-radius:var(--radius);color:#ef4444;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:var(--display);text-align:center}
   </style>
 </head>
 <body>
@@ -341,18 +358,29 @@
   <span class="pseudo-chip" id="headerPseudo" onclick="onHeaderPseudoClick()" style="cursor:pointer"></span>
 </header>
 <nav>
-  <button aria-label="Explorer" id="navExplore" class="active" onclick="showTab('explore',this)"><span class="nav-icon">🗺</span><span class="nav-label">Explorer</span></button>
+  <button aria-label="Carte" id="navExplore" class="active" onclick="showTab('explore',this)"><span class="nav-icon">🗺</span><span class="nav-label">Carte</span></button>
+  <button aria-label="Balises" id="navBalises" onclick="showTab('balises',this)"><span class="nav-icon">📍</span><span class="nav-label">Balises</span></button>
   <button aria-label="Carnet" id="navCarnet" onclick="showTab('carnet',this)"><span class="nav-icon">📖</span><span class="nav-label">Carnet</span></button>
-  <button aria-label="Scores" id="navScores" onclick="showTab('scores',this)"><span class="nav-icon">🏆</span><span class="nav-label">Scores</span></button>
+  <button aria-label="Classement" id="navScores" onclick="showTab('scores',this)"><span class="nav-icon">🏆</span><span class="nav-label">Classement</span></button>
+  <button aria-label="Moi" id="navMoi" onclick="showTab('moi',this)"><span class="nav-icon">👤</span><span class="nav-label">Moi</span></button>
 </nav>
 
 <!-- ── Explorer (carte + boussole fusionnées) ────────── -->
 <div id="panelExplore" class="panel active">
   <div id="miniMap" style="position:relative">
-    <button id="arrowToggleBtn" onclick="toggleCompassArrows()" style="position:absolute;bottom:14px;right:10px;z-index:1000;background:rgba(30,58,138,.88);border:2px solid #3b82f6;border-radius:12px;color:#93c5fd;font-size:0.75rem;font-weight:700;padding:7px 12px;cursor:pointer;backdrop-filter:blur(6px)">📌 Balises fixes</button>
-    <button id="locateMeBtn" onclick="recenterMap()" style="position:absolute;bottom:14px;left:10px;z-index:1000;background:rgba(5,6,16,.88);border:2px solid var(--line-2);border-radius:12px;color:var(--ink-2);font-size:1.1rem;padding:7px 11px;cursor:pointer;backdrop-filter:blur(6px);display:none" title="Recentrer sur ma position"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="10" r="2.5" fill="currentColor"/><line x1="10" y1="1" x2="10" y2="4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="10" y1="15.5" x2="10" y2="19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="1" y1="10" x2="4.5" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="15.5" y1="10" x2="19" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+    <button id="arrowToggleBtn" onclick="toggleCompassArrows()" style="position:absolute;bottom:14px;right:10px;z-index:1000;background:rgba(255,255,255,.9);border:1.5px solid var(--line-2);border-radius:12px;color:var(--ink);font-size:0.75rem;font-weight:700;padding:7px 12px;cursor:pointer;backdrop-filter:blur(6px)">Balises fixes</button>
+    <button id="locateMeBtn" onclick="recenterMap()" style="position:absolute;bottom:14px;left:10px;z-index:1000;background:rgba(255,255,255,.9);border:1.5px solid var(--line-2);border-radius:12px;color:var(--ink-2);font-size:1.1rem;padding:7px 11px;cursor:pointer;backdrop-filter:blur(6px);display:none" title="Recentrer sur ma position"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="10" r="2.5" fill="currentColor"/><line x1="10" y1="1" x2="10" y2="4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="10" y1="15.5" x2="10" y2="19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="1" y1="10" x2="4.5" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="15.5" y1="10" x2="19" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
     <button id="compassPermBtn" onclick="requestCompassPermission()" style="display:none;position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1000;padding:8px 16px;background:linear-gradient(135deg,#3b82f6,#6366f1);border:none;border-radius:12px;color:#fff;font-size:0.82rem;font-weight:700;cursor:pointer;backdrop-filter:blur(6px)">🧭 Activer le compas (iOS)</button>
-    <div id="compassDebug" style="display:none;position:absolute;top:10px;left:10px;z-index:1000;font-size:0.68rem;color:var(--ink-2);line-height:1.6;padding:8px 12px;background:rgba(5,6,16,.9);border-radius:8px;max-width:220px"></div>
+    <div id="compassDebug" style="display:none;position:absolute;top:10px;left:10px;z-index:1000;font-size:0.68rem;color:var(--ink-2);line-height:1.6;padding:8px 12px;background:rgba(255,255,255,.92);border-radius:8px;max-width:220px;border:1px solid var(--line-2)"></div>
+  </div>
+  <div id="nearestCard" onclick="onNearestCardClick()">
+    <div class="nc-thumb-placeholder" id="ncThumbWrap">📍</div>
+    <div class="nc-body">
+      <div class="nc-label" id="ncLabel">PLUS PROCHE</div>
+      <div class="nc-name" id="ncName">—</div>
+      <div class="nc-sub" id="ncSub"></div>
+    </div>
+    <div class="nc-arr">↗</div>
   </div>
 </div>
 
@@ -378,6 +406,31 @@
     <span class="cn-header-count" id="carnetCount"></span>
   </div>
   <div id="carnetList"></div>
+</div>
+
+
+
+<!-- ── Balises ─────────────────────────────────────── -->
+<div id="panelBalises" class="panel">
+  <div class="bl-header">
+    <div class="bl-header-top">Balises fixées</div>
+    <div class="bl-header-count" id="balisesCount">—</div>
+  </div>
+  <div id="balisList"></div>
+</div>
+
+<!-- ── Moi ─────────────────────────────────────────── -->
+<div id="panelMoi" class="panel">
+  <div id="moiContent"></div>
+</div>
+
+<!-- ── Treasure sheet ────────────────────────────────── -->
+<div id="treasureSheet">
+  <div class="ts-backdrop" onclick="closeTreasureSheet()"></div>
+  <div class="ts-card">
+    <div class="ts-handle"></div>
+    <div id="tsBody"></div>
+  </div>
 </div>
 
 <!-- ── Radar bar ─────────────────────────────────────── -->
@@ -441,7 +494,7 @@
 <script>
 const SUPABASE_URL = 'https://jocfvobqfpygixrawnbq.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_M8SxhXrmh17vrOf1WlOM6Q_ZNKNqQhM';
-const GAME_VERSION = 'v3.6.0';
+const GAME_VERSION = 'v3.7.0';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -523,7 +576,7 @@ window.addEventListener('load', async () => {
   if (checkin) sessionStorage.setItem('pendingCheckin', checkinId);
 
   bgMap = L.map('bgMap', { zoomControl: false, attributionControl: false, dragging: false, scrollWheelZoom: false, touchZoom: false, doubleClickZoom: false, keyboard: false });
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(bgMap);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>', subdomains: 'abcd', maxZoom: 19 }).addTo(bgMap);
   bgMap.setView(mapCenter, 14);
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(pos => {
@@ -774,7 +827,9 @@ async function loadTreasures() {
 // ── Map ──────────────────────────────────────────────
 function initMap() {
   gameMap = L.map('miniMap', { zoomControl: false, attributionControl: false }).setView(mapCenter, 13);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+    subdomains: 'abcd', maxZoom: 19,
     keepBuffer: 6,           // preload 6 tiles beyond the viewport in every direction
     updateWhenIdle: false,   // load tiles while panning, not just after stopping
     updateWhenZooming: false // load during pinch-zoom too
@@ -848,7 +903,7 @@ function renderMarkers() {
       const c = L.circle([fuzzLat, fuzzLng], {
         radius: 90, color, fillColor: color,
         fillOpacity: 0.18 * opacity, weight: 2, opacity: 0.75 * opacity
-      }).addTo(gameMap).bindPopup(popup, { maxWidth: 280, className: 'dark-popup' });
+      }).addTo(gameMap).on('click', () => openTreasureSheet(t));
       mapMarkers[t.id] = c;
       return;
     }
@@ -858,7 +913,7 @@ function renderMarkers() {
       html: `<div class="pin found"><div class="pin-halo"></div><div class="pin-core">✓</div></div>`,
       className: '', iconSize: [36, 36], iconAnchor: [18, 18]
     });
-    mapMarkers[t.id] = L.marker([t.lat, t.lng], { icon }).addTo(gameMap).bindPopup(popup, { maxWidth: 280, className: 'dark-popup' });
+    mapMarkers[t.id] = L.marker([t.lat, t.lng], { icon }).addTo(gameMap).on('click', () => openTreasureSheet(t));
   });
 }
 function startGeoWatch() {
@@ -913,6 +968,7 @@ function startGeoWatch() {
     }
 
     updateRadar();
+    updateNearestCard();
   }, err => {
     const msgs = { 1: 'Permission GPS refusée — active la localisation dans les réglages', 2: 'GPS indisponible', 3: 'Délai GPS dépassé — reste à l\'air libre' };
     const bar = document.getElementById('radarBar');
@@ -1789,6 +1845,18 @@ function showTab(name, btn) {
     directionLayers.forEach(l => gameMap && gameMap.removeLayer(l));
     directionLayers = [];
     loadCarnet();
+  } else if (name === 'balises') {
+    stopCompassInterval();
+    document.getElementById('captureFab').style.display = 'none';
+    directionLayers.forEach(l => gameMap && gameMap.removeLayer(l));
+    directionLayers = [];
+    loadBalises();
+  } else if (name === 'moi') {
+    stopCompassInterval();
+    document.getElementById('captureFab').style.display = 'none';
+    directionLayers.forEach(l => gameMap && gameMap.removeLayer(l));
+    directionLayers = [];
+    loadMoi();
   } else {
     stopCompassInterval();
     document.getElementById('captureFab').style.display = 'none';
@@ -1869,6 +1937,144 @@ setInterval(async () => {
   updateRadar();
   updateProgressBar();
 }, 15000);
+
+// ── Nearest card ─────────────────────────────────────
+let _nearestTreasure = null;
+function updateNearestCard() {
+  if (playerLat === null) return;
+  const unfound = treasures.filter(t => {
+    if (!t.lat || !t.lng) return false;
+    if (t.found_by && t.found_by.split(',').includes(myPseudo)) return false;
+    return true;
+  });
+  if (!unfound.length) {
+    document.getElementById('nearestCard').style.display = 'none';
+    return;
+  }
+  const nearest = unfound
+    .map(t => ({ ...t, _dist: haversine(playerLat, playerLng, t.lat, t.lng) }))
+    .sort((a, b) => a._dist - b._dist)[0];
+  _nearestTreasure = nearest;
+  const card = document.getElementById('nearestCard');
+  card.style.display = 'flex';
+  document.getElementById('ncName').textContent = tLabel(nearest);
+  const dist = nearest._dist < 1000 ? Math.round(nearest._dist) + ' m' : (nearest._dist / 1000).toFixed(1) + ' km';
+  document.getElementById('ncSub').textContent = dist + ' · ' + (nearest.type === 'fixed' ? 'Balise fixe' : 'Balise unique');
+  const wrap = document.getElementById('ncThumbWrap');
+  const urls = getPhotoUrls(nearest.photo_url);
+  if (urls.length) {
+    wrap.innerHTML = `<img src="${escHtml(safeImgUrl(urls[0]))}" style="width:52px;height:52px;object-fit:cover;border-radius:10px;display:block">`;
+  } else {
+    wrap.textContent = nearest.type === 'fixed' ? '📌' : '📍';
+  }
+}
+function onNearestCardClick() {
+  if (_nearestTreasure) openTreasureSheet(_nearestTreasure);
+}
+
+// ── Treasure sheet ───────────────────────────────────
+function openTreasureSheet(t) {
+  const isMine   = t.found_by && t.found_by.split(',').includes(myPseudo);
+  const isTaken  = t.type === 'unique' && t.found_by && t.found_by.length > 0;
+  const typeLabel = t.type === 'fixed' ? 'Balise fixe 📌' : 'Balise unique 🎁';
+  const urls     = getPhotoUrls(t.photo_url);
+  const safeUrls = urls.map(safeImgUrl).filter(Boolean);
+  const photoHtml = safeUrls.map(u =>
+    `<img src="${escHtml(u)}" onclick="openPhotoViewer('${jsSingleQuoted(u)}')" class="ts-photo">`
+  ).join('');
+  const badge = isMine ? '<span class="ts-badge ts-badge-found">✓ Trouvé</span>'
+    : isTaken ? '<span class="ts-badge ts-badge-taken">🔒 Pris</span>'
+    : '<span class="ts-badge ts-badge-open">· À trouver</span>';
+  const cta = (!isMine && !isTaken && t.lat && t.lng)
+    ? `<button class="ts-cta" onclick="recenterOn(${t.lat},${t.lng})">M'y emmener →</button>` : '';
+  const dist = (playerLat !== null && t.lat && t.lng)
+    ? (() => { const d = haversine(playerLat, playerLng, t.lat, t.lng); return d < 1000 ? Math.round(d) + ' m' : (d/1000).toFixed(1) + ' km'; })()
+    : '';
+  document.getElementById('tsBody').innerHTML = `
+    <div class="ts-top-row">${badge}<span class="ts-type">${escHtml(typeLabel)}</span></div>
+    ${photoHtml ? `<div class="ts-photos">${photoHtml}</div>` : ''}
+    <div class="ts-name">${escHtml(tLabel(t))}</div>
+    ${dist ? `<div class="ts-dist">${escHtml(dist)} de moi</div>` : ''}
+    ${t.hint ? `<div class="ts-hint">💡 ${escHtml(t.hint)}</div>` : ''}
+    ${cta}
+  `;
+  document.getElementById('treasureSheet').classList.add('open');
+}
+function closeTreasureSheet() {
+  document.getElementById('treasureSheet').classList.remove('open');
+}
+
+// ── Recenter map ─────────────────────────────────────
+function recenterOn(lat, lng) {
+  closeTreasureSheet();
+  const navExplore = document.getElementById('navExplore');
+  showTab('explore', navExplore);
+  if (gameMap) gameMap.setView([lat, lng], 16, { animate: true });
+}
+
+// ── Balises panel ────────────────────────────────────
+function loadBalises() {
+  const fixed = treasures.filter(t => t.type === 'fixed');
+  const count = document.getElementById('balisesCount');
+  const foundCount = fixed.filter(t => t.found_by && t.found_by.split(',').includes(myPseudo)).length;
+  if (count) count.textContent = foundCount + ' / ' + fixed.length + ' trouvées';
+
+  const sorted = fixed
+    .map(t => ({ ...t, _dist: playerLat !== null ? haversine(playerLat, playerLng, t.lat, t.lng) : Infinity }))
+    .sort((a, b) => a._dist - b._dist);
+
+  const list = document.getElementById('balisList');
+  if (!sorted.length) { list.innerHTML = '<p style="color:var(--ink-3);text-align:center;padding:40px">Aucune balise</p>'; return; }
+  list.innerHTML = sorted.map((t, i) => {
+    const isMine = t.found_by && t.found_by.split(',').includes(myPseudo);
+    const distStr = t._dist === Infinity ? '' : t._dist < 1000 ? Math.round(t._dist) + ' m' : (t._dist/1000).toFixed(1) + ' km';
+    const numColors = ['#6366f1','#ec4899','#f59e0b','#10b981','#3b82f6'];
+    const bg = numColors[i % numColors.length];
+    const tid = escHtml(t.id);
+    return `<div class="bl-item" onclick="openTreasureSheet(treasures.find(x=>x.id==='${tid}'))">
+      <div class="bl-num" style="background:${bg}">${i+1}</div>
+      <div class="bl-info">
+        <div class="bl-item-name">${escHtml(tLabel(t))}</div>
+        <div class="bl-item-sub">${distStr ? escHtml(distStr) + ' · ' : ''}${isMine ? '✓ Trouvé' : 'À trouver'}</div>
+      </div>
+      <div class="bl-arr">${isMine ? '✓' : '→'}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Moi panel ────────────────────────────────────────
+async function loadMoi() {
+  const el = document.getElementById('moiContent');
+  if (!el) return;
+  const fixed = treasures.filter(t => t.type === 'fixed');
+  const unique = treasures.filter(t => t.type === 'unique');
+  const myFixed = fixed.filter(t => t.found_by && t.found_by.split(',').includes(myPseudo)).length;
+  const myUnique = unique.filter(t => t.found_by && t.found_by.split(',').includes(myPseudo)).length;
+
+  // Fetch rank from leaderboard
+  let rank = '—';
+  if (myPseudo) {
+    const { data } = await db.from('players').select('pseudo,score').order('score', { ascending: false });
+    if (data) {
+      const idx = data.findIndex(p => p.pseudo === myPseudo);
+      if (idx >= 0) rank = '#' + (idx + 1);
+    }
+  }
+
+  const pseudo = myPseudo || 'Invité';
+  const grad = pseudoGradient(pseudo);
+  el.innerHTML = `
+    <div class="moi-avatar" style="background:${grad}">${escHtml(pseudo.charAt(0))}</div>
+    <div class="moi-pseudo">${escHtml(pseudo)}</div>
+    <div class="moi-grid">
+      <div class="moi-tile"><div class="moi-tile-val">${myFixed}</div><div class="moi-tile-lbl">Balises fixes</div></div>
+      <div class="moi-tile"><div class="moi-tile-val">${myUnique}</div><div class="moi-tile-lbl">Uniques</div></div>
+      <div class="moi-tile"><div class="moi-tile-val">${myFixed + myUnique}</div><div class="moi-tile-lbl">Total trouvé</div></div>
+      <div class="moi-tile"><div class="moi-tile-val">${rank}</div><div class="moi-tile-lbl">Classement</div></div>
+    </div>
+    ${myPseudo ? `<button class="moi-logout" onclick="if(confirm('Déconnexion ?')){localStorage.removeItem('u3dq_pseudo');location.reload();}">Se déconnecter</button>` : ''}
+  `;
+}
 </script>
 </body>
 </html>
