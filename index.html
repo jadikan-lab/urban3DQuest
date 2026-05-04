@@ -76,19 +76,20 @@
     .nav-label{font-size:0.7rem;font-weight:700;letter-spacing:.02em}
     nav button.active{color:var(--ink);border-bottom:3px solid var(--magenta);background:rgba(255,61,138,.1);font-weight:800}
     nav button:active{background:rgba(26,24,38,.05)}
-    /* ── Game mode switch ── */
-    .gm-btn{padding:4px 9px;min-height:26px;border-radius:9px;border:1px solid var(--line-2);background:var(--bg);color:var(--ink-2);font-family:var(--mono);font-size:0.62rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
-    .gm-btn.active{color:#fff;border-color:transparent;box-shadow:0 4px 14px rgba(26,24,38,.15)}
-    .gm-fixed.active{background:linear-gradient(135deg,#0284c7,#0ea5e9)}
-    .gm-unique.active{background:linear-gradient(135deg,#a21caf,#db2777)}
-    #headerModeToggle{display:flex;gap:4px;flex-shrink:0}
+    /* ── More menu ── */
+    #moreMenu{display:none;position:fixed;inset:0;z-index:500}
+    #moreMenu.open{display:block}
+    #moreMenuBackdrop{position:absolute;inset:0;background:rgba(26,24,38,.4)}
+    #moreMenuCard{position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-radius:20px 20px 0 0;padding:16px 14px calc(16px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:8px;animation:slideUp 0.25s cubic-bezier(.16,1,.3,1)}
+    .more-btn{padding:16px 18px;border:1px solid var(--line);background:var(--bg);border-radius:12px;color:var(--ink);font-size:0.95rem;font-weight:700;cursor:pointer;text-align:left;font-family:var(--display)}
+    .more-btn:active{background:var(--surface)}
     /* ── Panels ── */
     .panel{display:none!important}
     .panel.active{display:block!important;flex:1;overflow:hidden;min-height:0}
     #panelExplore.active{display:flex!important;flex-direction:column;flex:1;overflow:hidden;min-height:0;position:relative}
     #miniMap{flex:1;border-bottom:2px solid var(--line-2);min-height:0;position:relative}
     /* ── Radar bar ── */
-    #radarBar{position:fixed;bottom:calc(42px + 12px);left:50%;transform:translateX(-50%);background:rgba(255,255,255,.97);border:1px solid var(--line-2);border-radius:24px;padding:10px 26px;font-size:0.9rem;font-weight:700;color:var(--ink-2);z-index:200;display:none;white-space:nowrap;backdrop-filter:blur(8px);box-shadow:0 2px 20px rgba(26,24,38,.12);letter-spacing:0.01em;font-family:var(--mono)}
+    #radarBar{position:fixed;top:100px;bottom:auto;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.97);border:1px solid var(--line-2);border-radius:24px;padding:10px 26px;font-size:0.9rem;font-weight:700;color:var(--ink-2);z-index:200;display:none;white-space:nowrap;backdrop-filter:blur(8px);box-shadow:0 2px 20px rgba(26,24,38,.12);letter-spacing:0.01em;font-family:var(--mono)}
     #radarBar.near{color:#d97706;border-color:#d97706;background:rgba(255,252,235,.97);box-shadow:0 2px 20px rgba(217,119,6,.15)}
     #radarBar.very-near{color:#16a34a;border-color:#16a34a;background:rgba(240,255,244,.97);animation:pulse 1s infinite;box-shadow:0 2px 24px rgba(22,163,74,.2);font-size:0.95rem}
     /* ── Keyframes ── */
@@ -273,7 +274,7 @@
     .me-dot{width:16px;height:16px;border-radius:50%;background:#3b82f6;border:3px solid #fff;box-shadow:0 0 0 4px rgba(59,130,246,0.35)}
 
     /* ── Nearest list (bas de la Carte) ── */
-    #nearestList{background:var(--surface);border-top:1px solid var(--line);flex-shrink:0;display:none;flex-direction:column;box-shadow:0 -2px 16px rgba(26,24,38,.06)}
+    #nearestList{background:var(--surface);border-top:1px solid var(--line);flex-shrink:0;display:none;flex-direction:column;box-shadow:0 -2px 16px rgba(26,24,38,.06);padding-bottom:calc(52px + env(safe-area-inset-bottom))}
     .nl-header{font-family:var(--mono);font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-3);padding:8px 16px 4px}
     .nl-item{display:flex;align-items:center;gap:12px;padding:9px 16px;cursor:pointer;border-top:1px solid var(--line)}
     .nl-item:active{background:var(--bg)}
@@ -381,7 +382,6 @@
 <div id="envBanner">Preprod STG · Base de test</div>
 <header>
   <h1>🏙 Urban3DQuest</h1>
-  <div id="headerModeToggle"><button id="modeFixedBtn" class="gm-btn gm-fixed active" onclick="setGameMode('fixed')">Série</button><button id="modeUniqueBtn" class="gm-btn gm-unique" onclick="setGameMode('unique')">Déclic</button></div>
   <span id="gpsChip" title="Précision GPS">
     <span id="gpsDot"></span>
     <span id="gpsLabel">GPS…</span>
@@ -393,19 +393,29 @@
     <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="1,4 8,1 14,5 21,2 21,18 14,21 8,17 1,20"/><line x1="8" y1="1" x2="8" y2="17"/><line x1="14" y1="5" x2="14" y2="21"/></svg></span>
     <span class="nav-label">Carte</span>
   </button>
-  <button aria-label="Carnet" role="tab" aria-selected="false" id="navCarnet" onclick="showTab('carnet',this)">
-    <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="14" height="18" rx="2"/><line x1="8" y1="7" x2="14" y2="7"/><line x1="8" y1="11" x2="14" y2="11"/><line x1="8" y1="15" x2="11" y2="15"/></svg></span>
-    <span class="nav-label">Collection</span>
+  <button aria-label="La Série" role="tab" aria-selected="false" id="navSerie" onclick="setGameMode('fixed');showTab('carnet',this)">
+    <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2C7.686 2 5 4.8 5 8.2c0 4.8 6 11.8 6 11.8s6-7 6-11.8C17 4.8 14.314 2 11 2z"/><circle cx="11" cy="8" r="2.2"/></svg></span>
+    <span class="nav-label">Série</span>
   </button>
-  <button aria-label="Classement" role="tab" aria-selected="false" id="navScores" onclick="showTab('scores',this)">
-    <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="12" width="5" height="8" rx="1"/><rect x="8.5" y="7" width="5" height="13" rx="1"/><rect x="15" y="3" width="5" height="17" rx="1"/></svg></span>
-    <span class="nav-label">Classement</span>
+  <button aria-label="Le Déclic" role="tab" aria-selected="false" id="navDeclic" onclick="setGameMode('unique');showTab('explore',this)">
+    <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="14,2 7,12 11,12 8,20 15,10 11,10"/></svg></span>
+    <span class="nav-label">Déclic</span>
   </button>
-  <button aria-label="Moi" role="tab" aria-selected="false" id="navMoi" onclick="showTab('moi',this)">
-    <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="7" r="4"/><path d="M2 20c0-4.418 4.03-8 9-8s9 3.582 9 8"/></svg></span>
-    <span class="nav-label">Moi</span>
+  <button aria-label="Plus" role="tab" aria-selected="false" id="navMore" onclick="toggleMoreMenu(this)">
+    <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="5" cy="11" r="1.8" fill="currentColor"/><circle cx="11" cy="11" r="1.8" fill="currentColor"/><circle cx="17" cy="11" r="1.8" fill="currentColor"/></svg></span>
+    <span class="nav-label">Plus</span>
   </button>
 </nav>
+
+<!-- ── More menu ────────────────────────────────────── -->
+<div id="moreMenu">
+  <div id="moreMenuBackdrop" onclick="closeMoreMenu()"></div>
+  <div id="moreMenuCard">
+    <button class="more-btn" onclick="showTabFromMore('carnet')">Collection</button>
+    <button class="more-btn" onclick="showTabFromMore('scores')">Classement</button>
+    <button class="more-btn" onclick="showTabFromMore('moi')">Moi</button>
+  </div>
+</div>
 
 <!-- ── Explorer (carte + boussole fusionnées) ────────── -->
 <div id="panelExplore" class="panel active">
@@ -938,13 +948,8 @@ function updateHeader() {
 }
 
 function updateModeUI() {
-  const fixedBtn = document.getElementById('modeFixedBtn');
-  const uniqueBtn = document.getElementById('modeUniqueBtn');
   const pbLabel = document.querySelector('#progressBar .pb-label span');
   const arrowBtn = document.getElementById('arrowToggleBtn');
-
-  if (fixedBtn) fixedBtn.classList.toggle('active', activeGameMode === 'fixed');
-  if (uniqueBtn) uniqueBtn.classList.toggle('active', activeGameMode === 'unique');
 
   if (pbLabel) {
     pbLabel.textContent = activeGameMode === 'fixed'
@@ -981,12 +986,14 @@ function setGameMode(mode) {
 
 // Reconnexion depuis mode invité : rouvre l'écran pseudo
 function onHeaderPseudoClick() {
-  if (myPseudo) return; // déjà connecté, ne rien faire
-  // Réaffiche l'écran de connexion sans recharger la page
-  const ps = document.getElementById('pseudoScreen');
-  if (ps) ps.style.display = 'flex';
-  const inp = document.getElementById('pseudoInput');
-  if (inp) { inp.value = ''; inp.focus(); }
+  if (myPseudo) {
+    showTabFromMore('moi');
+  } else {
+    const ps = document.getElementById('pseudoScreen');
+    if (ps) ps.style.display = 'flex';
+    const inp = document.getElementById('pseudoInput');
+    if (inp) { inp.value = ''; inp.focus(); }
+  }
 }
 
 // ── Treasures ────────────────────────────────────────
@@ -2325,6 +2332,20 @@ function showTab(name, btn) {
     directionLayers.forEach(l => gameMap && gameMap.removeLayer(l));
     directionLayers = [];
   }
+}
+
+// ── More menu ──────────────────────────────────────────────
+function toggleMoreMenu() {
+  document.getElementById('moreMenu').classList.toggle('open');
+}
+function closeMoreMenu() {
+  document.getElementById('moreMenu').classList.remove('open');
+}
+function showTabFromMore(name) {
+  closeMoreMenu();
+  showTab(name, null);
+  const moreBtn = document.getElementById('navMore');
+  if (moreBtn) { moreBtn.classList.add('active'); moreBtn.setAttribute('aria-selected', 'true'); }
 }
 
 // ── Pause ────────────────────────────────────────────
