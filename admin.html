@@ -364,7 +364,7 @@ if(sessionStorage.getItem('u3dq_admin')==='1'){document.getElementById('pwScreen
 async function init(){
   var r=await db.from('config').select('key').limit(1);
   document.getElementById('dbDot').className='dot'+(r.error?'':' ok');
-  startGeo();loadConfig();loadQrLov();
+  startGeo();await loadConfig();loadQrLov();
   // Restaurer l'onglet actif depuis localStorage
   var savedTab=localStorage.getItem('u3dq_admin_tab');
   if(savedTab&&savedTab!=='add'){
@@ -688,7 +688,6 @@ async function loadQrLov(){var generated=JSON.parse(localStorage.getItem('u3dq_q
 function onQrSelectChange(){var v=document.getElementById('fQrSelect').value;var inp=document.getElementById('fQrNum');if(v==='__manual__'){inp.style.display='block';inp.focus();}else{inp.style.display='none';inp.value=v;}}
 var _questTargetId=null;
 function changeQuest(btn){
-  if(!questList.length){alert('Aucune quête définie. Créez d\'abord des quêtes dans l\'onglet Config.');return;}
   var id=btn.dataset.tid;
   var currentQuest=btn.dataset.quest||'';
   _questTargetId=id;
@@ -696,12 +695,16 @@ function changeQuest(btn){
   sub.textContent='Balise : '+( document.getElementById('lbl_'+id)?.textContent||id );
   var sel=document.getElementById('questModalSelect');
   sel.innerHTML='<option value="">— Aucune quête —</option>';
-  questList.forEach(function(q){
-    var opt=document.createElement('option');
-    opt.value=q;opt.textContent=q;
-    if(q===currentQuest)opt.selected=true;
-    sel.appendChild(opt);
-  });
+  if(!questList.length){
+    var opt=document.createElement('option');opt.value='';opt.textContent='(aucune quête définie — allez dans Config)';opt.disabled=true;sel.appendChild(opt);
+  } else {
+    questList.forEach(function(q){
+      var opt=document.createElement('option');
+      opt.value=q;opt.textContent=q;
+      if(q===currentQuest)opt.selected=true;
+      sel.appendChild(opt);
+    });
+  }
   document.getElementById('questModalStatus').textContent='';
   document.getElementById('questModal').classList.add('open');
 }
