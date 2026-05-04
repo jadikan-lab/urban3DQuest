@@ -210,6 +210,7 @@
   <div id="myCard"></div>
   <div id="lbList"><p style="color:#475569;text-align:center;padding:40px">Chargement…</p></div>
   <div class="lb-refresh" id="lbRefresh"></div>
+  <div style="text-align:center;font-size:0.62rem;color:#1e293b;padding-bottom:8px" id="gameVersion"></div>
 </div>
 
 <!-- ── Radar bar ─────────────────────────────────────── -->
@@ -271,8 +272,8 @@
 <script>
 const SUPABASE_URL = 'https://jocfvobqfpygixrawnbq.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_M8SxhXrmh17vrOf1WlOM6Q_ZNKNqQhM';
-
-const { createClient } = supabase;
+const GAME_VERSION = 'v3.5.1';
+document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let myPseudo     = localStorage.getItem('u3dq_pseudo') || '';
