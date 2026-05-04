@@ -212,6 +212,8 @@
     #qrStatus.qr-err{color:#f87171}
     #qrReader{width:100%;border-radius:14px;overflow:hidden;display:none;background:#000;position:relative}
     #qrReader video{width:100%!important;display:block;max-height:50vh;object-fit:cover}
+    #qrReader__header_message,#qrReader__status_span,#qrReader__filescan_input{display:none!important}
+    #qrReader__scan_region{background:#000}
     #qrPreviewWrap{width:100%;border-radius:14px;overflow:hidden;display:none;border:2px solid var(--line-2)}
     #qrPreviewImg{width:100%;display:block;max-height:50vh;object-fit:contain;background:var(--surface)}
     #qrTorchBtn{display:none;align-items:center;justify-content:center;gap:10px;padding:12px 0;background:linear-gradient(135deg,#374151,#111827);border:none;border-radius:12px;color:#fff;font-size:0.95rem;font-weight:700;cursor:pointer;width:100%;min-height:48px;letter-spacing:.02em;box-shadow:0 3px 16px rgba(17,24,39,.3);font-family:var(--display)}
@@ -543,7 +545,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.8.0';
+const GAME_VERSION = 'v3.9.0';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -1527,11 +1529,11 @@ async function startLiveQRScan() {
   document.getElementById('qrTips').style.display = 'none';
   await stopLiveQRScan();
   try {
-    html5QrInst = new Html5Qrcode('qrReader');
+    html5QrInst = new Html5Qrcode('qrReader', { verbose: false });
     document.getElementById('qrReader').style.display = 'block';
     await html5QrInst.start(
       { facingMode: 'environment' },
-      { fps: 8, qrbox: { width: 220, height: 220 } },
+      { fps: 8, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 },
       async (decodedText) => {
         await stopLiveQRScan();
         await _qrHandleResult(decodedText);
@@ -1599,7 +1601,7 @@ async function handleQRPhoto(input) {
   document.getElementById('qrPreviewImg').src = url;
   document.getElementById('qrPreviewWrap').style.display = 'block';
   try {
-    const scanner = new Html5Qrcode('qrReader');
+    const scanner = new Html5Qrcode('qrReader', { verbose: false });
     const decodedText = await scanner.scanFile(file, false);
     URL.revokeObjectURL(url);
     await _qrHandleResult(decodedText);
