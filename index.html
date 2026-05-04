@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
   <title>Urban3DQuest v4</title>
   <meta name="theme-color" content="#0f172a">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" media="print" onload="this.media='all'">
   <style>
     /* ── THÈME TERRAIN — dark, outdoor, militaire/GPS ── */
     *{box-sizing:border-box;margin:0;padding:0}
@@ -182,11 +182,11 @@
     <span id="gpsDot"></span>
     <span id="gpsLabel">GPS…</span>
   </span>
-  <span class="pseudo-chip" id="headerPseudo"></span>
+  <span class="pseudo-chip" id="headerPseudo" onclick="onHeaderPseudoClick()" style="cursor:pointer"></span>
 </header>
 <nav>
-  <button id="navExplore" class="active" onclick="showTab('explore',this)"><span class="nav-icon">🗺</span><span class="nav-label">Explorer</span></button>
-  <button id="navScores" onclick="showTab('scores',this)"><span class="nav-icon">🏆</span><span class="nav-label">Scores</span></button>
+  <button aria-label="Explorer" id="navExplore" class="active" onclick="showTab('explore',this)"><span class="nav-icon">🗺</span><span class="nav-label">Explorer</span></button>
+  <button aria-label="Scores" id="navScores" onclick="showTab('scores',this)"><span class="nav-icon">🏆</span><span class="nav-label">Scores</span></button>
 </nav>
 
 <!-- ── Explorer (carte + boussole fusionnées) ────────── -->
@@ -201,8 +201,8 @@
 
 <!-- ── Photo viewer overlay ──────────────────────────── -->
 <div id="photoViewer" onclick="closePhotoViewer()">
-  <img id="photoViewerImg" src="" alt="photo">
-  <button onclick="closePhotoViewer()">✕ Fermer</button>
+  <img id="photoViewerImg" src="" alt="Photo du trésor agrandie">
+  <button onclick="closePhotoViewer()" aria-label="Fermer la photo">✕ Fermer</button>
 </div>
 
 <!-- ── Leaderboard ───────────────────────────────────── -->
@@ -216,7 +216,7 @@
 <div id="radarBar"></div>
 
 <!-- ── Capture FAB (balises fixes GPS) ──────────────── -->
-<button id="captureFab" onclick="captureFixed()">📸 Capturer !</button>
+<button id="captureFab" onclick="captureFixed()" aria-label="Capturer la balise fixe">📸 Capturer !</button>
 
 <!-- ── Progress bar ──────────────────────────────────── -->
 <div id="progressBar">
@@ -230,13 +230,14 @@
 <!-- ── Found modal ───────────────────────────────────── -->
 <div id="foundModal">
   <div class="found-box">
-    <img id="foundPhoto" style="width:100%;max-height:180px;object-fit:cover;border-radius:12px;margin-bottom:12px;display:none">
+    <img id="foundPhoto" style="width:100%;max-height:180px;object-fit:cover;border-radius:12px;margin-bottom:12px;display:none" alt="photo du trésor">
     <div id="foundPhotoStrip" style="display:none;margin-bottom:12px"></div>
     <div class="found-emoji" id="foundEmoji">🎉</div>
     <h2 id="foundTitle">Trésor trouvé !</h2>
     <div class="duration" id="foundDuration"></div>
     <p id="foundDesc"></p>
-    <button class="btn-main" onclick="closeFound()">✅ Continuer</button>
+    <button class="btn-main" id="foundRetryBtn" style="display:none;margin-bottom:8px;background:#1e293b;border:1px solid #334155" onclick="_retryCheckin()">🔄 Réessayer</button>
+    <button class="btn-main" aria-label="Continuer le jeu" onclick="closeFound()">✅ Continuer</button>
   </div>
 </div>
 
@@ -252,7 +253,7 @@
       <input type="file" accept="image/*" capture="environment" id="qrFileInput" style="display:none">
     </label>
     <div id="qrTips" style="font-size:0.86rem;color:#94a3b8;display:none;max-width:380px;text-align:center">Astuce: rapproche-toi du QR, évite les reflets et assure-toi qu'il occupe une bonne part de l'image.</div>
-    <button id="qrCloseBtn" onclick="closeQRScanner()">✕ Annuler</button>
+    <button id="qrCloseBtn" onclick="closeQRScanner()" aria-label="Annuler le scan QR">✕ Annuler</button>
   </div>
 </div>
 
@@ -504,7 +505,7 @@ function _doCheckin() {
     }
     const dist = haversine(playerLat, playerLng, t.lat, t.lng);
     if (dist > proximityR) {
-      _checkinError(`Tu es à ${Math.round(dist)}m de "${tLabel(t)}" — trop loin pour valider.\nApproche-toi à moins de ${proximityR}m.`);
+      _checkinError(`Tu es à ${Math.round(dist)}m de "${tLabel(t)}" — trop loin pour valider.\nApproche-toi à moins de ${proximityR}m.`, t.id);
       return;
     }
     processFindById(t.id);
@@ -522,25 +523,57 @@ function _doCheckin() {
     .map(t => ({ ...t, dist: haversine(playerLat, playerLng, t.lat, t.lng) }))
     .sort((a, b) => a.dist - b.dist)[0];
   if (nearest.dist > proximityR) {
-    _checkinError(`Tu es à ${Math.round(nearest.dist)}m — trop loin pour valider.\nApproche-toi à moins de ${proximityR}m.`);
+    _checkinError(`Tu es à ${Math.round(nearest.dist)}m — trop loin pour valider.\nApproche-toi à moins de ${proximityR}m.`, nearest.id);
     return;
   }
   processFindById(nearest.id);
 }
 
-function _checkinError(msg) {
+let _lastCheckinId = null; // pour le bouton Réessayer
+
+function _checkinError(msg, retryId) {
   document.getElementById('foundEmoji').textContent = '📍';
   document.getElementById('foundTitle').textContent = 'QR scanné !';
   document.getElementById('foundDuration').textContent = '';
   document.getElementById('foundDesc').textContent = msg;
   document.getElementById('foundPhotoStrip').style.display = 'none';
   document.getElementById('foundPhoto').style.display = 'none';
+  // Bouton Réessayer : visible uniquement si un ID de balise est fourni
+  _lastCheckinId = retryId || null;
+  const retryBtn = document.getElementById('foundRetryBtn');
+  if (retryBtn) retryBtn.style.display = retryId ? 'block' : 'none';
   document.getElementById('foundModal').classList.add('open');
+}
+
+function _retryCheckin() {
+  closeFound();
+  if (_lastCheckinId) {
+    openQRScanner(_lastCheckinId);
+  } else {
+    processCheckin();
+  }
 }
 
 function updateHeader() {
   const chip = document.getElementById('headerPseudo');
-  if (chip) chip.textContent = myPseudo || '';
+  if (!chip) return;
+  if (myPseudo) {
+    chip.textContent = myPseudo;
+    chip.title = '';
+  } else {
+    chip.textContent = '👤 Se connecter';
+    chip.title = 'Cliquer pour rejoindre le jeu';
+  }
+}
+
+// Reconnexion depuis mode invité : rouvre l'écran pseudo
+function onHeaderPseudoClick() {
+  if (myPseudo) return; // déjà connecté, ne rien faire
+  // Réaffiche l'écran de connexion sans recharger la page
+  const ps = document.getElementById('pseudoScreen');
+  if (ps) ps.style.display = 'flex';
+  const inp = document.getElementById('pseudoInput');
+  if (inp) { inp.value = ''; inp.focus(); }
 }
 
 // ── Treasures ────────────────────────────────────────
@@ -551,7 +584,7 @@ async function loadTreasures() {
   if (error) {
     console.error('loadTreasures error:', error.message);
     const bar = document.getElementById('radarBar');
-    if (bar && !treasures.length) { bar.textContent = '⚠️ Erreur réseau — vérifie ta connexion'; bar.className = ''; }
+    if (bar) { bar.textContent = '⚠️ Erreur réseau — vérifie ta connexion'; bar.className = ''; }
     return;
   }
   if (!data) return;
@@ -1150,6 +1183,7 @@ async function _qrHandleResult(raw) {
     status.textContent = '⚠️ Mauvaise balise — cherche le bon QR !';
     status.className = 'qr-err';
     haptic([80, 60, 80]);
+    _resetQRInput(); // permettre de retenter immédiatement
   } else {
     status.textContent = '✅ Balise validée !';
     status.className = 'qr-ok';
@@ -1205,14 +1239,18 @@ function toggleCompassDebug() {
 
 
 let _processingFind = false;
+const _inFlightCaptures = new Set(); // protection double-scan par balise
 
 async function processFindById(treasureId) {
   if (_processingFind) return;
+  if (_inFlightCaptures.has(treasureId)) return;
   _processingFind = true;
+  _inFlightCaptures.add(treasureId);
   try {
     await _doProcessFind(treasureId);
   } finally {
     _processingFind = false;
+    _inFlightCaptures.delete(treasureId);
   }
 }
 
@@ -1254,10 +1292,14 @@ async function _doProcessFind(treasureId) {
   // Log event
   await db.from('events').insert({ pseudo: myPseudo, treasure_id: t.id, treasure_type: t.type, duration_sec: durationSec });
 
-  // Update player score
-  myScore      += durationSec;
-  myFoundCount += 1;
-  await db.from('players').update({ score: myScore, found_count: myFoundCount }).eq('pseudo', myPseudo);
+  // Update player score — on incrémente local seulement après confirmation DB
+  const updScore      = myScore + durationSec;
+  const updFoundCount = myFoundCount + 1;
+  const { error: scoreError } = await db.from('players').update({ score: updScore, found_count: updFoundCount }).eq('pseudo', myPseudo);
+  if (!scoreError) {
+    myScore      = updScore;
+    myFoundCount = updFoundCount;
+  }
 
   // Refresh local treasures
   await loadTreasures();
@@ -1516,8 +1558,21 @@ async function loadLeaderboard() {
 
 function startLbPolling() {
   loadLeaderboard();
+  if (lbInterval) clearInterval(lbInterval);
   lbInterval = setInterval(loadLeaderboard, 10000);
 }
+
+// ── Page Visibility API — pause timers en arrière-plan ──
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    if (lbInterval) { clearInterval(lbInterval); lbInterval = null; }
+    stopCompassInterval();
+  } else {
+    if (myPseudo || activeTab === 'scores') startLbPolling();
+    if (activeTab === 'explore') startCompassInterval();
+    updateRadar();
+  }
+});
 
 // ── Tabs ─────────────────────────────────────────────
 function showTab(name, btn) {
