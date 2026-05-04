@@ -411,7 +411,7 @@ async function loadTreasureList(type,elId){var el=document.getElementById(elId);
       +'<button class="t-ico" title="Modifier nom &amp; indice" onclick="editInline(\''+t.id+'\',\''+sl+'\',\''+sh+'\',\''+type+'\')">✏️</button>'
       +'<button class="t-ico" title="Déplacer sur la carte" onclick="moveOnMap(\''+t.id+'\','+t.lat+','+t.lng+',\''+sl+'\')">📍</button>'
       +(type==='fixed'?'<button class="t-ico" title="Changer la photo" onclick="changePhoto(\''+t.id+'\')">📷</button>':'')
-      +(type==='fixed'?'<button class="t-ico" title="Changer la quête" onclick="changeQuest(\''+t.id+'\',\''+(t.quest||'').replace(/'/g,"\\'") +'\')">🗂</button>':'')
+      +(type==='fixed'?'<button class="t-ico" title="Changer la quête" data-tid="'+escHtml(t.id)+'" data-quest="'+escHtml(t.quest||'')+'" onclick="changeQuest(this)">🗂</button>':'')
       +'<button class="t-ico" id="visBtn_'+t.id+'" title="'+(t.visible?'Masquer':'Afficher')+'" onclick="toggleVis2(\''+t.id+'\','+t.visible+',\''+type+'\')">'+(t.visible?'👁':'🙈')+'</button>'
       +'<button class="t-ico t-ico-qr" title="Voir QR" onclick="showQR(\''+t.id+'\',\''+sl+'\',\''+t.type+'\')">�</button>'
       +(found?'<button class="t-ico t-ico-warn" title="Remettre non trouvé" onclick="resetTreasure(\''+t.id+'\',\''+type+'\')">↺</button>':'')
@@ -687,8 +687,10 @@ async function downloadQrZip(){var btn=document.getElementById('zipBtn');var ids
 async function loadQrLov(){var generated=JSON.parse(localStorage.getItem('u3dq_qr_generated')||'[]');var sel=document.getElementById('fQrSelect');var info=document.getElementById('fQrInfo');sel.innerHTML='<option value="">— Aucun QR (ID auto) —</option>';var manOpt=document.createElement('option');manOpt.value='__manual__';manOpt.textContent='✏️ Saisir manuellement';sel.appendChild(manOpt);if(!generated.length){info.textContent='Aucun QR généré — allez dans l\'onglet QR pour en créer';info.style.color='#fb923c';return;}var res=await db.from('treasures').select('id');var used=new Set((res.data||[]).map(function(t){return t.id;}));var available=generated.filter(function(id){return!used.has(id);});var metaLov=JSON.parse(localStorage.getItem('u3dq_qr_meta')||'{}');available.forEach(function(id,idx){var opt=document.createElement('option');opt.value=id;var m=metaLov[id]||{};var suffix=(m.quest?' ['+m.quest+']':'')+(m.objet?' — '+m.objet:'');opt.textContent=(idx===0?'⬆ PROCHAIN : ':'')+id+suffix;sel.appendChild(opt);});var total=generated.length;info.textContent=available.length+' QR disponibles sur '+total+' générés'+(available.length===0?' — tous déjà posés':'');info.style.color=available.length===0?'#fb923c':'#475569';if(available.length>0){sel.value=available[0];document.getElementById('fQrNum').style.display='none';}}
 function onQrSelectChange(){var v=document.getElementById('fQrSelect').value;var inp=document.getElementById('fQrNum');if(v==='__manual__'){inp.style.display='block';inp.focus();}else{inp.style.display='none';inp.value=v;}}
 var _questTargetId=null;
-function changeQuest(id, currentQuest){
+function changeQuest(btn){
   if(!questList.length){alert('Aucune quête définie. Créez d\'abord des quêtes dans l\'onglet Config.');return;}
+  var id=btn.dataset.tid;
+  var currentQuest=btn.dataset.quest||'';
   _questTargetId=id;
   var sub=document.getElementById('questModalLabel');
   sub.textContent='Balise : '+( document.getElementById('lbl_'+id)?.textContent||id );
