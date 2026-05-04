@@ -545,7 +545,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.9.3';
+const GAME_VERSION = 'v3.9.4';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -610,6 +610,11 @@ function initEnvUI() {
   document.body.classList.add('env-stg');
   const banner = document.getElementById('envBanner');
   if (banner) banner.textContent = 'PREPROD STG ' + GAME_VERSION + ' · BASE DE TEST';
+  // STG : pas de mot de passe, juste le pseudo
+  const passInput = document.getElementById('passwordInput');
+  if (passInput) passInput.style.display = 'none';
+  const psSub = document.querySelector('.ps-sub');
+  if (psSub) psSub.textContent = 'Entre ton pseudo pour tester';
 }
 
 initEnvUI();
@@ -646,6 +651,16 @@ window.addEventListener('load', async () => {
 
   // Returning user: verify session token then skip landing
   if (myPseudo) {
+    if (SUPABASE_ENV.name === 'stg') {
+      // STG : on fait confiance au localStorage, pas de vérification session
+      const { data: p } = await db.from('players').select('score,found_count').eq('pseudo', myPseudo).single();
+      if (p) { myScore = p.score || 0; myFoundCount = p.found_count || 0; }
+      document.getElementById('pseudoScreen').style.display = 'none';
+      document.getElementById('bgMap').style.display = 'none';
+      if (checkin) sessionStorage.setItem('pendingCheckin', checkinId);
+      initGame(foundId);
+      return;
+    }
     const { data: p } = await db.from('players').select('session_token,score,found_count').eq('pseudo', myPseudo).single();
     const storedToken = localStorage.getItem('u3dq_token');
     if (!p || !storedToken || p.session_token !== storedToken) {
@@ -693,10 +708,11 @@ async function startGame() {
   const passInput = document.getElementById('passwordInput');
   const err       = document.getElementById('pseudoErr');
   const pseudo    = input.value.trim().toUpperCase().replace(/[^A-Z0-9_\-]/g, '');
-  const pass      = passInput ? passInput.value : '';
+  const pass      = (passInput && passInput.style.display !== 'none') ? passInput.value : '';
+  const isStg      = SUPABASE_ENV.name === 'stg';
 
   if (pseudo.length < 2) { err.textContent = 'Pseudo trop court (min 2 caractères)'; err.style.display = 'block'; return; }
-  if (pass.length < 4)   { err.textContent = 'Mot de passe trop court (min 4 caractères)'; err.style.display = 'block'; return; }
+  if (!isStg && pass.length < 4) { err.textContent = 'Mot de passe trop court (min 4 caractères)'; err.style.display = 'block'; return; }
 
   // Check game code if required
   if (gameCode) {
@@ -708,17 +724,16 @@ async function startGame() {
   document.getElementById('startBtn').disabled = true;
   document.getElementById('startBtn').textContent = '⏳ Connexion…';
 
-  const hash  = await sha256(pass);
+  const hash  = isStg ? null : await sha256(pass);
   const token = crypto.randomUUID();
 
   // Check/insert player
   const { data: existing } = await db.from('players').select('pseudo,score,found_count,password_hash').eq('pseudo', pseudo).single();
   if (!existing) {
     // New player — register
-    const { error } = await db.from('players').insert({
-      pseudo, joined_at: new Date().toISOString(), score: 0, found_count: 0,
-      password_hash: hash, session_token: token
-    });
+    const insertData = { pseudo, joined_at: new Date().toISOString(), score: 0, found_count: 0, session_token: token };
+    if (!isStg) insertData.password_hash = hash;
+    const { error } = await db.from('players').insert(insertData);
     if (error && error.code !== '23505') {
       err.textContent = 'Erreur réseau : ' + error.message;
       err.style.display = 'block';
@@ -729,7 +744,7 @@ async function startGame() {
     if (error) {
       // Race: pseudo registered between our read and insert → treat as login
       const { data: raced } = await db.from('players').select('pseudo,score,found_count,password_hash').eq('pseudo', pseudo).single();
-      if (!raced || (raced.password_hash && raced.password_hash !== hash)) {
+      if (!raced || (!isStg && raced.password_hash && raced.password_hash !== hash)) {
         err.textContent = 'Pseudo déjà pris — choisis-en un autre ou entre ton mot de passe.';
         err.style.display = 'block';
         document.getElementById('startBtn').disabled = false;
@@ -740,8 +755,8 @@ async function startGame() {
       await db.from('players').update({ session_token: token }).eq('pseudo', pseudo);
     }
   } else {
-    // Existing player — verify password
-    if (existing.password_hash && existing.password_hash !== hash) {
+    // Existing player — verify password (PROD only)
+    if (!isStg && existing.password_hash && existing.password_hash !== hash) {
       err.textContent = 'Mot de passe incorrect.';
       err.style.display = 'block';
       document.getElementById('startBtn').disabled = false;
@@ -750,7 +765,7 @@ async function startGame() {
     }
     // If password_hash is empty (pre-auth player): accept any password and set it now (first-login claim)
     const updates = { session_token: token };
-    if (!existing.password_hash) updates.password_hash = hash;
+    if (!isStg && !existing.password_hash) updates.password_hash = hash;
     await db.from('players').update(updates).eq('pseudo', pseudo);
     myScore      = existing.score      || 0;
     myFoundCount = existing.found_count || 0;
