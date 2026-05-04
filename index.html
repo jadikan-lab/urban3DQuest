@@ -546,7 +546,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.9.7';
+const GAME_VERSION = 'v3.9.8';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -1529,6 +1529,7 @@ let html5QrInst = null;
 // Native BarcodeDetector path (Android Chrome = Google ML Kit)
 let _nativeStream = null;
 let _nativePollId = null;
+let _nativeRefocusId = null;
 
 function openQRScanner(beaconId) {
   qrExpectedId = beaconId || null;
@@ -1599,13 +1600,13 @@ async function _startNativeScan(status, isStg, _qrLog) {
     status.className = '';
     status.textContent = '📷 Vise le QR du polaroid';
 
-    // Focus + zoom directs sur le track
+    // Focus + zoom directs sur le track (1.5x, pas 2x qui peut gêner le macro)
     setTimeout(async () => {
       try {
         const caps = track.getCapabilities ? track.getCapabilities() : {};
         const c = {};
         if (caps.focusMode && caps.focusMode.includes('continuous')) c.focusMode = 'continuous';
-        if (caps.zoom) c.zoom = Math.min(2.0, caps.zoom.max);
+        if (caps.zoom && caps.zoom.max >= 1.5) c.zoom = 1.5;
         if (Object.keys(c).length) await track.applyConstraints(c);
         if (caps.torch) document.getElementById('qrTorchBtn').style.display = 'flex';
         _qrLog('zoom:' + (c.zoom||1) + 'x focus:' + (c.focusMode||'n/a'));
@@ -1614,18 +1615,38 @@ async function _startNativeScan(status, isStg, _qrLog) {
       }
     }, 1000);
 
+    // Refocus forcé toutes les 4s : single-shot → continuous
+    // Compense l'autofocus qui se bloque sur Android WebRTC
+    _nativeRefocusId = setInterval(async () => {
+      if (!_nativeStream) return;
+      try {
+        const caps = track.getCapabilities ? track.getCapabilities() : {};
+        if (caps.focusMode && caps.focusMode.includes('single-shot'))
+          await track.applyConstraints({ focusMode: 'single-shot' });
+        await new Promise(r => setTimeout(r, 400));
+        if (caps.focusMode && caps.focusMode.includes('continuous'))
+          await track.applyConstraints({ focusMode: 'continuous' });
+      } catch(e) {}
+    }, 4000);
+
     const detector = new BarcodeDetector({ formats: ['qr_code'] });
     const canvas = document.createElement('canvas');
+    canvas.width = 640; canvas.height = 640;
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     let frameCount = 0;
     _nativePollId = setInterval(async () => {
       if (!_nativeStream || video.readyState < 2 || !video.videoWidth) return;
       frameCount++;
       try {
-        if (canvas.width !== video.videoWidth) { canvas.width = video.videoWidth; canvas.height = video.videoHeight; }
-        ctx.drawImage(video, 0, 0);
+        // Crop carré central 70% du min(w,h) → scale 640×640
+        // → QR occupe beaucoup plus de pixels, ML Kit le lit mieux
+        const minDim = Math.min(video.videoWidth, video.videoHeight);
+        const size = minDim * 0.7;
+        const sx = (video.videoWidth  - size) / 2;
+        const sy = (video.videoHeight - size) / 2;
+        ctx.drawImage(video, sx, sy, size, size, 0, 0, 640, 640);
         const codes = await detector.detect(canvas);
-        if (frameCount % 20 === 0) _qrLog('frame ' + frameCount + ' ' + canvas.width + 'x' + canvas.height + ' → ' + codes.length + ' QR');
+        if (frameCount % 20 === 0) _qrLog('f' + frameCount + ' crop:' + Math.round(size) + 'px → ' + codes.length + ' QR');
         if (codes.length > 0) {
           clearInterval(_nativePollId); _nativePollId = null;
           _qrLog('SCAN OK: ' + codes[0].rawValue.slice(0,40));
@@ -1688,6 +1709,7 @@ async function _startHtml5Scan(status, isStg, _qrLog) {
 async function stopLiveQRScan() {
   // Stop native BarcodeDetector path
   if (_nativePollId) { clearInterval(_nativePollId); _nativePollId = null; }
+  if (_nativeRefocusId) { clearInterval(_nativeRefocusId); _nativeRefocusId = null; }
   if (_nativeStream) { _nativeStream.getTracks().forEach(t => t.stop()); _nativeStream = null; }
   const nativeVideo = document.getElementById('_nativeQrVideo');
   if (nativeVideo) nativeVideo.remove();
