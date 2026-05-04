@@ -35,4 +35,4 @@ Conseils pour humains
 
 Contact
 -------
-Le dépôt : https://github.com/zzzanzzzibar/urban3DQuest
+Le dépôt : https://github.com/jadikan-lab/urban3DQuest
