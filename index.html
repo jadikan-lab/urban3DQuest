@@ -545,7 +545,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.9.2';
+const GAME_VERSION = 'v3.9.3';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -1532,8 +1532,9 @@ async function startLiveQRScan() {
     html5QrInst = new Html5Qrcode('qrReader', { verbose: false });
     document.getElementById('qrReader').style.display = 'block';
     await html5QrInst.start(
-      { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
-      { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 },
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0,
+        videoConstraints: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } } },
       async (decodedText) => {
         await stopLiveQRScan();
         await _qrHandleResult(decodedText);
