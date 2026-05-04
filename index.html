@@ -1533,7 +1533,7 @@ async function startLiveQRScan() {
     document.getElementById('qrReader').style.display = 'block';
     await html5QrInst.start(
       { facingMode: 'environment' },
-      { fps: 8, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 },
+      { fps: 8, qrbox: { width: 200, height: 200 }, aspectRatio: 1.0 },
       async (decodedText) => {
         await stopLiveQRScan();
         await _qrHandleResult(decodedText);
@@ -1544,7 +1544,13 @@ async function startLiveQRScan() {
     status.textContent = '📷 Vise le code QR du polaroid';
     try {
       const caps = html5QrInst.getRunningTrackCapabilities();
-      if (caps && caps.torch) document.getElementById('qrTorchBtn').style.display = 'flex';
+      if (caps) {
+        const constraints = {};
+        if (caps.focusMode && caps.focusMode.includes('continuous')) constraints.focusMode = 'continuous';
+        if (caps.focusDistance) constraints.focusDistance = caps.focusDistance.min;
+        if (Object.keys(constraints).length) await html5QrInst.applyVideoConstraints({ advanced: [constraints] });
+        if (caps.torch) document.getElementById('qrTorchBtn').style.display = 'flex';
+      }
     } catch(e) {}
   } catch(err) {
     html5QrInst = null;

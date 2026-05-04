@@ -1,0 +1,28 @@
+{
+  "name": "urban3dquest",
+  "version": "1.0.0",
+  "description": "chasse aux tresors",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint *.js *.mjs",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jadikan-lab/urban3DQuest.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/jadikan-lab/urban3DQuest/issues"
+  },
+  "homepage": "https://github.com/jadikan-lab/urban3DQuest#readme",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.3.0",
+    "globals": "^17.6.0",
+    "tailwindcss": "^4.2.4"
+  }
+}
