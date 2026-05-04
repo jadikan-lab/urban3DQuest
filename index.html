@@ -546,7 +546,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.9.9';
+const GAME_VERSION = 'v3.10.0';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -1104,68 +1104,82 @@ function renderMarkers() {
     mapMarkers[t.id] = L.marker([t.lat, t.lng], { icon }).addTo(gameMap).on('click', () => openTreasureSheet(t));
   });
 }
+function _onGeoSuccess(pos) {
+  // Smooth GPS: keep last 5 positions, weighted average
+  gpsHistory.push({ lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy });
+  if (gpsHistory.length > 5) gpsHistory.shift();
+  const weights = [1, 2, 3, 4, 5].slice(gpsHistory.length > 5 ? 0 : 5 - gpsHistory.length);
+  const totalW = weights.reduce((a,b) => a+b, 0);
+  playerLat = gpsHistory.reduce((s, p, i) => s + p.lat * weights[i], 0) / totalW;
+  playerLng = gpsHistory.reduce((s, p, i) => s + p.lng * weights[i], 0) / totalW;
+  playerAccuracy = pos.coords.accuracy;
+
+  // Update GPS chip in header
+  const chip = document.getElementById('gpsChip');
+  const lbl  = document.getElementById('gpsLabel');
+  const acc  = Math.round(playerAccuracy);
+  if (chip && lbl) {
+    lbl.textContent = `±${acc}m`;
+    chip.className = acc <= 15 ? 'gps-ok' : acc <= 40 ? 'gps-mid' : 'gps-bad';
+    chip.title = acc <= 15 ? `GPS précis (±${acc}m)` : acc <= 40 ? `GPS moyen (±${acc}m) — reste à l'air libre` : `GPS faible (±${acc}m) — éloigne-toi des bâtiments`;
+  }
+
+  if (gameMap) {
+    const pos2 = [playerLat, playerLng];
+    const circleColor = acc <= 15 ? '#22c55e' : acc <= 40 ? '#f59e0b' : '#ef4444';
+    if (!accuracyCircle) {
+      accuracyCircle = L.circle(pos2, { radius: playerAccuracy, color: circleColor, fillColor: circleColor, fillOpacity: 0.08, weight: 1.5, opacity: 0.4 }).addTo(gameMap);
+    } else {
+      accuracyCircle.setLatLng(pos2).setRadius(playerAccuracy).setStyle({ color: circleColor, fillColor: circleColor });
+    }
+    if (!playerMarker) {
+      const icon = L.divIcon({
+        html: `<div class="me-dot"></div>`,
+        className: '', iconSize: [16, 16], iconAnchor: [8, 8]
+      });
+      playerMarker = L.marker(pos2, { icon, zIndexOffset: 1000 }).addTo(gameMap);
+    } else {
+      playerMarker.setLatLng(pos2);
+    }
+    if (activeTab === 'explore' && mapFollowing) {
+      gameMap.setView(pos2, gameMap.getZoom(), { animate: true });
+    }
+  }
+
+  updateRadar();
+  updateNearestCard();
+}
+
+function _onGeoError(err) {
+  const msgs = { 1: 'Permission GPS refusée — active la localisation dans les réglages', 2: 'GPS indisponible', 3: 'Délai GPS dépassé — reste à l\'air libre' };
+  const bar = document.getElementById('radarBar');
+  bar.textContent = '📍 ' + (msgs[err.code] || 'Erreur GPS');
+  bar.className = '';
+  const chip = document.getElementById('gpsChip');
+  const lbl  = document.getElementById('gpsLabel');
+  if (chip && lbl) { lbl.textContent = 'off'; chip.className = 'gps-bad'; }
+}
+
 function startGeoWatch() {
   if (!navigator.geolocation) {
     document.getElementById('radarBar').textContent = '📍 GPS non disponible sur cet appareil';
     return;
   }
   if (geoWatch !== null) return; // already watching
+
+  // iOS fix: prime GPS with a fast coarse position first (no high accuracy),
+  // then watchPosition with high accuracy + timeout to avoid staying grey forever.
+  navigator.geolocation.getCurrentPosition(
+    pos => _onGeoSuccess(pos),
+    () => {}, // ignore error on warmup
+    { enableHighAccuracy: false, timeout: 5000, maximumAge: 30000 }
+  );
+
   geoWatch = navigator.geolocation.watchPosition(pos => {
-    // Smooth GPS: keep last 5 positions, weighted average
-    gpsHistory.push({ lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy });
-    if (gpsHistory.length > 5) gpsHistory.shift();
-    const weights = [1, 2, 3, 4, 5].slice(gpsHistory.length > 5 ? 0 : 5 - gpsHistory.length);
-    const totalW = weights.reduce((a,b) => a+b, 0);
-    playerLat = gpsHistory.reduce((s, p, i) => s + p.lat * weights[i], 0) / totalW;
-    playerLng = gpsHistory.reduce((s, p, i) => s + p.lng * weights[i], 0) / totalW;
-    playerAccuracy = pos.coords.accuracy;
-
-    // Update GPS chip in header
-    const chip = document.getElementById('gpsChip');
-    const lbl  = document.getElementById('gpsLabel');
-    const acc  = Math.round(playerAccuracy);
-    if (chip && lbl) {
-      lbl.textContent = `±${acc}m`;
-      chip.className = acc <= 15 ? 'gps-ok' : acc <= 40 ? 'gps-mid' : 'gps-bad';
-      chip.title = acc <= 15 ? `GPS précis (±${acc}m)` : acc <= 40 ? `GPS moyen (±${acc}m) — reste à l'air libre` : `GPS faible (±${acc}m) — éloigne-toi des bâtiments`;
-    }
-
-    if (gameMap) {
-      const pos2 = [playerLat, playerLng];
-      // Accuracy circle
-      const circleColor = acc <= 15 ? '#22c55e' : acc <= 40 ? '#f59e0b' : '#ef4444';
-      if (!accuracyCircle) {
-        accuracyCircle = L.circle(pos2, { radius: playerAccuracy, color: circleColor, fillColor: circleColor, fillOpacity: 0.08, weight: 1.5, opacity: 0.4 }).addTo(gameMap);
-      } else {
-        accuracyCircle.setLatLng(pos2).setRadius(playerAccuracy).setStyle({ color: circleColor, fillColor: circleColor });
-      }
-      // Player marker
-      if (!playerMarker) {
-        const icon = L.divIcon({
-          html: `<div class="me-dot"></div>`,
-          className: '', iconSize: [16, 16], iconAnchor: [8, 8]
-        });
-        playerMarker = L.marker(pos2, { icon, zIndexOffset: 1000 }).addTo(gameMap);
-      } else {
-        playerMarker.setLatLng(pos2);
-      }
-      // Follow player on map only when on explore tab and not manually panning
-      if (activeTab === 'explore' && mapFollowing) {
-        gameMap.setView(pos2, gameMap.getZoom(), { animate: true });
-      }
-    }
-
-    updateRadar();
-    updateNearestCard();
+    _onGeoSuccess(pos);
   }, err => {
-    const msgs = { 1: 'Permission GPS refusée — active la localisation dans les réglages', 2: 'GPS indisponible', 3: 'Délai GPS dépassé — reste à l\'air libre' };
-    const bar = document.getElementById('radarBar');
-    bar.textContent = '📍 ' + (msgs[err.code] || 'Erreur GPS');
-    bar.className = '';
-    const chip = document.getElementById('gpsChip');
-    const lbl  = document.getElementById('gpsLabel');
-    if (chip && lbl) { lbl.textContent = 'off'; chip.className = 'gps-bad'; }
-  }, { enableHighAccuracy: true, maximumAge: 5000 });
+    _onGeoError(err);
+  }, { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 });
 }
 
 function recenterMap() {
