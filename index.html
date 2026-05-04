@@ -545,7 +545,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.9.5';
+const GAME_VERSION = 'v3.9.6';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -1546,102 +1546,135 @@ async function startLiveQRScan() {
   const status = document.getElementById('qrStatus');
   document.getElementById('qrTips').style.display = 'none';
   await stopLiveQRScan();
+  const isStg = SUPABASE_ENV.name === 'stg';
 
-  // Utilise BarcodeDetector natif si disponible (Android Chrome = Google ML Kit,
-  // même moteur que l'appli photo native)
   let useNative = false;
+  let bdInfo = 'absent';
   if (typeof BarcodeDetector !== 'undefined') {
     try {
       const fmts = await BarcodeDetector.getSupportedFormats();
       useNative = fmts.includes('qr_code');
-    } catch(e) {}
+      bdInfo = useNative ? 'OK' : 'pas qr_code (' + fmts.slice(0,3).join(',') + ')';
+    } catch(e) { bdInfo = 'erreur: ' + e.message; }
   }
 
+  if (isStg) status.textContent = '[1/4] BD=' + bdInfo + ' → ' + (useNative ? 'natif' : 'ZXing');
+
   if (useNative) {
-    await _startNativeScan(status);
+    await _startNativeScan(status, isStg);
   } else {
-    await _startHtml5Scan(status);
+    await _startHtml5Scan(status, isStg);
   }
 }
 
-async function _startNativeScan(status) {
-  const detector = new BarcodeDetector({ formats: ['qr_code'] });
+async function _startNativeScan(status, isStg) {
   try {
     _nativeStream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
       audio: false
     });
+    const track = _nativeStream.getVideoTracks()[0];
+    const settings = track.getSettings ? track.getSettings() : {};
+    if (isStg) status.textContent = '[2/4] cam: ' + (settings.width||'?') + 'x' + (settings.height||'?');
+
     const readerDiv = document.getElementById('qrReader');
     readerDiv.style.display = 'block';
     const video = document.createElement('video');
     video.id = '_nativeQrVideo';
-    video.autoplay = true;
-    video.playsInline = true;
-    video.muted = true;
+    video.autoplay = true; video.playsInline = true; video.muted = true;
     video.style.cssText = 'width:100%;display:block;max-height:50vh;object-fit:cover;border-radius:14px';
     readerDiv.appendChild(video);
     video.srcObject = _nativeStream;
     await video.play();
-    status.className = '';
-    status.textContent = '📷 Vise le QR du polaroid';
-    // Torch support
-    const track = _nativeStream.getVideoTracks()[0];
-    if (track) {
-      const caps = track.getCapabilities ? track.getCapabilities() : {};
-      if (caps.torch) document.getElementById('qrTorchBtn').style.display = 'flex';
-    }
-    // Polling BarcodeDetector à 200ms
-    _nativePollId = setInterval(async () => {
-      if (!_nativeStream || !video || video.readyState < 2) return;
+
+    // Focus + zoom directs sur le track (plus fiable que via wrapper html5-qrcode)
+    setTimeout(async () => {
       try {
-        const codes = await detector.detect(video);
+        const caps = track.getCapabilities ? track.getCapabilities() : {};
+        const c = {};
+        if (caps.focusMode && caps.focusMode.includes('continuous')) c.focusMode = 'continuous';
+        if (caps.zoom) c.zoom = Math.min(2.0, caps.zoom.max);
+        if (Object.keys(c).length) await track.applyConstraints(c);
+        if (caps.torch) document.getElementById('qrTorchBtn').style.display = 'flex';
+        if (isStg) status.textContent = '[3/4] zoom:' + (c.zoom||1) + 'x focus:' + (c.focusMode||'n/a') + ' — vise le QR';
+        else { status.className = ''; status.textContent = '📷 Vise le QR du polaroid'; }
+      } catch(e) {
+        if (isStg) status.textContent = '[3/4] constraints err: ' + (e.message||'').slice(0,50);
+        else { status.className = ''; status.textContent = '📷 Vise le QR du polaroid'; }
+      }
+    }, 1000);
+    if (!isStg) { status.className = ''; status.textContent = '📷 Vise le QR du polaroid'; }
+
+    // Canvas pour la détection (plus fiable que de passer la video directement)
+    const detector = new BarcodeDetector({ formats: ['qr_code'] });
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    let frameCount = 0;
+    _nativePollId = setInterval(async () => {
+      if (!_nativeStream || video.readyState < 2 || !video.videoWidth) return;
+      frameCount++;
+      try {
+        if (canvas.width !== video.videoWidth) { canvas.width = video.videoWidth; canvas.height = video.videoHeight; }
+        ctx.drawImage(video, 0, 0);
+        const codes = await detector.detect(canvas);
+        if (isStg && frameCount % 20 === 0) {
+          status.textContent = '[4/4] frame ' + frameCount + ' ' + canvas.width + 'x' + canvas.height + ' → ' + codes.length + ' code(s)';
+        }
         if (codes.length > 0) {
           clearInterval(_nativePollId); _nativePollId = null;
-          const raw = codes[0].rawValue;
           await stopLiveQRScan();
-          await _qrHandleResult(raw);
+          await _qrHandleResult(codes[0].rawValue);
         }
-      } catch(e) {}
-    }, 200);
+      } catch(e) {
+        if (isStg && frameCount % 20 === 0) status.textContent = '[4/4] detect err: ' + (e.message||'').slice(0,50);
+      }
+    }, 250);
   } catch(err) {
     if (_nativeStream) { _nativeStream.getTracks().forEach(t => t.stop()); _nativeStream = null; }
-    status.textContent = '⚠️ Caméra refusée. Utilise la photo de secours.';
+    status.textContent = '⚠️ Caméra refusée — ' + (err.message||err).toString().slice(0,60);
     status.className = 'qr-err';
     document.getElementById('qrTips').style.display = 'block';
   }
 }
 
-async function _startHtml5Scan(status) {
+async function _startHtml5Scan(status, isStg) {
   try {
     html5QrInst = new Html5Qrcode('qrReader', { verbose: false });
     document.getElementById('qrReader').style.display = 'block';
     await html5QrInst.start(
       { facingMode: 'environment' },
-      { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 },
+      { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0,
+        videoConstraints: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } } },
       async (decodedText) => {
         await stopLiveQRScan();
         await _qrHandleResult(decodedText);
       },
       () => {}
     );
-    status.className = '';
-    status.textContent = '📷 Vise le QR du polaroid';
+    if (!isStg) { status.className = ''; status.textContent = '📷 Vise le QR du polaroid'; }
     setTimeout(async () => {
       if (!html5QrInst) return;
       try {
         const caps = html5QrInst.getRunningTrackCapabilities();
-        if (!caps) return;
+        // Pattern exact qui fonctionne sur Android (issue html5-qrcode #308)
+        // focusMode au niveau racine + zoom dans advanced
         const constraints = {};
-        if (caps.focusMode && caps.focusMode.includes('continuous')) constraints.focusMode = 'continuous';
-        const maxZoom = caps.zoom ? caps.zoom.max : null;
-        if (maxZoom && maxZoom >= 1.5) constraints.advanced = [{ zoom: 1.5 }];
+        if (caps && caps.focusMode && caps.focusMode.includes('continuous')) constraints.focusMode = 'continuous';
+        if (caps && caps.zoom) constraints.advanced = [{ zoom: Math.min(2.0, caps.zoom.max) }];
         if (Object.keys(constraints).length) await html5QrInst.applyVideoConstraints(constraints);
-        if (caps.torch) document.getElementById('qrTorchBtn').style.display = 'flex';
-      } catch(e) {}
+        if (caps && caps.torch) document.getElementById('qrTorchBtn').style.display = 'flex';
+        if (isStg) {
+          const z = (constraints.advanced && constraints.advanced[0]) ? constraints.advanced[0].zoom : 1;
+          status.textContent = '[3/4] ZXing zoom:' + z + 'x focus:' + (constraints.focusMode||'n/a') + ' — vise le QR';
+        }
+      } catch(e) {
+        if (isStg) status.textContent = '[3/4] ZXing constraints err: ' + (e.message||'').slice(0,50);
+      }
     }, 1500);
+    if (isStg) status.textContent = '[2/4] ZXing démarré — attente focus…';
   } catch(err) {
     html5QrInst = null;
-    status.textContent = '⚠️ Caméra refusée. Utilise la photo de secours.';
+    status.textContent = '⚠️ Caméra refusée — ' + (err.message||err).toString().slice(0,60);
     status.className = 'qr-err';
     document.getElementById('qrTips').style.display = 'block';
   }
