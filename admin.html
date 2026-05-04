@@ -689,7 +689,7 @@ async function generateFixedQRCodes(){
     card.innerHTML='<div class="qr-card-id" style="color:#4ade80">'+name+'</div>'
       +'<div id="'+sid+'"></div>';
     grid.appendChild(card);
-    new QRCode(document.getElementById(sid),{text:url,width:120,height:120,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+    new QRCode(document.getElementById(sid),{text:url,width:200,height:200,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.L});
   });
   var total=res.data.length;
   var foundCount=res.data.filter(function(t){return t.found_by&&t.found_by.length>0;}).length;
@@ -711,7 +711,7 @@ async function downloadFixedQrZip(){
     var url=buildGameUrl('checkin',encodeURIComponent(t.id));
     var name=(t.label||('B'+(idx+1)));  // nom court uniquement, ex: B1
     var wrap=document.createElement('div');tmp.appendChild(wrap);
-    new QRCode(wrap,{text:url,width:QR_SZ,height:QR_SZ,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+    new QRCode(wrap,{text:url,width:QR_SZ,height:QR_SZ,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.L});
     var qrCanvas=wrap.querySelector('canvas');
     if(qrCanvas){
       var canvas=document.createElement('canvas');
