@@ -430,7 +430,7 @@ var SUPABASE_KEY=SUPABASE_ENV.key;
 var GAME_BASE_URL='https://jadikan-lab.github.io/urban3DQuest';
 var GAME_WEB_VERSION='85a3242'; // cache-busting for mobile scans
 function buildGameUrl(param,value){return GAME_BASE_URL+'/?'+param+'='+value+'&v='+GAME_WEB_VERSION;}
-var ADMIN_UI_VERSION='v3.6.0';
+var ADMIN_UI_VERSION='v3.9.8';
 var db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 var currentLoc=null,currentType='fixed',visVisible=true,gameActive=true,modeMap=true,modeCompass=true,photoDataUrls=[],adminMap=null,mapLayers=[],questList=[],activeQuests=[],rewardMessages={},relocate=null;
 if(SUPABASE_ENV.name==='stg')document.body.classList.add('env-stg');
