@@ -115,10 +115,11 @@
     .lb-row.lb-top1{background:linear-gradient(135deg,rgba(251,191,36,.12),var(--surface));border-color:#fbbf24}
     .lb-row.lb-top2{background:linear-gradient(135deg,rgba(180,180,200,.06),var(--surface));border-color:var(--ink-3)}
     .lb-row.lb-top3{background:linear-gradient(135deg,rgba(194,133,90,.1),var(--surface));border-color:#c2855a}
-    .lb-rank{font-size:1.5rem;width:34px;text-align:center;flex-shrink:0}
+    .lb-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:700;font-family:var(--mono);flex-shrink:0;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.4)}
+    .lb-rank{font-size:1.4rem;width:28px;text-align:center;flex-shrink:0}
     .lb-body{flex:1;min-width:0}
     .lb-name{font-weight:800;font-size:1rem;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .lb-me .lb-name::after{content:' 👈';font-weight:400}
+    .lb-me .lb-name::after{content:' ← moi';font-weight:600;font-family:var(--mono);font-size:0.7rem;color:var(--magenta)}
     .lb-score{font-size:0.84rem;color:var(--ink-2);margin-top:2px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
     .lb-score strong{color:var(--ink);font-size:0.88rem}
     .lb-pbar{height:6px;background:var(--bg);border-radius:4px;overflow:hidden;border:1px solid var(--line);margin-top:6px}
@@ -276,6 +277,7 @@
 <!-- ── Leaderboard ───────────────────────────────────── -->
 <div id="panelScores" class="panel">
   <div id="myCard"></div>
+  <hr class="lp-line" style="margin:0 0 4px">
   <div id="lbList"><p style="color:var(--ink-3);text-align:center;padding:40px">Chargement…</p></div>
   <div class="lb-refresh" id="lbRefresh"></div>
   <div style="text-align:center;font-size:0.62rem;color:var(--ink-3);padding-bottom:8px" id="gameVersion"></div>
@@ -1465,11 +1467,17 @@ function formatDuration(sec) {
   if (sec < 3600) return `${Math.floor(sec/60)}min ${sec%60}s`;
   return `${Math.floor(sec/3600)}h ${Math.floor((sec%3600)/60)}min`;
 }
+function pseudoGradient(pseudo) {
+  let seed = 0;
+  for (let i = 0; i < pseudo.length; i++) seed = (seed * 31 + pseudo.charCodeAt(i)) & 0xffff;
+  const palette = ['#ff3d8a','#00e5ff','#ffb020','#a855f7','#4ade80','#60a5fa','#f87171'];
+  return `linear-gradient(135deg,${palette[seed % palette.length]},${palette[(seed*7+3) % palette.length]})`;
+}
 
 // ── Leaderboard ──────────────────────────────────────
 async function loadLeaderboard() {
   const el = document.getElementById('lbList');
-  el.innerHTML = `<p style="color:#475569;text-align:center;padding:30px">⏳ Chargement…</p>`;
+  el.innerHTML = `<p style="color:var(--ink-3);text-align:center;padding:30px">⏳ Chargement…</p>`;
   let evRes, cfgRes;
   try {
     [evRes, cfgRes] = await Promise.all([
@@ -1608,6 +1616,7 @@ async function loadLeaderboard() {
 
       html += `<div class="lb-row${isMe ? ' lb-me' : ''}${extraClass ? ' '+extraClass : ''}">
         <div class="lb-rank">${rankIcon}</div>
+        <div class="lb-avatar" style="background:${pseudoGradient(p.pseudo)}">${escHtml(p.pseudo[0].toUpperCase())}</div>
         <div class="lb-body">
           <div class="lb-name">${escHtml(p.pseudo)}</div>
           <div class="lb-score">
