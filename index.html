@@ -599,6 +599,7 @@ let lastArrowLat = null, lastArrowLng = null, lastArrowHeading = null; // thrott
 const ARROW_PALETTE = ['#f472b6', '#fb923c', '#22d3ee', '#a78bfa', '#4ade80'];
 let myToken = localStorage.getItem('u3dq_token') || ''; // session token for single-session enforcement
 let activeGameMode = (localStorage.getItem('u3dq_game_mode') || 'fixed') === 'unique' ? 'unique' : 'fixed';
+const revealedFixedClues = new Set(); // fixed clues unlocked by proximity in current session
 
 // ── Startup ──────────────────────────────────────────
 let bgMap = null;
@@ -2219,30 +2220,50 @@ function onNearestCardClick() {
   if (_nearestTreasure) openTreasureSheet(_nearestTreasure);
 }
 
+function revealFixedClueFromSheet(id) {
+  if (!id) return;
+  revealedFixedClues.add(id);
+  const t = treasures.find(x => x.id === id);
+  if (t) openTreasureSheet(t);
+}
+
 // ── Treasure sheet ───────────────────────────────────
 function openTreasureSheet(t) {
   const isMine   = t.found_by && t.found_by.split(',').includes(myPseudo);
   const isTaken  = t.type === 'unique' && t.found_by && t.found_by.length > 0;
   const typeLabel = t.type === 'fixed' ? 'Balise fixe 📌' : 'Balise unique 🎁';
+  const isFixedLocked = t.type === 'fixed' && !isMine;
   const urls     = getPhotoUrls(t.photo_url);
   const safeUrls = urls.map(safeImgUrl).filter(Boolean);
-  const photoHtml = safeUrls.map(u =>
+  const distM = (playerLat !== null && t.lat && t.lng)
+    ? haversine(playerLat, playerLng, t.lat, t.lng)
+    : null;
+  const isNearForClue = isFixedLocked && distM !== null && distM <= (proximityR * 2);
+  const clueUnlocked = !isFixedLocked || revealedFixedClues.has(t.id);
+  const canShowFixedMedia = !isFixedLocked || clueUnlocked;
+  const photoHtml = (canShowFixedMedia ? safeUrls : []).map(u =>
     `<img src="${escHtml(u)}" onclick="openPhotoViewer('${jsSingleQuoted(u)}')" class="ts-photo">`
   ).join('');
   const badge = isMine ? '<span class="ts-badge ts-badge-found">✓ Trouvé</span>'
     : isTaken ? '<span class="ts-badge ts-badge-taken">🔒 Pris</span>'
     : '<span class="ts-badge ts-badge-open">· À trouver</span>';
-  const cta = (!isMine && !isTaken && t.lat && t.lng)
+  const cta = (!isMine && !isTaken && t.type === 'unique' && t.lat && t.lng)
     ? `<button class="ts-cta" onclick="recenterOn(${t.lat},${t.lng})">M'y emmener →</button>` : '';
-  const dist = (playerLat !== null && t.lat && t.lng)
-    ? (() => { const d = haversine(playerLat, playerLng, t.lat, t.lng); return d < 1000 ? Math.round(d) + ' m' : (d/1000).toFixed(1) + ' km'; })()
+  const clueCta = (isFixedLocked && !clueUnlocked)
+    ? (isNearForClue
+        ? `<button class="ts-cta" onclick="revealFixedClueFromSheet('${jsSingleQuoted(t.id)}')">Voir la photo + indice</button>`
+        : `<div class="ts-hint">📍 Approche-toi encore pour débloquer la photo et l'indice.</div>`)
+    : '';
+  const dist = distM !== null
+    ? (() => { const d = distM; return d < 1000 ? Math.round(d) + ' m' : (d/1000).toFixed(1) + ' km'; })()
     : '';
   document.getElementById('tsBody').innerHTML = `
     <div class="ts-top-row">${badge}<span class="ts-type">${escHtml(typeLabel)}</span></div>
     ${photoHtml ? `<div class="ts-photos">${photoHtml}</div>` : ''}
     <div class="ts-name">${escHtml(tLabel(t))}</div>
     ${dist ? `<div class="ts-dist">${escHtml(dist)} de moi</div>` : ''}
-    ${t.hint ? `<div class="ts-hint">💡 ${escHtml(t.hint)}</div>` : ''}
+    ${(t.hint && canShowFixedMedia) ? `<div class="ts-hint">💡 ${escHtml(t.hint)}</div>` : ''}
+    ${clueCta}
     ${cta}
   `;
   document.getElementById('treasureSheet').classList.add('open');
