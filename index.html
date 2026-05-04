@@ -752,10 +752,10 @@ function renderMarkers() {
       return;
     }
 
-    // All other cases (found uniques, found fixed): simple dot
+    // All other cases (found uniques, found fixed): luminous pin
     const icon = L.divIcon({
-      html: `<div style="background:${color};width:16px;height:16px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.5);opacity:${opacity}"></div>`,
-      className: '', iconSize: [16, 16], iconAnchor: [8, 8]
+      html: `<div class="pin found"><div class="pin-halo"></div><div class="pin-core">✓</div></div>`,
+      className: '', iconSize: [36, 36], iconAnchor: [18, 18]
     });
     mapMarkers[t.id] = L.marker([t.lat, t.lng], { icon }).addTo(gameMap).bindPopup(popup, { maxWidth: 280, className: 'dark-popup' });
   });
@@ -798,8 +798,8 @@ function startGeoWatch() {
       // Player marker
       if (!playerMarker) {
         const icon = L.divIcon({
-          html: `<div style="background:#f59e0b;width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 4px rgba(245,158,11,.3)"></div>`,
-          className: '', iconSize: [12, 12], iconAnchor: [6, 6]
+          html: `<div class="me-dot"></div>`,
+          className: '', iconSize: [16, 16], iconAnchor: [8, 8]
         });
         playerMarker = L.marker(pos2, { icon, zIndexOffset: 1000 }).addTo(gameMap);
       } else {
