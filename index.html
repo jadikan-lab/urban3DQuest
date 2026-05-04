@@ -545,7 +545,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.9.4';
+const GAME_VERSION = 'v3.9.5';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -1525,6 +1525,9 @@ let qrExpectedId = null;
 let qrDecodeLocked = false;
 let qrTorchOn = false;
 let html5QrInst = null;
+// Native BarcodeDetector path (Android Chrome = Google ML Kit)
+let _nativeStream = null;
+let _nativePollId = null;
 
 function openQRScanner(beaconId) {
   qrExpectedId = beaconId || null;
@@ -1543,13 +1546,78 @@ async function startLiveQRScan() {
   const status = document.getElementById('qrStatus');
   document.getElementById('qrTips').style.display = 'none';
   await stopLiveQRScan();
+
+  // Utilise BarcodeDetector natif si disponible (Android Chrome = Google ML Kit,
+  // même moteur que l'appli photo native)
+  let useNative = false;
+  if (typeof BarcodeDetector !== 'undefined') {
+    try {
+      const fmts = await BarcodeDetector.getSupportedFormats();
+      useNative = fmts.includes('qr_code');
+    } catch(e) {}
+  }
+
+  if (useNative) {
+    await _startNativeScan(status);
+  } else {
+    await _startHtml5Scan(status);
+  }
+}
+
+async function _startNativeScan(status) {
+  const detector = new BarcodeDetector({ formats: ['qr_code'] });
+  try {
+    _nativeStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+      audio: false
+    });
+    const readerDiv = document.getElementById('qrReader');
+    readerDiv.style.display = 'block';
+    const video = document.createElement('video');
+    video.id = '_nativeQrVideo';
+    video.autoplay = true;
+    video.playsInline = true;
+    video.muted = true;
+    video.style.cssText = 'width:100%;display:block;max-height:50vh;object-fit:cover;border-radius:14px';
+    readerDiv.appendChild(video);
+    video.srcObject = _nativeStream;
+    await video.play();
+    status.className = '';
+    status.textContent = '📷 Vise le QR du polaroid';
+    // Torch support
+    const track = _nativeStream.getVideoTracks()[0];
+    if (track) {
+      const caps = track.getCapabilities ? track.getCapabilities() : {};
+      if (caps.torch) document.getElementById('qrTorchBtn').style.display = 'flex';
+    }
+    // Polling BarcodeDetector à 200ms
+    _nativePollId = setInterval(async () => {
+      if (!_nativeStream || !video || video.readyState < 2) return;
+      try {
+        const codes = await detector.detect(video);
+        if (codes.length > 0) {
+          clearInterval(_nativePollId); _nativePollId = null;
+          const raw = codes[0].rawValue;
+          await stopLiveQRScan();
+          await _qrHandleResult(raw);
+        }
+      } catch(e) {}
+    }, 200);
+  } catch(err) {
+    if (_nativeStream) { _nativeStream.getTracks().forEach(t => t.stop()); _nativeStream = null; }
+    status.textContent = '⚠️ Caméra refusée. Utilise la photo de secours.';
+    status.className = 'qr-err';
+    document.getElementById('qrTips').style.display = 'block';
+  }
+}
+
+async function _startHtml5Scan(status) {
   try {
     html5QrInst = new Html5Qrcode('qrReader', { verbose: false });
     document.getElementById('qrReader').style.display = 'block';
     await html5QrInst.start(
       { facingMode: 'environment' },
-      { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0,
-        videoConstraints: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } } },
+      { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 },
       async (decodedText) => {
         await stopLiveQRScan();
         await _qrHandleResult(decodedText);
@@ -1558,9 +1626,6 @@ async function startLiveQRScan() {
     );
     status.className = '';
     status.textContent = '📷 Vise le QR du polaroid';
-    // Appliquer focus continu + zoom 1.5x après stabilisation du stream (1.5s)
-    // focusMode au niveau racine (pas dans advanced) = requis sur Android Chrome
-    // zoom 1.5x = permet de scanner à 20-25cm sans problème de mise au point
     setTimeout(async () => {
       if (!html5QrInst) return;
       try {
@@ -1583,6 +1648,12 @@ async function startLiveQRScan() {
 }
 
 async function stopLiveQRScan() {
+  // Stop native BarcodeDetector path
+  if (_nativePollId) { clearInterval(_nativePollId); _nativePollId = null; }
+  if (_nativeStream) { _nativeStream.getTracks().forEach(t => t.stop()); _nativeStream = null; }
+  const nativeVideo = document.getElementById('_nativeQrVideo');
+  if (nativeVideo) nativeVideo.remove();
+  // Stop html5-qrcode path
   if (html5QrInst) {
     try { await html5QrInst.stop(); } catch(e) {}
     try { html5QrInst.clear(); } catch(e) {}
@@ -1596,10 +1667,14 @@ async function stopLiveQRScan() {
 }
 
 async function toggleQRTorch() {
-  if (!html5QrInst) return;
+  qrTorchOn = !qrTorchOn;
   try {
-    qrTorchOn = !qrTorchOn;
-    await html5QrInst.applyVideoConstraints({ advanced: [{ torch: qrTorchOn }] });
+    if (_nativeStream) {
+      const track = _nativeStream.getVideoTracks()[0];
+      if (track) await track.applyConstraints({ advanced: [{ torch: qrTorchOn }] });
+    } else if (html5QrInst) {
+      await html5QrInst.applyVideoConstraints({ advanced: [{ torch: qrTorchOn }] });
+    }
     document.getElementById('qrTorchBtn').textContent = qrTorchOn ? '💡 Lampe ON' : '💡 Lampe';
   } catch(e) { qrTorchOn = false; }
 }
