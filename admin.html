@@ -133,9 +133,10 @@
   <div id="pwBox">
     <h2>Urban3DQuest</h2>
     <p>Interface administrateur</p>
-    <input type="password" id="pwInput" placeholder="Mot de passe admin" autocomplete="off">
-    <button class="btn" onclick="checkPw()">Entrer</button>
-    <p id="pwErr" style="color:#f87171;font-size:0.78rem;margin-top:8px;display:none">Mot de passe incorrect</p>
+    <input type="email" id="emailInput" placeholder="Email admin" autocomplete="email" style="margin-bottom:8px">
+    <input type="password" id="pwInput" placeholder="Mot de passe" autocomplete="current-password">
+    <button class="btn" id="pwBtn" onclick="checkPw()">Entrer</button>
+    <p id="pwErr" style="color:#f87171;font-size:0.78rem;margin-top:8px;display:none">Email ou mot de passe incorrect.</p>
   </div>
 </div>
 <header>
@@ -146,6 +147,7 @@
     <button id="envStgBtn" onclick="switchSupabaseEnv('stg')">STG</button>
   </div>
   <span class="dot" id="dbDot"></span>
+  <button id="logoutBtn" onclick="adminLogout()" style="margin-left:auto;padding:5px 12px;background:#450a0a;border:1px solid #7f1d1d;border-radius:8px;color:#f87171;font-size:0.75rem;font-weight:700;cursor:pointer;display:none">Déconnexion</button>
 </header>
 <nav>
   <button class="active" onclick="showTab('add',this)">➕ Ajouter</button>
@@ -428,8 +430,6 @@ var SUPABASE_KEY=SUPABASE_ENV.key;
 var GAME_BASE_URL='https://jadikan-lab.github.io/urban3DQuest';
 var GAME_WEB_VERSION='85a3242'; // cache-busting for mobile scans
 function buildGameUrl(param,value){return GAME_BASE_URL+'/?'+param+'='+value+'&v='+GAME_WEB_VERSION;}
-// Admin local password (easy to find/change)
-var ADMIN_PW='Urban2026!';
 var ADMIN_UI_VERSION='v3.6.0';
 var db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 var currentLoc=null,currentType='fixed',visVisible=true,gameActive=true,modeMap=true,modeCompass=true,photoDataUrls=[],adminMap=null,mapLayers=[],questList=[],activeQuests=[],rewardMessages={},relocate=null;
@@ -445,9 +445,30 @@ if(_envStgBtn&&SUPABASE_ENV.name==='stg')_envStgBtn.classList.add('active');
 function escHtml(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function safeImgUrl(v){var s=String(v||'').trim();if(!s)return'';if(/^(https?:|data:image\/)/i.test(s))return s;return'';}
 function csvCell(v){var s=String(v??'');if(/^[=+\-@]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';}
-function checkPw(){if(document.getElementById('pwInput').value===ADMIN_PW){sessionStorage.setItem('u3dq_admin','1');document.getElementById('pwScreen').style.display='none';init();}else{document.getElementById('pwErr').style.display='block';}}
-document.getElementById('pwInput').addEventListener('keydown',function(e){if(e.key==='Enter')checkPw();});
-if(sessionStorage.getItem('u3dq_admin')==='1'){document.getElementById('pwScreen').style.display='none';init();}
+async function checkPw(){
+  var email=document.getElementById('emailInput').value.trim();
+  var pw=document.getElementById('pwInput').value;
+  var err=document.getElementById('pwErr');
+  var btn=document.getElementById('pwBtn');
+  err.style.display='none';
+  btn.disabled=true;btn.textContent='…';
+  var res=await db.auth.signInWithPassword({email:email,password:pw});
+  btn.disabled=false;btn.textContent='Entrer';
+  if(res.error||!res.data.session){err.style.display='block';return;}
+  document.getElementById('pwScreen').style.display='none';
+  document.getElementById('logoutBtn').style.display='block';
+  init();
+}
+async function adminLogout(){await db.auth.signOut();location.reload();}
+['emailInput','pwInput'].forEach(function(id){document.getElementById(id).addEventListener('keydown',function(e){if(e.key==='Enter')checkPw();});});
+(async function(){
+  var res=await db.auth.getSession();
+  if(res.data&&res.data.session){
+    document.getElementById('pwScreen').style.display='none';
+    document.getElementById('logoutBtn').style.display='block';
+    init();
+  }
+})();
 async function init(){
   var r=await db.from('config').select('key').limit(1);
   document.getElementById('dbDot').className='dot'+(r.error?'':' ok');
