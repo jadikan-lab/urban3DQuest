@@ -588,7 +588,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.10.15';
+const GAME_VERSION = 'v3.10.16';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -1621,10 +1621,10 @@ function applyMapHeadingRotation() {
   const mapSize = gameMap.getSize ? gameMap.getSize() : null;
   const minSide = mapSize ? Math.max(1, Math.min(mapSize.x, mapSize.y)) : 1;
   const diag = mapSize ? Math.hypot(mapSize.x, mapSize.y) : minSide;
-  const radarScale = Math.min(1.48, Math.max(1.22, diag / minSide));
+  const radarScale = Math.max(1.45, diag / minSide);
   mapPane.style.transformOrigin = origin;
   mapPane.style.rotate = rot;
-  mapPane.style.scale = '1.08';
+  mapPane.style.scale = String(radarScale);
   if (radarBg) {
     radarBg.style.transformOrigin = origin;
     radarBg.style.rotate = rot;
@@ -1857,12 +1857,12 @@ function updateCompass() {
           .filter(t => t.type === 'fixed')
           .filter(t => Number.isFinite(t.lat) && Number.isFinite(t.lng))
           .filter(t => !!t.placed_at)
+          .filter(t => !(t.found_by && t.found_by.split(',').includes(myPseudo)))
           .map(t => ({ ...t, dist: haversine(playerLat, playerLng, t.lat, t.lng) }))
           .sort((a, b) => a.dist - b.dist)
           .slice(0, MAX_FIXED_ARROWS);
 
         fixedPlaced.forEach((t, idx) => {
-          const isFoundByMe = !!(t.found_by && t.found_by.split(',').includes(myPseudo));
           const absBearing = bearingTo(playerLat, playerLng, t.lat, t.lng);
           // Keep arrows in screen coordinates so they always point toward the target
           // even while the map/radar rotate with the device heading.
@@ -1870,7 +1870,6 @@ function updateCompass() {
           const color   = ARROW_PALETTE[idx % ARROW_PALETTE.length];
           const distStr = t.dist < 1000 ? `${Math.round(t.dist)}m` : `${(t.dist/1000).toFixed(1)}km`;
           const inRange = t.dist <= proximityR;
-          const alpha = isFoundByMe ? 0.52 : 1;
           const rad     = relBearing * Math.PI / 180;
           const x       = cx + R * Math.sin(rad);
           let y         = cy - R * Math.cos(rad);
@@ -1880,13 +1879,12 @@ function updateCompass() {
           div.className = 'dir-arrow';
           div.style.left = x + 'px';
           div.style.top  = y + 'px';
-          div.style.opacity = String(alpha);
           div.innerHTML = `
             <svg width="44" height="54" viewBox="0 0 44 54" xmlns="http://www.w3.org/2000/svg"
                  style="transform:rotate(${relBearing}deg);transform-origin:50% 72%;filter:drop-shadow(0 2px 8px rgba(0,0,0,.7));display:block">
               <polygon points="22,2 38,40 22,28 6,40" fill="${color}" stroke="#0f172a" stroke-width="3"/>
             </svg>
-            <div style="background:rgba(15,23,42,.92);color:${color};font-size:0.82rem;font-weight:800;padding:4px 10px;border-radius:10px;border:1.5px solid ${color};white-space:nowrap;backdrop-filter:blur(4px);line-height:1">${distStr}${inRange ? ' ✓' : ''}${isFoundByMe ? ' • pris' : ''}</div>
+            <div style="background:rgba(15,23,42,.92);color:${color};font-size:0.82rem;font-weight:800;padding:4px 10px;border-radius:10px;border:1.5px solid ${color};white-space:nowrap;backdrop-filter:blur(4px);line-height:1">${distStr}${inRange ? ' ✓' : ''}</div>
           `;
           div.addEventListener('click', () => openTreasureSheet(t));
           overlay.appendChild(div);
