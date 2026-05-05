@@ -562,7 +562,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.10.8';
+const GAME_VERSION = 'v3.10.9';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -600,6 +600,8 @@ let geoWatch        = null;
 let geoWatchdog     = null;
 let geoLastFixAt    = 0;
 let geoLastStartAt  = 0;
+let geoLastErrorCode = null;
+let geoLastErrorAt   = 0;
 let playerMarker    = null; // GPS position marker on miniMap
 let accuracyCircle  = null; // GPS accuracy circle on miniMap
 let lastHapticZone  = null;
@@ -863,6 +865,19 @@ async function initGame(pendingFoundId) {
 
   // iOS Safari needs a small delay after page load before watchPosition works reliably
   setTimeout(() => startGeoWatch(), 300);
+  const gpsChipEl = document.getElementById('gpsChip');
+  if (gpsChipEl && !gpsChipEl.dataset.boundKick) {
+    gpsChipEl.dataset.boundKick = '1';
+    gpsChipEl.style.cursor = 'pointer';
+    gpsChipEl.addEventListener('click', () => requestGpsKick());
+  }
+  const radarBarEl = document.getElementById('radarBar');
+  if (radarBarEl && !radarBarEl.dataset.boundKick) {
+    radarBarEl.dataset.boundKick = '1';
+    radarBarEl.addEventListener('click', () => {
+      if (playerLat === null) requestGpsKick();
+    });
+  }
   startLbPolling();
   updateProgressBar();
 
@@ -1159,6 +1174,8 @@ function renderMarkers() {
 }
 function _onGeoSuccess(pos) {
   geoLastFixAt = Date.now();
+  geoLastErrorCode = null;
+  geoLastErrorAt = 0;
   // Smooth GPS: keep last 5 positions, weighted average
   gpsHistory.push({ lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy });
   if (gpsHistory.length > 5) gpsHistory.shift();
@@ -1209,6 +1226,8 @@ function _onGeoSuccess(pos) {
 }
 
 function _onGeoError(err) {
+  geoLastErrorCode = err.code;
+  geoLastErrorAt = Date.now();
   const msgs = { 1: 'Permission GPS refusée — active la localisation dans les réglages', 2: 'GPS indisponible', 3: 'Délai GPS dépassé — reste à l\'air libre' };
   const bar = document.getElementById('radarBar');
   bar.textContent = '📍 ' + (msgs[err.code] || 'Erreur GPS');
@@ -1222,6 +1241,21 @@ function _onGeoError(err) {
     if (geoWatch !== null) { navigator.geolocation.clearWatch(geoWatch); geoWatch = null; }
     setTimeout(() => startGeoWatch(true), 1200);
   }
+}
+
+function requestGpsKick() {
+  if (!navigator.geolocation) return;
+  const bar = document.getElementById('radarBar');
+  if (bar) {
+    bar.textContent = '📍 Relance GPS…';
+    bar.className = '';
+  }
+  startGeoWatch(true);
+  navigator.geolocation.getCurrentPosition(pos => {
+    _onGeoSuccess(pos);
+  }, err => {
+    _onGeoError(err);
+  }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
 }
 
 function startGeoWatch(forceRestart) {
@@ -1620,14 +1654,37 @@ function updateCompass() {
       const overlay = document.getElementById('arrowOverlay');
       if (!overlay) return;
       const mapElC = document.getElementById('miniMap');
-      const cx     = mapElC.offsetWidth / 2;
-      const cy     = mapElC.offsetHeight / 2;
+      const pPt    = gameMap.latLngToContainerPoint([playerLat, playerLng]);
+      const cx     = pPt && Number.isFinite(pPt.x) ? pPt.x : (mapElC.offsetWidth / 2);
+      const cy     = pPt && Number.isFinite(pPt.y) ? pPt.y : (mapElC.offsetHeight / 2);
       const R      = Math.min(mapElC.offsetWidth, mapElC.offsetHeight) * 0.38;
 
       // Size radar rings
       const rings = mapElC.querySelectorAll('.radar-ring');
       [0.33, 0.66, 1.0].forEach((f, i) => {
-        if (rings[i]) { const d = f * R * 2 + 'px'; rings[i].style.width = d; rings[i].style.height = d; }
+        if (rings[i]) {
+          const d = f * R * 2 + 'px';
+          rings[i].style.width = d;
+          rings[i].style.height = d;
+          rings[i].style.left = cx + 'px';
+          rings[i].style.top = cy + 'px';
+        }
+      });
+
+      const centerDot = document.getElementById('radarCenterDot');
+      if (centerDot) {
+        centerDot.style.left = cx + 'px';
+        centerDot.style.top = cy + 'px';
+      }
+      const centerLabel = document.getElementById('radarCenterLabel');
+      if (centerLabel) {
+        centerLabel.style.left = cx + 'px';
+        centerLabel.style.top = cy + 'px';
+      }
+      const spokes = mapElC.querySelectorAll('.radar-spoke');
+      spokes.forEach((s) => {
+        s.style.left = cx + 'px';
+        s.style.top = cy + 'px';
       });
       // Cardinal indicators: keep absolute N/E/S/O while phone rotates
       const cardinals = { N: 0, E: 90, S: 180, O: 270 };
@@ -2010,6 +2067,9 @@ function toggleCompassDebug() {
       `Heading brut: ${compassRawHeading !== null ? Math.round(compassRawHeading)+'°' : '❌ null'}`,
       `Source capteur: ${compassLastEventSource}`,
       `Events/sec: ${compassEventRate}`,
+      `Dernière erreur GPS: ${geoLastErrorCode !== null ? 'code '+geoLastErrorCode : 'aucune'}`,
+      `Âge dernier fix: ${geoLastFixAt ? Math.round((Date.now()-geoLastFixAt)/1000)+'s' : '—'}`,
+      `Âge dernière erreur: ${geoLastErrorAt ? Math.round((Date.now()-geoLastErrorAt)/1000)+'s' : '—'}`,
       `Trésors total: ${treasures.length}`,
       `Balises fixes: ${allFixed.length}`,
       `activeTab: ${activeTab}`,
