@@ -107,6 +107,17 @@
     #radarBar{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.97);border:1px solid var(--line-2);border-radius:24px;padding:11px 20px;font-size:0.94rem;font-weight:800;color:var(--ink-2);z-index:200;display:none;white-space:nowrap;backdrop-filter:blur(8px);box-shadow:0 2px 20px rgba(26,24,38,.12);letter-spacing:0.01em;font-family:var(--mono)}
     #radarBar.near{color:#d97706;border-color:#d97706;background:rgba(255,252,235,.97);box-shadow:0 2px 20px rgba(217,119,6,.15)}
     #radarBar.very-near{color:#16a34a;border-color:#16a34a;background:rgba(240,255,244,.97);animation:pulse 1s infinite;box-shadow:0 2px 24px rgba(22,163,74,.2);font-size:0.95rem}
+    /* ── Flash mode accent theming ── */
+    body.flash-mode nav{border-bottom-color:rgba(255,61,138,.22)}
+    body.flash-mode nav button.active{background:rgba(255,61,138,.14);border-bottom-color:var(--magenta)}
+    body.flash-mode #modeQuickGuide{background:rgba(255,61,138,.07);border-bottom-color:rgba(255,61,138,.22)}
+    body.flash-mode #modeGuideTitle{color:var(--magenta)}
+    body.flash-mode #radarBar{border-color:rgba(255,61,138,.45);color:var(--magenta)}
+    body.flash-mode #radarBar.near{color:#db2777;border-color:#db2777;background:rgba(253,242,248,.97);box-shadow:0 2px 20px rgba(219,39,119,.2);animation:none}
+    body.flash-mode #radarBar.very-near{color:var(--magenta);border-color:var(--magenta);background:rgba(255,240,248,.97);box-shadow:0 2px 28px rgba(255,61,138,.4)}
+    /* ── Flash taken toast ── */
+    #flashTakenToast{position:absolute;top:12px;left:50%;transform:translateX(-50%) translateY(-10px);background:rgba(15,23,42,.93);border:1.5px solid rgba(255,61,138,.55);border-radius:22px;padding:10px 20px;font-size:0.84rem;font-weight:800;color:var(--magenta);z-index:250;white-space:nowrap;backdrop-filter:blur(10px);font-family:var(--mono);pointer-events:none;opacity:0;transition:opacity .3s,transform .3s}
+    #flashTakenToast.show{opacity:1;transform:translateX(-50%) translateY(0)}
     /* ── Keyframes ── */
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:.7}}
     @keyframes compassSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
@@ -474,6 +485,7 @@
     <button id="compassDebugBtn" onclick="toggleCompassDebug()" style="display:none;position:absolute;top:10px;right:10px;z-index:1000;padding:7px 10px;background:rgba(15,23,42,.9);border:1px solid #334155;border-radius:10px;color:#93c5fd;font-size:0.72rem;font-weight:700;cursor:pointer">DBG</button>
     <div id="compassDebug" style="display:none;position:absolute;top:10px;left:10px;z-index:1000;font-size:0.68rem;color:var(--ink-2);line-height:1.6;padding:8px 12px;background:rgba(255,255,255,.92);border-radius:8px;max-width:220px;border:1px solid var(--line-2)"></div>
     <div id="radarBar"></div>
+    <div id="flashTakenToast"></div>
   </div>
   <div id="nearestList"></div>
 </div>
@@ -645,7 +657,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.10.24';
+const GAME_VERSION = 'v3.10.25';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -925,6 +937,7 @@ async function continueAsGuest() {
 async function initGame(pendingFoundId) {
   updateHeader();
   updateModeUI();
+  document.body.classList.toggle('flash-mode', activeGameMode === 'unique');
   document.getElementById('radarBar').style.display = 'block';
 
   // Load config
@@ -1127,6 +1140,7 @@ function setGameMode(mode) {
   if (activeGameMode === nextMode) return;
   activeGameMode = nextMode;
   localStorage.setItem('u3dq_game_mode', activeGameMode);
+  document.body.classList.toggle('flash-mode', activeGameMode === 'unique');
   updateModeUI();
   updateRadar();
   updateNearestCard();
@@ -1200,6 +1214,10 @@ function maybeOpenQuickTutorial() {
 
 // ── Treasures ────────────────────────────────────────
 async function loadTreasures() {
+  // Snapshot available flash treasures before refresh (for "just taken nearby" detection)
+  const _prevAvailableFlash = new Set(
+    treasures.filter(t => t.type === 'unique' && !(t.found_by && t.found_by.length > 0)).map(t => t.id)
+  );
   const { data, error } = await db.from('treasures')
     .select('id,type,lat,lng,label,hint,visible,photo_url,found_by,placed_at,quest')
     .eq('visible', true);
@@ -1219,6 +1237,30 @@ async function loadTreasures() {
   // Sync fixedTotal from actual DB count — stays accurate even if config key 'fixedTotal' is stale
   const actualFixed = treasures.filter(t => t.type === 'fixed').length;
   if (actualFixed > 0) fixedTotal = actualFixed;
+
+  // Detect flash treasures taken by someone else while we were nearby
+  if (_prevAvailableFlash.size > 0 && playerLat !== null && activeGameMode === 'unique') {
+    const newlyTaken = treasures.filter(t =>
+      t.type === 'unique' &&
+      _prevAvailableFlash.has(t.id) &&
+      t.found_by && t.found_by.length > 0 &&
+      !(myPseudo && t.found_by.split(',').includes(myPseudo)) &&
+      t.lat && t.lng &&
+      haversine(playerLat, playerLng, t.lat, t.lng) <= 2000
+    );
+    if (newlyTaken.length > 0) showFlashTakenToast(newlyTaken.length);
+  }
+}
+
+function showFlashTakenToast(count) {
+  const el = document.getElementById('flashTakenToast');
+  if (!el) return;
+  el.textContent = count > 1
+    ? `⚡ ${count} trésors viennent d'être pris !`
+    : '⚡ Trop tard — un trésor vient d\'être pris !';
+  el.classList.add('show');
+  clearTimeout(el._hideTimer);
+  el._hideTimer = setTimeout(() => el.classList.remove('show'), 3500);
 }
 
 // ── Map ──────────────────────────────────────────────
@@ -1606,17 +1648,26 @@ function updateRadar() {
       .map(t => ({ t, d: haversine(playerLat, playerLng, t.lat, t.lng) }))
       .sort((a, b) => a.d - b.d)[0];
 
+    const available = uniqueLeft.length;
+    const cStr = available === 1 ? '⚡ 1 trésor dispo' : `⚡ ${available} trésors dispos`;
+
+    // Update guide bar count
+    const guideText = document.getElementById('modeGuideText');
+    if (guideText) guideText.textContent = available === 1
+      ? '1 trésor disponible · sois le premier !'
+      : `${available} trésors disponibles · sois le premier !`;
+
     const uniqueDist = Math.round(nearestU.d);
     if (uniqueDist <= proximityR) {
-      bar.textContent = `Cherche bien, il est là.${accStr}`;
+      bar.textContent = `${cStr} · Cherche bien, il est là !${accStr}`;
       bar.className = 'very-near';
       if (lastHapticZone !== 'unique-capture') { lastHapticZone = 'unique-capture'; haptic([100, 50, 100, 50, 200]); }
     } else if (uniqueDist <= proximityR * 5) {
-      bar.textContent = `Tu chauffes — il est tout près.${accStr}`;
+      bar.textContent = `${cStr} · Tu chauffes !${accStr}`;
       bar.className = 'near';
       if (lastHapticZone !== 'unique-near') { lastHapticZone = 'unique-near'; haptic([80, 60, 80]); }
     } else {
-      bar.textContent = `Un polaroid se cache dans ce quartier…${accStr}`;
+      bar.textContent = `${cStr} · Un polaroid se cache dans ce quartier…${accStr}`;
       bar.className = '';
       if (lastHapticZone !== 'unique-far') { lastHapticZone = 'unique-far'; }
     }
