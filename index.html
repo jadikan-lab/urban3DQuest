@@ -212,8 +212,10 @@
       display:none;pointer-events:none;backdrop-filter:blur(1.2px);-webkit-backdrop-filter:blur(1.2px)}
     #radarBg.active{display:block}
     .radar-ring{position:absolute;border-radius:50%;border:1px solid rgba(56,189,248,0.14);top:50%;left:50%;transform:translate(-50%,-50%)}
-    #radarCenterDot{position:absolute;width:14px;height:14px;border-radius:50%;background:#22d3ee;box-shadow:0 0 14px #22d3ee,0 0 4px rgba(255,255,255,.5);top:50%;left:50%;transform:translate(-50%,-50%);z-index:2}
-    #radarNorth{position:absolute;font-size:0.72rem;font-weight:900;color:#fb7185;font-family:var(--mono);transform:translate(-50%,-50%);z-index:2;text-shadow:0 0 8px #fb7185;letter-spacing:.05em}
+    .radar-spoke{position:absolute;top:50%;left:50%;width:1px;height:42%;background:linear-gradient(180deg,rgba(244,114,182,.45),rgba(244,114,182,0));transform-origin:50% 100%;z-index:1}
+    #radarCenterDot{position:absolute;width:14px;height:14px;border-radius:50%;background:#fb7185;box-shadow:0 0 14px rgba(251,113,133,.9),0 0 4px rgba(255,255,255,.5);top:50%;left:50%;transform:translate(-50%,-50%);z-index:3}
+    #radarCenterLabel{position:absolute;top:50%;left:50%;transform:translate(-50%,12px);font-size:0.56rem;font-weight:900;color:#fda4af;font-family:var(--mono);letter-spacing:.08em;text-shadow:0 0 6px rgba(251,113,133,.8);z-index:3}
+    .radar-cardinal{position:absolute;font-size:0.68rem;font-weight:900;color:#fda4af;font-family:var(--mono);transform:translate(-50%,-50%);z-index:2;text-shadow:0 0 8px rgba(251,113,133,.85);letter-spacing:.05em}
     #locateMeBtn{min-height:48px!important;min-width:48px!important;padding:10px!important;transition:transform .1s}
     #locateMeBtn:active{transform:scale(0.9)}
     /* ── QR Scanner overlay ── */
@@ -560,7 +562,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.10.7';
+const GAME_VERSION = 'v3.10.8';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -595,6 +597,9 @@ let gpsHistory   = []; // last N positions for smoothing
 let nearestFixed = null;
 let lbInterval   = null;
 let geoWatch        = null;
+let geoWatchdog     = null;
+let geoLastFixAt    = 0;
+let geoLastStartAt  = 0;
 let playerMarker    = null; // GPS position marker on miniMap
 let accuracyCircle  = null; // GPS accuracy circle on miniMap
 let lastHapticZone  = null;
@@ -1050,9 +1055,22 @@ function initMap() {
   const mapEl = document.getElementById('miniMap');
   const radarBg = document.createElement('div');
   radarBg.id = 'radarBg';
+  [0, 45, 90, 135].forEach((deg) => {
+    const s = document.createElement('div');
+    s.className = 'radar-spoke';
+    s.style.transform = `translate(-50%,-100%) rotate(${deg}deg)`;
+    radarBg.appendChild(s);
+  });
   [1, 2, 3].forEach(() => { const r = document.createElement('div'); r.className = 'radar-ring'; radarBg.appendChild(r); });
   const dot = document.createElement('div'); dot.id = 'radarCenterDot'; radarBg.appendChild(dot);
-  const northEl = document.createElement('div'); northEl.id = 'radarNorth'; northEl.textContent = 'N'; radarBg.appendChild(northEl);
+  const centerLabel = document.createElement('div'); centerLabel.id = 'radarCenterLabel'; centerLabel.textContent = 'VOUS'; radarBg.appendChild(centerLabel);
+  ['N', 'E', 'S', 'O'].forEach((dir) => {
+    const el = document.createElement('div');
+    el.className = 'radar-cardinal';
+    el.dataset.dir = dir;
+    el.textContent = dir;
+    radarBg.appendChild(el);
+  });
   mapEl.appendChild(radarBg);
   const ov = document.createElement('div');
   ov.id = 'arrowOverlay';
@@ -1140,6 +1158,7 @@ function renderMarkers() {
   });
 }
 function _onGeoSuccess(pos) {
+  geoLastFixAt = Date.now();
   // Smooth GPS: keep last 5 positions, weighted average
   gpsHistory.push({ lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy });
   if (gpsHistory.length > 5) gpsHistory.shift();
@@ -1197,25 +1216,52 @@ function _onGeoError(err) {
   const chip = document.getElementById('gpsChip');
   const lbl  = document.getElementById('gpsLabel');
   if (chip && lbl) { lbl.textContent = 'off'; chip.className = 'gps-bad'; }
+
+  // iOS can stall geolocation; retry automatically except when permission is denied.
+  if (err.code !== 1) {
+    if (geoWatch !== null) { navigator.geolocation.clearWatch(geoWatch); geoWatch = null; }
+    setTimeout(() => startGeoWatch(true), 1200);
+  }
 }
 
-function startGeoWatch() {
+function startGeoWatch(forceRestart) {
   if (!navigator.geolocation) {
     document.getElementById('radarBar').textContent = '📍 GPS non disponible sur cet appareil';
     return;
   }
-  if (geoWatch !== null) return; // already watching
+  if (geoWatch !== null) {
+    if (!forceRestart) return; // already watching
+    navigator.geolocation.clearWatch(geoWatch);
+    geoWatch = null;
+  }
 
   // Show "searching" state immediately so the chip is never stuck grey
   const chip0 = document.getElementById('gpsChip');
   const lbl0  = document.getElementById('gpsLabel');
   if (chip0 && lbl0) { lbl0.textContent = '…'; chip0.className = 'gps-mid'; }
 
+  geoLastStartAt = Date.now();
+
+  // Warmup one-shot often helps iOS Safari deliver the first fix reliably.
+  navigator.geolocation.getCurrentPosition(pos => {
+    _onGeoSuccess(pos);
+  }, () => {}, { enableHighAccuracy: true, timeout: 9000, maximumAge: 0 });
+
   geoWatch = navigator.geolocation.watchPosition(pos => {
     _onGeoSuccess(pos);
   }, err => {
     _onGeoError(err);
-  }, { enableHighAccuracy: true, maximumAge: 5000 });
+  }, { enableHighAccuracy: true, maximumAge: 4000, timeout: 10000 });
+
+  if (!geoWatchdog) {
+    geoWatchdog = setInterval(() => {
+      if (document.hidden || !navigator.geolocation) return;
+      const now = Date.now();
+      const noFirstFix = playerLat === null && geoLastStartAt > 0 && (now - geoLastStartAt > 14000);
+      const staleFix = playerLat !== null && geoLastFixAt > 0 && (now - geoLastFixAt > 22000);
+      if (noFirstFix || staleFix) startGeoWatch(true);
+    }, 6000);
+  }
 }
 
 function recenterMap() {
@@ -1583,11 +1629,18 @@ function updateCompass() {
       [0.33, 0.66, 1.0].forEach((f, i) => {
         if (rings[i]) { const d = f * R * 2 + 'px'; rings[i].style.width = d; rings[i].style.height = d; }
       });
-      // N indicator — rotates opposite to device heading so absolute N is always shown
-      const northAngle = (0 - (deviceHeading || 0) + 360) % 360;
-      const northRad   = northAngle * Math.PI / 180;
-      const nEl = document.getElementById('radarNorth');
-      if (nEl) { nEl.style.left = (cx + R * 0.86 * Math.sin(northRad)) + 'px'; nEl.style.top = (cy - R * 0.86 * Math.cos(northRad)) + 'px'; }
+      // Cardinal indicators: keep absolute N/E/S/O while phone rotates
+      const cardinals = { N: 0, E: 90, S: 180, O: 270 };
+      const cardinalEls = mapElC.querySelectorAll('.radar-cardinal');
+      cardinalEls.forEach((el) => {
+        const dir = el.dataset.dir;
+        const base = cardinals[dir];
+        if (base === undefined) return;
+        const ang = (base - (deviceHeading || 0) + 360) % 360;
+        const rad = ang * Math.PI / 180;
+        el.style.left = (cx + R * 0.87 * Math.sin(rad)) + 'px';
+        el.style.top = (cy - R * 0.87 * Math.cos(rad)) + 'px';
+      });
 
       if (compassArrowMode && activeGameMode === 'fixed') {
         const unfoundFixed = treasures
@@ -2326,7 +2379,7 @@ document.addEventListener('visibilitychange', () => {
     stopCompassInterval();
     if (geoWatch !== null) { navigator.geolocation.clearWatch(geoWatch); geoWatch = null; }
   } else {
-    setTimeout(() => startGeoWatch(), 300);
+    setTimeout(() => startGeoWatch(true), 300);
     if (myPseudo || activeTab === 'scores') startLbPolling();
     if (activeTab === 'explore') startCompassInterval();
     updateRadar();
@@ -2335,6 +2388,7 @@ document.addEventListener('visibilitychange', () => {
 
 window.addEventListener('beforeunload', () => {
   if (geoWatch !== null) navigator.geolocation.clearWatch(geoWatch);
+  if (geoWatchdog) { clearInterval(geoWatchdog); geoWatchdog = null; }
 });
 
 // ── Tabs ─────────────────────────────────────────────
