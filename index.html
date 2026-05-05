@@ -202,7 +202,7 @@
     #arrowToggleBtn{min-height:48px!important;min-width:48px!important;padding:10px 16px!important;font-size:0.8rem!important;font-weight:700!important;transition:transform .1s}
     #arrowToggleBtn:active{transform:scale(0.9)}
     /* ── Overlay flèches direction ── */
-    #arrowOverlay{position:absolute;inset:0;pointer-events:none;z-index:400;overflow:hidden}
+    #arrowOverlay{position:absolute;inset:0;pointer-events:none;z-index:900;overflow:visible}
     .dir-arrow{position:absolute;pointer-events:auto;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transform:translate(-50%,-50%);-webkit-tap-highlight-color:transparent}
     .dir-arrow:active{opacity:0.7}
     #locateMeBtn{min-height:48px!important;min-width:48px!important;padding:10px!important;transition:transform .1s}
@@ -415,7 +415,6 @@
     <button id="locateMeBtn" onclick="recenterMap()" style="position:absolute;bottom:14px;left:10px;z-index:1000;background:rgba(255,255,255,.9);border:1.5px solid var(--line-2);border-radius:12px;color:var(--ink-2);font-size:1.1rem;padding:7px 11px;cursor:pointer;backdrop-filter:blur(6px);display:none" title="Recentrer sur ma position"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="10" r="2.5" fill="currentColor"/><line x1="10" y1="1" x2="10" y2="4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="10" y1="15.5" x2="10" y2="19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="1" y1="10" x2="4.5" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="15.5" y1="10" x2="19" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
     <button id="compassPermBtn" onclick="requestCompassPermission()" style="display:none;position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1000;padding:8px 16px;background:linear-gradient(135deg,#3b82f6,#6366f1);border:none;border-radius:12px;color:#fff;font-size:0.82rem;font-weight:700;cursor:pointer;backdrop-filter:blur(6px)">🧭 Activer le compas (iOS)</button>
     <div id="compassDebug" style="display:none;position:absolute;top:10px;left:10px;z-index:1000;font-size:0.68rem;color:var(--ink-2);line-height:1.6;padding:8px 12px;background:rgba(255,255,255,.92);border-radius:8px;max-width:220px;border:1px solid var(--line-2)"></div>
-    <div id="arrowOverlay"></div>
     <div id="radarBar"></div>
   </div>
   <div id="nearestList"></div>
@@ -551,7 +550,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.10.4';
+const GAME_VERSION = 'v3.10.5';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -1023,10 +1022,14 @@ function initMap() {
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
     subdomains: 'abcd', maxZoom: 19,
-    keepBuffer: 6,           // preload 6 tiles beyond the viewport in every direction
-    updateWhenIdle: false,   // load tiles while panning, not just after stopping
-    updateWhenZooming: false // load during pinch-zoom too
+    keepBuffer: 6,
+    updateWhenIdle: false,
+    updateWhenZooming: false
   }).addTo(gameMap);
+  // Arrow overlay created after Leaflet init so it's above all Leaflet panes
+  const ov = document.createElement('div');
+  ov.id = 'arrowOverlay';
+  document.getElementById('miniMap').appendChild(ov);
   gameMap.on('dragstart', function() {
     mapFollowing = false;
     var btn = document.getElementById('locateMeBtn');
@@ -1113,6 +1116,7 @@ function _onGeoSuccess(pos) {
   // Smooth GPS: keep last 5 positions, weighted average
   gpsHistory.push({ lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy });
   if (gpsHistory.length > 5) gpsHistory.shift();
+  const firstFix = gpsHistory.length === 1;
   const weights = [1, 2, 3, 4, 5].slice(gpsHistory.length > 5 ? 0 : 5 - gpsHistory.length);
   const totalW = weights.reduce((a,b) => a+b, 0);
   playerLat = gpsHistory.reduce((s, p, i) => s + p.lat * weights[i], 0) / totalW;
@@ -1153,6 +1157,8 @@ function _onGeoSuccess(pos) {
 
   updateRadar();
   updateNearestCard();
+  // Force immediate arrow draw on first GPS fix (don't wait for compass interval)
+  if (firstFix) updateCompass();
 }
 
 function _onGeoError(err) {
