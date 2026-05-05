@@ -124,9 +124,8 @@
     .cmp-hint{font-size:0.8rem;color:var(--cyan);margin-bottom:8px}
     .cmp-capture{width:100%;padding:10px;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:10px;color:#fff;font-weight:800;cursor:pointer;font-size:0.95rem;box-shadow:0 2px 12px rgba(34,197,94,.4);min-height:52px}
     /* ── Capture FAB ── */
-    #captureFab{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:74px;height:74px;min-height:74px;padding:0;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.95) 0%,rgba(248,250,252,.86) 42%,rgba(226,232,240,.82) 100%);border:4px solid rgba(15,23,42,.72);border-radius:999px;font-size:0;color:transparent;cursor:pointer;z-index:1100;box-shadow:0 10px 24px rgba(15,23,42,.3),0 0 0 2px rgba(255,255,255,.72) inset;display:none;letter-spacing:0;transition:transform 0.1s,box-shadow .2s;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
-    #captureFab::after{content:'';position:absolute;inset:14px;border-radius:999px;border:4px solid rgba(15,23,42,.8);background:rgba(255,255,255,.18)}
-    #captureFab:active{transform:translate(-50%,-50%) scale(0.94)}
+    #captureFab{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:74px;height:74px;min-height:74px;padding:0;background:radial-gradient(circle at 32% 32%,rgba(255,255,255,.96) 0%,rgba(220,228,240,.88) 55%,rgba(180,195,215,.82) 100%);border:4px solid rgba(15,23,42,.78);border-radius:999px;font-size:0;color:transparent;cursor:pointer;z-index:1100;box-shadow:0 10px 28px rgba(15,23,42,.35),0 0 0 2px rgba(255,255,255,.72) inset;display:none;letter-spacing:0;transition:transform 0.12s,box-shadow .2s;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+    #captureFab:active{transform:translate(-50%,-50%) scale(0.93)}
     /* ── Progress bar ── */
     #progressBar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--line-2);padding:8px 16px 12px;z-index:200;display:none;padding-bottom:calc(8px + env(safe-area-inset-bottom))}
     #progressBar .pb-label{display:flex;justify-content:space-between;font-size:0.78rem;color:var(--ink-2);margin-bottom:6px;font-family:var(--mono)}
@@ -302,7 +301,7 @@
     .nl-arr{font-size:0.8rem;color:var(--ink-3);flex-shrink:0}
 
     /* ── Treasure sheet (bottom sheet au tap d'un pin) ── */
-    #treasureSheet{display:none;position:fixed;inset:0;z-index:600}
+    #treasureSheet{display:none;position:fixed;inset:0;z-index:1200}
     #treasureSheet.open{display:block}
     .ts-backdrop{position:absolute;inset:0;background:rgba(26,24,38,0.3);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
     .ts-card{position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-radius:var(--radius-lg) var(--radius-lg) 0 0;padding:0 0 calc(24px + env(safe-area-inset-bottom));max-height:90vh;overflow-y:auto;animation:slideUp 0.28s cubic-bezier(.16,1,.3,1)}
@@ -481,7 +480,20 @@
 </div>
 
 <!-- ── Capture FAB (balises fixes GPS) ──────────────── -->
-<button id="captureFab" onclick="captureFixed()" aria-label="Déclencher l'obturateur">📸</button>
+<button id="captureFab" onclick="captureFixed()" aria-label="Déclencher l'obturateur">
+  <svg viewBox="0 0 74 74" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none" aria-hidden="true">
+    <g transform="translate(37,37)" fill="rgba(15,23,42,0.58)" stroke="rgba(15,23,42,0.88)" stroke-width="0.6" stroke-linejoin="round">
+      <path d="M8,0 A8,8 0 0,1 0,8 L0,32 A32,32 0 0,0 32,0 Z"/>
+      <path d="M4,6.93 A8,8 0 0,1 -6.93,4 L-27.71,16 A32,32 0 0,0 16,27.71 Z"/>
+      <path d="M-4,6.93 A8,8 0 0,1 -6.93,-4 L-27.71,-16 A32,32 0 0,0 -16,27.71 Z"/>
+      <path d="M-8,0 A8,8 0 0,1 0,-8 L0,-32 A32,32 0 0,0 -32,0 Z"/>
+      <path d="M-4,-6.93 A8,8 0 0,1 6.93,-4 L27.71,-16 A32,32 0 0,0 -16,-27.71 Z"/>
+      <path d="M4,-6.93 A8,8 0 0,1 6.93,4 L27.71,16 A32,32 0 0,0 16,-27.71 Z"/>
+    </g>
+    <circle cx="37" cy="37" r="7.5" fill="rgba(200,215,235,0.55)" stroke="rgba(15,23,42,0.7)" stroke-width="1.5"/>
+    <circle cx="37" cy="37" r="3" fill="rgba(15,23,42,0.45)"/>
+  </svg>
+</button>
 
 <!-- ── Progress bar ──────────────────────────────────── -->
 <div id="progressBar">
