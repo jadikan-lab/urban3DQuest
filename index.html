@@ -205,6 +205,12 @@
     #arrowOverlay{position:absolute;inset:0;pointer-events:none;z-index:900;overflow:visible}
     .dir-arrow{position:absolute;pointer-events:auto;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transform:translate(-50%,-50%);-webkit-tap-highlight-color:transparent}
     .dir-arrow:active{opacity:0.7}
+    /* ── Fond radar boussole ── */
+    #radarBg{position:absolute;inset:0;z-index:850;background:radial-gradient(circle at 50% 50%,#0d1a38 0%,#020610 100%);display:none;pointer-events:none}
+    #radarBg.active{display:block}
+    .radar-ring{position:absolute;border-radius:50%;border:1px solid rgba(56,189,248,0.14);top:50%;left:50%;transform:translate(-50%,-50%)}
+    #radarCenterDot{position:absolute;width:14px;height:14px;border-radius:50%;background:#22d3ee;box-shadow:0 0 14px #22d3ee,0 0 4px rgba(255,255,255,.5);top:50%;left:50%;transform:translate(-50%,-50%);z-index:2}
+    #radarNorth{position:absolute;font-size:0.72rem;font-weight:900;color:#fb7185;font-family:var(--mono);transform:translate(-50%,-50%);z-index:2;text-shadow:0 0 8px #fb7185;letter-spacing:.05em}
     #locateMeBtn{min-height:48px!important;min-width:48px!important;padding:10px!important;transition:transform .1s}
     #locateMeBtn:active{transform:scale(0.9)}
     /* ── QR Scanner overlay ── */
@@ -550,7 +556,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.10.5';
+const GAME_VERSION = 'v3.10.6';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -1026,10 +1032,17 @@ function initMap() {
     updateWhenIdle: false,
     updateWhenZooming: false
   }).addTo(gameMap);
-  // Arrow overlay created after Leaflet init so it's above all Leaflet panes
+  // Radar bg + arrow overlay created after Leaflet init so they're above all Leaflet panes
+  const mapEl = document.getElementById('miniMap');
+  const radarBg = document.createElement('div');
+  radarBg.id = 'radarBg';
+  [1, 2, 3].forEach(() => { const r = document.createElement('div'); r.className = 'radar-ring'; radarBg.appendChild(r); });
+  const dot = document.createElement('div'); dot.id = 'radarCenterDot'; radarBg.appendChild(dot);
+  const northEl = document.createElement('div'); northEl.id = 'radarNorth'; northEl.textContent = 'N'; radarBg.appendChild(northEl);
+  mapEl.appendChild(radarBg);
   const ov = document.createElement('div');
   ov.id = 'arrowOverlay';
-  document.getElementById('miniMap').appendChild(ov);
+  mapEl.appendChild(ov);
   gameMap.on('dragstart', function() {
     mapFollowing = false;
     var btn = document.getElementById('locateMeBtn');
@@ -1479,7 +1492,13 @@ function _clearArrows() {
   if (ov) ov.innerHTML = '';
 }
 
+function _updateRadarBg() {
+  const bg = document.getElementById('radarBg');
+  if (bg) bg.classList.toggle('active', compassArrowMode && activeGameMode === 'fixed' && activeTab === 'explore');
+}
+
 function updateCompass() {
+  _updateRadarBg();
   if (activeTab !== 'explore') return;
   if (playerLat === null || !treasures.length) return;
 
@@ -1492,6 +1511,24 @@ function updateCompass() {
 
       _clearArrows();
 
+      const overlay = document.getElementById('arrowOverlay');
+      if (!overlay) return;
+      const mapElC = document.getElementById('miniMap');
+      const cx     = mapElC.offsetWidth / 2;
+      const cy     = mapElC.offsetHeight / 2;
+      const R      = Math.min(mapElC.offsetWidth, mapElC.offsetHeight) * 0.38;
+
+      // Size radar rings
+      const rings = mapElC.querySelectorAll('.radar-ring');
+      [0.33, 0.66, 1.0].forEach((f, i) => {
+        if (rings[i]) { const d = f * R * 2 + 'px'; rings[i].style.width = d; rings[i].style.height = d; }
+      });
+      // N indicator — rotates opposite to device heading so absolute N is always shown
+      const northAngle = (0 - (deviceHeading || 0) + 360) % 360;
+      const northRad   = northAngle * Math.PI / 180;
+      const nEl = document.getElementById('radarNorth');
+      if (nEl) { nEl.style.left = (cx + R * 0.86 * Math.sin(northRad)) + 'px'; nEl.style.top = (cy - R * 0.86 * Math.cos(northRad)) + 'px'; }
+
       if (compassArrowMode && activeGameMode === 'fixed') {
         const unfoundFixed = treasures
           .filter(t => t.type === 'fixed' && !(t.found_by && t.found_by.split(',').includes(myPseudo)))
@@ -1499,19 +1536,14 @@ function updateCompass() {
           .sort((a, b) => a.dist - b.dist)
           .slice(0, 3);
 
-        const overlay = document.getElementById('arrowOverlay');
-        if (!overlay) return;
-        const mapEl = document.getElementById('miniMap');
-        const cx    = mapEl.offsetWidth / 2;
-        const cy    = mapEl.offsetHeight / 2;
-        const R     = Math.min(mapEl.offsetWidth, mapEl.offsetHeight) * 0.38;
-
         unfoundFixed.forEach((t, idx) => {
-          const bearing = bearingTo(playerLat, playerLng, t.lat, t.lng);
+          const absBearing = bearingTo(playerLat, playerLng, t.lat, t.lng);
+          // Compass-relative: subtract device heading so arrows point toward target relative to phone orientation
+          const relBearing = (absBearing - (deviceHeading || 0) + 360) % 360;
           const color   = ARROW_PALETTE[idx % ARROW_PALETTE.length];
           const distStr = t.dist < 1000 ? `${Math.round(t.dist)}m` : `${(t.dist/1000).toFixed(1)}km`;
           const inRange = t.dist <= proximityR;
-          const rad     = bearing * Math.PI / 180;
+          const rad     = relBearing * Math.PI / 180;
           const x       = cx + R * Math.sin(rad);
           const y       = cy - R * Math.cos(rad);
 
@@ -1521,7 +1553,7 @@ function updateCompass() {
           div.style.top  = y + 'px';
           div.innerHTML = `
             <svg width="44" height="54" viewBox="0 0 44 54" xmlns="http://www.w3.org/2000/svg"
-                 style="transform:rotate(${bearing}deg);transform-origin:50% 72%;filter:drop-shadow(0 2px 8px rgba(0,0,0,.7));display:block">
+                 style="transform:rotate(${relBearing}deg);transform-origin:50% 72%;filter:drop-shadow(0 2px 8px rgba(0,0,0,.7));display:block">
               <polygon points="22,2 38,40 22,28 6,40" fill="${color}" stroke="#0f172a" stroke-width="3"/>
             </svg>
             <div style="background:rgba(15,23,42,.92);color:${color};font-size:0.82rem;font-weight:800;padding:4px 10px;border-radius:10px;border:1.5px solid ${color};white-space:nowrap;backdrop-filter:blur(4px);line-height:1">${distStr}${inRange ? ' ✓' : ''}</div>
@@ -2242,15 +2274,18 @@ function showTab(name, btn) {
     setTimeout(() => gameMap && gameMap.invalidateSize(), 60);
     startCompassInterval();
     updateRadar();
+    _updateRadarBg();
   } else if (name === 'scores') {
     stopCompassInterval();
     document.getElementById('captureFab').style.display = 'none';
     _clearArrows();
+    _updateRadarBg();
     loadLeaderboard();
   } else if (name === 'moi') {
     stopCompassInterval();
     document.getElementById('captureFab').style.display = 'none';
     _clearArrows();
+    _updateRadarBg();
     const ps = document.getElementById('parcoursSection');
     if (ps) ps.style.display = activeGameMode === 'fixed' ? 'block' : 'none';
     if (activeGameMode === 'fixed') loadBalises();
@@ -2260,6 +2295,7 @@ function showTab(name, btn) {
     stopCompassInterval();
     document.getElementById('captureFab').style.display = 'none';
     _clearArrows();
+    _updateRadarBg();
   }
 }
 
