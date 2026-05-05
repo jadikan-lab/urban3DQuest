@@ -568,7 +568,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.10.11';
+const GAME_VERSION = 'v3.10.12';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -1136,10 +1136,9 @@ function applyExploreMapLock() {
   const locateBtn = document.getElementById('locateMeBtn');
   if (lockOnPlayer) {
     mapFollowing = true;
-    if (gameMap.dragging && gameMap.dragging.enabled()) gameMap.dragging.disable();
     if (locateBtn) locateBtn.style.display = 'none';
     if (playerLat !== null && playerLng !== null) {
-      gameMap.setView([playerLat, playerLng], gameMap.getZoom(), { animate: false });
+      gameMap.setView([playerLat, playerLng], gameMap.getZoom(), { animate: true });
     }
   } else {
     if (gameMap.dragging && !gameMap.dragging.enabled()) gameMap.dragging.enable();
@@ -1265,8 +1264,9 @@ function _onGeoSuccess(pos) {
     } else {
       playerMarker.setLatLng(pos2);
     }
-    if (activeTab === 'explore' && mapFollowing) {
-      gameMap.setView(pos2, gameMap.getZoom(), { animate: false });
+    if (activeTab === 'explore') {
+      if (activeGameMode === 'fixed') mapFollowing = true;
+      if (mapFollowing) gameMap.setView(pos2, gameMap.getZoom(), { animate: true });
     }
   }
 
@@ -1746,7 +1746,9 @@ function updateCompass() {
       const pPt    = gameMap.latLngToContainerPoint([playerLat, playerLng]);
       const cx     = pPt && Number.isFinite(pPt.x) ? pPt.x : (mapElC.offsetWidth / 2);
       const cy     = pPt && Number.isFinite(pPt.y) ? pPt.y : (mapElC.offsetHeight / 2);
-      const R      = Math.min(mapElC.offsetWidth, mapElC.offsetHeight) * 0.38;
+      const baseR  = Math.min(mapElC.offsetWidth, mapElC.offsetHeight) * 0.34;
+      const maxR   = Math.max(60, Math.min(cx - 24, mapElC.offsetWidth - cx - 24, cy - 44, mapElC.offsetHeight - cy - 86));
+      const R      = Math.min(baseR, maxR);
 
       // Size radar rings
       const rings = mapElC.querySelectorAll('.radar-ring');
@@ -1804,7 +1806,8 @@ function updateCompass() {
           const inRange = t.dist <= proximityR;
           const rad     = relBearing * Math.PI / 180;
           const x       = cx + R * Math.sin(rad);
-          const y       = cy - R * Math.cos(rad);
+          let y         = cy - R * Math.cos(rad);
+          y = Math.max(38, Math.min(mapElC.offsetHeight - 82, y));
 
           const div = document.createElement('div');
           div.className = 'dir-arrow';
@@ -2681,7 +2684,7 @@ function updateNearestCard() {
     .filter(t => !isUniqueMode || !(t.found_by && t.found_by.length > 0))
     .map(t => ({ ...t, _dist: haversine(playerLat, playerLng, t.lat, t.lng) }))
     .sort((a, b) => a._dist - b._dist)
-    .slice(0, 2);
+    .slice(0, 4);
 
   if (!pool.length) { el.style.display = 'none'; return; }
 
