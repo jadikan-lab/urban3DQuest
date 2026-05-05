@@ -251,11 +251,8 @@
     .dir-arrow{position:absolute;pointer-events:auto;cursor:pointer;transform:translate(-50%,-50%);-webkit-tap-highlight-color:transparent}
     .dir-arrow:active{opacity:0.7}
     .dir-arrow-label{position:absolute;pointer-events:auto;cursor:pointer;background:rgba(15,23,42,.92);font-size:0.8rem;font-weight:800;padding:3px 9px;border-radius:10px;border:1.5px solid;white-space:nowrap;backdrop-filter:blur(4px);transform:translate(-50%,-50%);line-height:1}
-    /* ── Fond radar boussole ── */
-    #radarBg{position:absolute;inset:0;z-index:850;background:
-      radial-gradient(circle at 50% 50%,rgba(13,26,56,.12) 0%,rgba(2,6,16,.38) 100%),
-      repeating-conic-gradient(from 0deg,rgba(56,189,248,.08) 0deg 10deg,rgba(15,23,42,0) 10deg 20deg);
-      display:none;pointer-events:none;backdrop-filter:blur(1.2px);-webkit-backdrop-filter:blur(1.2px)}
+    /* ── Fond radar boussole (désactivé pour lisibilité carte) ── */
+    #radarBg{display:none!important;pointer-events:none}
     #radarBg.active{display:block}
     .radar-ring{position:absolute;border-radius:50%;border:1px solid rgba(56,189,248,0.2);top:50%;left:50%;transform:translate(-50%,-50%)}
     .radar-spoke{position:absolute;top:50%;left:50%;transform-origin:50% 100%;z-index:1}
@@ -264,6 +261,13 @@
     #radarCenterDot{position:absolute;width:14px;height:14px;border-radius:50%;background:#fb7185;box-shadow:0 0 14px rgba(251,113,133,.9),0 0 4px rgba(255,255,255,.5);top:50%;left:50%;transform:translate(-50%,-50%);z-index:3}
     #radarCenterLabel{display:none}
     .radar-cardinal{position:absolute;font-size:0.7rem;font-weight:900;color:#fda4af;font-family:var(--mono);transform:translate(-50%,-50%);z-index:2;text-shadow:0 0 8px rgba(251,113,133,.85);letter-spacing:.05em}
+    /* ── Compass corner widget ── */
+    #compassCorner{position:absolute;left:10px;bottom:74px;z-index:1000;display:none;align-items:center;gap:8px;background:rgba(255,255,255,.92);border:1.5px solid var(--line-2);border-radius:12px;padding:7px 10px;box-shadow:0 6px 20px rgba(26,24,38,.14);font-family:var(--mono)}
+    #compassCorner.active{display:flex}
+    #compassCornerArrow{width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:1rem;color:#dc2626;line-height:1;transform:rotate(0deg);transition:transform .25s ease}
+    #compassCornerLabel{display:flex;flex-direction:column;line-height:1.05}
+    #compassCornerLabel strong{font-size:0.64rem;letter-spacing:.06em;color:var(--ink)}
+    #compassCornerDeg{font-size:0.62rem;color:var(--ink-2)}
     #gpsKickBtn{display:none;position:absolute;top:10px;left:10px;z-index:1000;padding:11px 14px;background:rgba(217,119,6,.96);border:1px solid #f59e0b;border-radius:12px;color:#fff7ed;font-size:0.78rem;font-weight:800;cursor:pointer;min-height:48px}
     #locateMeBtn{min-height:48px!important;min-width:48px!important;padding:10px!important;transition:transform .1s}
     #locateMeBtn:active{transform:scale(0.9)}
@@ -499,6 +503,10 @@
   <div id="miniMap" style="position:relative">
     <button id="arrowToggleBtn" onclick="toggleCompassArrows()" style="position:absolute;bottom:14px;right:10px;z-index:1000;background:rgba(255,255,255,.9);border:1.5px solid var(--line-2);border-radius:12px;color:var(--ink);font-size:0.75rem;font-weight:700;padding:7px 12px;cursor:pointer;backdrop-filter:blur(6px)">Polaroids</button>
     <button id="locateMeBtn" onclick="recenterMap()" style="position:absolute;bottom:14px;left:10px;z-index:1000;background:rgba(255,255,255,.9);border:1.5px solid var(--line-2);border-radius:12px;color:var(--ink-2);font-size:1.1rem;padding:7px 11px;cursor:pointer;backdrop-filter:blur(6px);display:none" title="Recentrer sur ma position"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="10" r="2.5" fill="currentColor"/><line x1="10" y1="1" x2="10" y2="4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="10" y1="15.5" x2="10" y2="19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="1" y1="10" x2="4.5" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="15.5" y1="10" x2="19" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+    <div id="compassCorner" aria-label="Boussole">
+      <span id="compassCornerArrow">▲</span>
+      <span id="compassCornerLabel"><strong>NORD</strong><span id="compassCornerDeg">--</span></span>
+    </div>
     <button id="gpsKickBtn" onclick="requestGpsKick()">📍 Activer GPS</button>
     <button id="compassPermBtn" onclick="requestCompassPermission()" style="display:none;position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1000;padding:8px 16px;background:linear-gradient(135deg,#3b82f6,#6366f1);border:none;border-radius:12px;color:#fff;font-size:0.82rem;font-weight:700;cursor:pointer;backdrop-filter:blur(6px)">🧭 Activer le compas (iOS)</button>
     <button id="compassDebugBtn" onclick="toggleCompassDebug()" style="display:none;position:absolute;top:10px;right:10px;z-index:1000;padding:7px 10px;background:rgba(15,23,42,.9);border:1px solid #334155;border-radius:10px;color:#93c5fd;font-size:0.72rem;font-weight:700;cursor:pointer">DBG</button>
@@ -2008,11 +2016,24 @@ function _clearArrows() {
 
 function _updateRadarBg() {
   const bg = document.getElementById('radarBg');
-  if (bg) bg.classList.toggle('active', compassArrowMode && activeGameMode === 'fixed' && activeTab === 'explore');
+  if (bg) bg.classList.remove('active');
+}
+
+function updateCompassCorner() {
+  const el = document.getElementById('compassCorner');
+  const arrow = document.getElementById('compassCornerArrow');
+  const degEl = document.getElementById('compassCornerDeg');
+  if (!el || !arrow || !degEl) return;
+  const show = activeTab === 'explore' && activeGameMode === 'fixed' && playerLat !== null && deviceHeading !== null;
+  el.classList.toggle('active', show);
+  if (!show) return;
+  arrow.style.transform = `rotate(${-deviceHeading}deg)`;
+  degEl.textContent = Math.round(deviceHeading) + '°';
 }
 
 function updateCompass() {
   _updateRadarBg();
+  updateCompassCorner();
   if (activeTab !== 'explore') return;
   if (playerLat === null || !treasures.length) return;
   applyMapHeadingRotation();
@@ -2922,12 +2943,14 @@ function showTab(name, btn) {
     _updateRadarBg();
     applyExploreMapLock();
     applyMapHeadingRotation();
+    updateCompassCorner();
   } else if (name === 'scores') {
     stopCompassInterval();
     document.getElementById('captureFab').style.display = 'none';
     _clearArrows();
     _updateRadarBg();
     applyMapHeadingRotation();
+    updateCompassCorner();
     loadLeaderboard();
   } else if (name === 'moi') {
     stopCompassInterval();
@@ -2935,6 +2958,7 @@ function showTab(name, btn) {
     _clearArrows();
     _updateRadarBg();
     applyMapHeadingRotation();
+    updateCompassCorner();
     const ps = document.getElementById('parcoursSection');
     if (ps) ps.style.display = activeGameMode === 'fixed' ? 'block' : 'none';
     if (activeGameMode === 'fixed') loadBalises();
@@ -2945,6 +2969,7 @@ function showTab(name, btn) {
     document.getElementById('captureFab').style.display = 'none';
     _clearArrows();
     _updateRadarBg();
+    updateCompassCorner();
   }
 }
 
