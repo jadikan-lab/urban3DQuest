@@ -664,7 +664,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.10.19';
+const GAME_VERSION = 'v3.10.20';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -1892,16 +1892,15 @@ function updateProgressBar() {
   if (!myPseudo) { bar.style.display = 'none'; return; }
   bar.style.display = 'block';
   if (activeGameMode === 'unique') {
-    const uniqueTotal = treasures.filter(t => t.type === 'unique').length;
     const myUniqueFound = treasures.filter(t =>
       t.type === 'unique' &&
       t.found_by && t.found_by.split(',').includes(myPseudo)
     ).length;
-    const pct = uniqueTotal > 0 ? Math.min(100, Math.round(myUniqueFound / uniqueTotal * 100)) : 0;
-    document.getElementById('pbCount').textContent = myUniqueFound + ' / ' + uniqueTotal;
+    const pct = myUniqueFound > 0 ? 100 : 0;
+    document.getElementById('pbCount').textContent = String(myUniqueFound);
     document.getElementById('pbFill').style.width = pct + '%';
     document.getElementById('pbFill').style.background =
-      myUniqueFound >= uniqueTotal && uniqueTotal > 0
+      myUniqueFound > 0
         ? 'linear-gradient(90deg,#22c55e,#4ade80)'
         : 'linear-gradient(90deg,#a21caf,#db2777)';
     return;
