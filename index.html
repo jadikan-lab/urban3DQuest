@@ -98,11 +98,15 @@
     .panel{display:none!important}
     .panel.active{display:block!important;flex:1;overflow:hidden;min-height:0}
     #panelExplore.active{display:flex!important;flex-direction:column;flex:1;overflow:hidden;min-height:0;position:relative}
-    #miniMap{flex:1;border-bottom:2px solid var(--line-2);min-height:0;position:relative;overflow:hidden;background:#f0ede8;transform:translateZ(0)}
+    #miniMap{flex:1;border-bottom:2px solid var(--line-2);min-height:0;position:relative;overflow:hidden;background:#f0ede8;transform:translateZ(0);transition:box-shadow .25s ease, background .25s ease, border-color .25s ease}
     #miniMap .leaflet-map-pane,
     #miniMap .leaflet-tile-pane,
     #miniMap .leaflet-marker-pane,
     #miniMap .leaflet-overlay-pane{backface-visibility:hidden;transform-style:preserve-3d;will-change:transform}
+    #miniMap.mode-fixed{background:linear-gradient(180deg,#eef6f7 0%,#f0ede8 100%);box-shadow:inset 0 0 0 2px rgba(0,229,255,.14);border-bottom-color:rgba(0,229,255,.26)}
+    #miniMap.mode-fixed .leaflet-tile-pane{filter:saturate(.92) contrast(1.02)}
+    #miniMap.mode-flash{background:radial-gradient(circle at 50% 0%,rgba(255,61,138,.12),rgba(240,237,232,1) 58%);box-shadow:inset 0 0 0 2px rgba(255,61,138,.18);border-bottom-color:rgba(255,61,138,.3)}
+    #miniMap.mode-flash .leaflet-tile-pane{filter:saturate(1.08) hue-rotate(-10deg) contrast(1.03)}
     /* ── Radar bar ── */
     #radarBar{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.97);border:1px solid var(--line-2);border-radius:24px;padding:11px 20px;font-size:0.94rem;font-weight:800;color:var(--ink-2);z-index:200;display:none;white-space:nowrap;backdrop-filter:blur(8px);box-shadow:0 2px 20px rgba(26,24,38,.12);letter-spacing:0.01em;font-family:var(--mono)}
     #radarBar.near{color:#d97706;border-color:#d97706;background:rgba(255,252,235,.97);box-shadow:0 2px 20px rgba(217,119,6,.15)}
@@ -514,7 +518,7 @@
     <div id="compassCorner" aria-label="Boussole">
       <div id="compassRose" aria-hidden="true">
         <svg id="compassRoseSvg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <text x="50" y="13" text-anchor="middle" font-size="10" font-weight="900" fill="#5a4526" font-family="'JetBrains Mono', monospace">N</text>
+          <text x="50" y="16" text-anchor="middle" font-size="15" font-weight="900" fill="#5a4526" stroke="#fff8ef" stroke-width="1.6" paint-order="stroke" font-family="'JetBrains Mono', monospace">N</text>
           <circle cx="50" cy="50" r="44" fill="none" stroke="#5a4526" stroke-width="4"/>
           <circle cx="50" cy="50" r="38" fill="none" stroke="#6f5630" stroke-width="1.5"/>
           <g stroke="#6b522e" stroke-width="1.3" stroke-linecap="round">
@@ -1215,6 +1219,7 @@ function updateModeUI() {
   const arrowBtn = document.getElementById('arrowToggleBtn');
   const guideTitle = document.getElementById('modeGuideTitle');
   const guideText = document.getElementById('modeGuideText');
+  const miniMap = document.getElementById('miniMap');
 
   if (pbLabel) {
     pbLabel.textContent = activeGameMode === 'fixed'
@@ -1223,6 +1228,11 @@ function updateModeUI() {
   }
 
   if (arrowBtn) arrowBtn.style.display = activeGameMode === 'fixed' ? 'block' : 'none';
+
+  if (miniMap) {
+    miniMap.classList.toggle('mode-fixed', activeGameMode === 'fixed');
+    miniMap.classList.toggle('mode-flash', activeGameMode === 'unique');
+  }
 
   if (guideTitle && guideText) {
     if (activeGameMode === 'fixed') {
