@@ -74,12 +74,17 @@
     #gpsChip.gps-bad #gpsDot{background:#f87171}
     /* ── Navigation ── */
     nav{display:flex;background:var(--surface);border-bottom:1px solid var(--line-2);padding:0 1px}
-    nav button{flex:1;padding:4px 2px;min-height:34px;background:none;border:none;color:var(--ink-3);font-size:0.68rem;font-weight:700;cursor:pointer;letter-spacing:0.01em;transition:color 0.15s,background 0.15s;display:flex;flex-direction:column;align-items:center;gap:0;font-family:var(--display)}
+    nav button{flex:1;padding:6px 2px;min-height:46px;background:none;border:none;color:var(--ink-3);font-size:0.72rem;font-weight:800;cursor:pointer;letter-spacing:0.01em;transition:color 0.15s,background 0.15s;display:flex;flex-direction:column;align-items:center;gap:1px;font-family:var(--display)}
     .nav-icon{display:flex;align-items:center;justify-content:center;width:16px;height:16px}
     .nav-icon svg{width:16px;height:16px}
-    .nav-label{font-size:0.58rem;font-weight:700;letter-spacing:.01em}
+    .nav-label{font-size:0.64rem;font-weight:800;letter-spacing:.01em}
     nav button.active{color:var(--ink);border-bottom:2px solid var(--magenta);background:rgba(255,61,138,.1);font-weight:800}
     nav button:active{background:rgba(26,24,38,.05)}
+    #modeQuickGuide{display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,.9);border-bottom:1px solid var(--line-2)}
+    #modeGuideCopy{min-width:0;flex:1}
+    #modeGuideTitle{display:block;font-size:0.74rem;font-weight:800;color:var(--ink);font-family:var(--mono)}
+    #modeGuideText{display:block;font-size:0.66rem;font-weight:700;color:var(--ink-2);line-height:1.35}
+    #openTutorialBtn{border:none;background:linear-gradient(135deg,#111827,#1f2937);color:#f9fafb;padding:10px 12px;border-radius:10px;font-size:0.68rem;font-weight:800;min-height:42px;cursor:pointer;white-space:nowrap}
     /* ── More menu ── */
     #moreMenu{display:none;position:fixed;inset:0;z-index:500}
     #moreMenu.open{display:block}
@@ -97,7 +102,7 @@
     #miniMap .leaflet-marker-pane,
     #miniMap .leaflet-overlay-pane{backface-visibility:hidden;transform-style:preserve-3d;will-change:transform}
     /* ── Radar bar ── */
-    #radarBar{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.97);border:1px solid var(--line-2);border-radius:24px;padding:10px 26px;font-size:0.9rem;font-weight:700;color:var(--ink-2);z-index:200;display:none;white-space:nowrap;backdrop-filter:blur(8px);box-shadow:0 2px 20px rgba(26,24,38,.12);letter-spacing:0.01em;font-family:var(--mono)}
+    #radarBar{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.97);border:1px solid var(--line-2);border-radius:24px;padding:11px 20px;font-size:0.94rem;font-weight:800;color:var(--ink-2);z-index:200;display:none;white-space:nowrap;backdrop-filter:blur(8px);box-shadow:0 2px 20px rgba(26,24,38,.12);letter-spacing:0.01em;font-family:var(--mono)}
     #radarBar.near{color:#d97706;border-color:#d97706;background:rgba(255,252,235,.97);box-shadow:0 2px 20px rgba(217,119,6,.15)}
     #radarBar.very-near{color:#16a34a;border-color:#16a34a;background:rgba(240,255,244,.97);animation:pulse 1s infinite;box-shadow:0 2px 24px rgba(22,163,74,.2);font-size:0.95rem}
     /* ── Keyframes ── */
@@ -227,9 +232,10 @@
     #radarCenterDot{position:absolute;width:14px;height:14px;border-radius:50%;background:#fb7185;box-shadow:0 0 14px rgba(251,113,133,.9),0 0 4px rgba(255,255,255,.5);top:50%;left:50%;transform:translate(-50%,-50%);z-index:3}
     #radarCenterLabel{display:none}
     .radar-cardinal{position:absolute;font-size:0.7rem;font-weight:900;color:#fda4af;font-family:var(--mono);transform:translate(-50%,-50%);z-index:2;text-shadow:0 0 8px rgba(251,113,133,.85);letter-spacing:.05em}
-    #gpsKickBtn{display:none;position:absolute;top:10px;left:10px;z-index:1000;padding:7px 10px;background:rgba(217,119,6,.92);border:1px solid #f59e0b;border-radius:10px;color:#fff7ed;font-size:0.72rem;font-weight:800;cursor:pointer}
+    #gpsKickBtn{display:none;position:absolute;top:10px;left:10px;z-index:1000;padding:11px 14px;background:rgba(217,119,6,.96);border:1px solid #f59e0b;border-radius:12px;color:#fff7ed;font-size:0.78rem;font-weight:800;cursor:pointer;min-height:48px}
     #locateMeBtn{min-height:48px!important;min-width:48px!important;padding:10px!important;transition:transform .1s}
     #locateMeBtn:active{transform:scale(0.9)}
+    #outdoorToggleBtn{position:absolute;top:10px;right:10px;z-index:1000;padding:11px 13px;background:rgba(17,24,39,.92);border:1px solid rgba(255,255,255,.24);border-radius:12px;color:#fff;font-size:0.76rem;font-weight:800;cursor:pointer;min-height:48px}
     /* ── QR Scanner overlay ── */
     #qrOverlay{display:none;position:fixed;inset:0;background:var(--bg);z-index:2000;flex-direction:column;align-items:center;justify-content:center}
     #qrOverlay.open{display:flex}
@@ -246,6 +252,39 @@
     #qrTorchBtn{display:none;align-items:center;justify-content:center;gap:10px;padding:12px 0;background:linear-gradient(135deg,#374151,#111827);border:none;border-radius:12px;color:#fff;font-size:0.95rem;font-weight:700;cursor:pointer;width:100%;min-height:48px;letter-spacing:.02em;box-shadow:0 3px 16px rgba(17,24,39,.3);font-family:var(--display)}
     #qrPhotoBtn{display:flex;align-items:center;justify-content:center;gap:10px;padding:16px 0;background:linear-gradient(135deg,#2563eb,#4f46e5);border:none;border-radius:14px;color:#fff;font-size:1.05rem;font-weight:800;cursor:pointer;width:100%;min-height:56px;letter-spacing:.02em;box-shadow:0 4px 20px rgba(37,99,235,.4);font-family:var(--display)}
     #qrCloseBtn{padding:14px 0;background:var(--bg);border:1px solid var(--line-2);border-radius:12px;color:var(--ink);font-size:1rem;font-weight:700;cursor:pointer;min-height:52px;width:100%;backdrop-filter:blur(6px);font-family:var(--display)}
+
+    /* ── Quick tutorial ── */
+    #quickTutorial{display:none;position:fixed;inset:0;background:rgba(3,6,16,.72);z-index:2600;align-items:flex-end;justify-content:center;padding:0}
+    #quickTutorial.open{display:flex}
+    #quickTutorialCard{width:100%;max-width:520px;background:#fff;border-radius:22px 22px 0 0;border:1px solid var(--line-2);padding:20px 18px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -12px 42px rgba(2,6,23,.35)}
+    #quickTutorial h3{font-size:1rem;font-weight:900;color:var(--ink);margin-bottom:4px}
+    #quickTutorial p{font-size:0.82rem;color:var(--ink-2);line-height:1.45;margin-bottom:10px}
+    .qt-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+    .qt-card{border:1px solid var(--line-2);border-radius:12px;padding:10px;background:#fafafa}
+    .qt-card strong{display:block;font-size:0.74rem;color:var(--ink);margin-bottom:3px}
+    .qt-card span{font-size:0.68rem;color:var(--ink-2);line-height:1.35}
+    .qt-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .qt-btn{flex:1;min-width:140px;min-height:52px;border:none;border-radius:12px;padding:12px 10px;font-size:0.84rem;font-weight:800;cursor:pointer}
+    .qt-btn.primary{background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff}
+    .qt-btn.secondary{background:#111827;color:#f9fafb}
+    .qt-btn.ghost{background:#fff;color:#111827;border:1px solid var(--line-2)}
+    .qt-note{font-size:0.7rem;color:var(--ink-3);margin-top:10px}
+
+    body.outdoor-boost{
+      --bg:#fbfaf7;
+      --surface:#ffffff;
+      --surface-2:#f6f3ee;
+      --ink:#0f172a;
+      --ink-2:#334155;
+      --ink-3:#64748b;
+      --line-2:rgba(15,23,42,0.25);
+    }
+    body.outdoor-boost #radarBar{background:#ffffff;border:2px solid #0f172a;color:#0f172a;box-shadow:0 2px 0 rgba(0,0,0,.16)}
+    body.outdoor-boost #arrowToggleBtn,
+    body.outdoor-boost #locateMeBtn,
+    body.outdoor-boost #openTutorialBtn,
+    body.outdoor-boost #outdoorToggleBtn{min-height:52px!important;font-size:0.82rem!important;font-weight:900!important}
+    body.outdoor-boost #gpsChip{border-width:2px;font-size:0.68rem}
 
     /* ── COMPOSANTS JADIKAN ────────────────────────────── */
 
@@ -414,13 +453,13 @@
   <span class="pseudo-chip" id="headerPseudo" onclick="onHeaderPseudoClick()" style="cursor:pointer"></span>
 </header>
 <nav role="tablist" aria-label="Navigation principale">
-  <button aria-label="La Série" role="tab" aria-selected="true" id="navSerie" class="active" onclick="setGameMode('fixed');showTab('explore',this)">
+  <button aria-label="Mode Parcours" role="tab" aria-selected="true" id="navSerie" class="active" onclick="setGameMode('fixed');showTab('explore',this)">
     <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2C7.686 2 5 4.8 5 8.2c0 4.8 6 11.8 6 11.8s6-7 6-11.8C17 4.8 14.314 2 11 2z"/><circle cx="11" cy="8" r="2.2"/></svg></span>
-    <span class="nav-label">Série</span>
+    <span class="nav-label">Parcours</span>
   </button>
-  <button aria-label="Le Flash" role="tab" aria-selected="false" id="navDeclic" onclick="setGameMode('unique');showTab('explore',this)">
+  <button aria-label="Mode Capture" role="tab" aria-selected="false" id="navDeclic" onclick="setGameMode('unique');showTab('explore',this)">
     <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="14,2 7,12 11,12 8,20 15,10 11,10"/></svg></span>
-    <span class="nav-label">Flash</span>
+    <span class="nav-label">Capture</span>
   </button>
   <button aria-label="Compte" role="tab" aria-selected="false" id="navCompte" onclick="showTab('moi',this)">
     <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="7" r="4"/><path d="M2 20c0-4.418 4.03-8 9-8s9 3.582 9 8"/></svg></span>
@@ -431,6 +470,13 @@
     <span class="nav-label">Scores</span>
   </button>
 </nav>
+<div id="modeQuickGuide">
+  <div id="modeGuideCopy">
+    <strong id="modeGuideTitle">Mode Parcours</strong>
+    <span id="modeGuideText">Trouve les balises fixes dans l'ordre: approche-toi, lis l'indice, puis scanne.</span>
+  </div>
+  <button id="openTutorialBtn" onclick="openQuickTutorial()">Tutoriel 30s</button>
+</div>
 
 <!-- ── Explorer (carte + boussole fusionnées) ────────── -->
 <div id="panelExplore" class="panel active">
@@ -438,6 +484,7 @@
     <button id="arrowToggleBtn" onclick="toggleCompassArrows()" style="position:absolute;bottom:14px;right:10px;z-index:1000;background:rgba(255,255,255,.9);border:1.5px solid var(--line-2);border-radius:12px;color:var(--ink);font-size:0.75rem;font-weight:700;padding:7px 12px;cursor:pointer;backdrop-filter:blur(6px)">Polaroids</button>
     <button id="locateMeBtn" onclick="recenterMap()" style="position:absolute;bottom:14px;left:10px;z-index:1000;background:rgba(255,255,255,.9);border:1.5px solid var(--line-2);border-radius:12px;color:var(--ink-2);font-size:1.1rem;padding:7px 11px;cursor:pointer;backdrop-filter:blur(6px);display:none" title="Recentrer sur ma position"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="10" r="2.5" fill="currentColor"/><line x1="10" y1="1" x2="10" y2="4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="10" y1="15.5" x2="10" y2="19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="1" y1="10" x2="4.5" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="15.5" y1="10" x2="19" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
     <button id="gpsKickBtn" onclick="requestGpsKick()">📍 Activer GPS</button>
+    <button id="outdoorToggleBtn" onclick="toggleOutdoorBoost()" aria-label="Activer le contraste extérieur">☀️ Outdoor</button>
     <button id="compassPermBtn" onclick="requestCompassPermission()" style="display:none;position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1000;padding:8px 16px;background:linear-gradient(135deg,#3b82f6,#6366f1);border:none;border-radius:12px;color:#fff;font-size:0.82rem;font-weight:700;cursor:pointer;backdrop-filter:blur(6px)">🧭 Activer le compas (iOS)</button>
     <button id="compassDebugBtn" onclick="toggleCompassDebug()" style="display:none;position:absolute;top:10px;right:10px;z-index:1000;padding:7px 10px;background:rgba(15,23,42,.9);border:1px solid #334155;border-radius:10px;color:#93c5fd;font-size:0.72rem;font-weight:700;cursor:pointer">DBG</button>
     <div id="compassDebug" style="display:none;position:absolute;top:10px;left:10px;z-index:1000;font-size:0.68rem;color:var(--ink-2);line-height:1.6;padding:8px 12px;background:rgba(255,255,255,.92);border-radius:8px;max-width:220px;border:1px solid var(--line-2)"></div>
@@ -529,6 +576,30 @@
   </div>
 </div>
 
+<!-- ── Quick tutorial overlay ───────────────────────── -->
+<div id="quickTutorial" onclick="closeQuickTutorial(event)">
+  <div id="quickTutorialCard">
+    <h3>Choisis ton style en 30 secondes</h3>
+    <p>2 modes, 2 boucles de jeu: tu peux démarrer tout de suite puis revenir ici quand tu veux.</p>
+    <div class="qt-grid">
+      <div class="qt-card">
+        <strong>Parcours</strong>
+        <span>Balises fixes dans l'ordre. Progression calme, guidage par proximité.</span>
+      </div>
+      <div class="qt-card">
+        <strong>Capture</strong>
+        <span>Trésors uniques. Premier scan gagne, compétition en temps réel.</span>
+      </div>
+    </div>
+    <div class="qt-actions">
+      <button class="qt-btn primary" onclick="tutorialEnableGps()">1) Activer GPS</button>
+      <button class="qt-btn secondary" onclick="tutorialEnableCompass()">2) Activer compas</button>
+      <button class="qt-btn ghost" onclick="closeQuickTutorial()">3) Jouer maintenant</button>
+    </div>
+    <div class="qt-note">Astuce outdoor: active le bouton "☀️ Outdoor" sur la carte pour plus de contraste.</div>
+  </div>
+</div>
+
 <!-- ── QR Scanner overlay ──────────────────────────── -->
 <div id="qrOverlay">
   <div id="qrUI">
@@ -589,7 +660,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.10.17';
+const GAME_VERSION = 'v3.10.18';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -644,6 +715,8 @@ const MAX_FIXED_ARROWS = 3;
 let myToken = localStorage.getItem('u3dq_token') || ''; // session token for single-session enforcement
 let activeGameMode = (localStorage.getItem('u3dq_game_mode') || 'fixed') === 'unique' ? 'unique' : 'fixed';
 const revealedFixedClues = new Set(myPseudo ? JSON.parse(localStorage.getItem(`u3dq_clues_${myPseudo}`) || '[]') : []); // fixed clues unlocked by proximity, persisted per player
+let outdoorBoost = localStorage.getItem('u3dq_outdoor_boost') === '1';
+let tutorialSeen = localStorage.getItem('u3dq_tuto_seen') === '1';
 
 function isIOSDevice() {
   return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
@@ -868,6 +941,7 @@ async function continueAsGuest() {
 async function initGame(pendingFoundId) {
   updateHeader();
   updateModeUI();
+  applyOutdoorBoost();
   document.getElementById('radarBar').style.display = 'block';
 
   // Load config
@@ -941,6 +1015,8 @@ async function initGame(pendingFoundId) {
     history.replaceState({}, '', location.pathname);
     processCheckin();
   }
+
+  maybeOpenQuickTutorial();
 }
 
 // ── QR balise checkin ────────────────────────────────
@@ -1034,6 +1110,8 @@ function updateHeader() {
 function updateModeUI() {
   const pbLabel = document.querySelector('#progressBar .pb-label span');
   const arrowBtn = document.getElementById('arrowToggleBtn');
+  const guideTitle = document.getElementById('modeGuideTitle');
+  const guideText = document.getElementById('modeGuideText');
 
   if (pbLabel) {
     pbLabel.textContent = activeGameMode === 'fixed'
@@ -1042,6 +1120,16 @@ function updateModeUI() {
   }
 
   if (arrowBtn) arrowBtn.style.display = activeGameMode === 'fixed' ? 'block' : 'none';
+
+  if (guideTitle && guideText) {
+    if (activeGameMode === 'fixed') {
+      guideTitle.textContent = 'Mode Parcours';
+      guideText.textContent = 'Balises fixes dans l\'ordre: approche-toi, lis l\'indice, puis scanne.';
+    } else {
+      guideTitle.textContent = 'Mode Capture';
+      guideText.textContent = 'Trésors uniques: premier scan gagne, les autres passent à la suivante.';
+    }
+  }
 }
 
 function setGameMode(mode) {
@@ -1079,6 +1167,55 @@ function onHeaderPseudoClick() {
     const inp = document.getElementById('pseudoInput');
     if (inp) { inp.value = ''; inp.focus(); }
   }
+}
+
+function applyOutdoorBoost() {
+  document.body.classList.toggle('outdoor-boost', outdoorBoost);
+  const btn = document.getElementById('outdoorToggleBtn');
+  if (btn) btn.textContent = outdoorBoost ? '☀️ Outdoor ON' : '☀️ Outdoor';
+}
+
+function toggleOutdoorBoost() {
+  outdoorBoost = !outdoorBoost;
+  localStorage.setItem('u3dq_outdoor_boost', outdoorBoost ? '1' : '0');
+  applyOutdoorBoost();
+}
+
+function openQuickTutorial() {
+  const el = document.getElementById('quickTutorial');
+  if (!el) return;
+  el.classList.add('open');
+}
+
+function closeQuickTutorial(evt) {
+  const el = document.getElementById('quickTutorial');
+  if (!el) return;
+  if (evt && evt.target && evt.target.id !== 'quickTutorial') return;
+  el.classList.remove('open');
+  tutorialSeen = true;
+  localStorage.setItem('u3dq_tuto_seen', '1');
+}
+
+function tutorialEnableGps() {
+  requestGpsKick();
+}
+
+function tutorialEnableCompass() {
+  const hasCompassPermAPI = typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function';
+  if (hasCompassPermAPI) {
+    requestCompassPermission();
+    return;
+  }
+  const bar = document.getElementById('radarBar');
+  if (bar) {
+    bar.textContent = '🧭 Compas actif (ou non requis sur cet appareil)';
+    bar.className = '';
+  }
+}
+
+function maybeOpenQuickTutorial() {
+  if (tutorialSeen) return;
+  setTimeout(() => openQuickTutorial(), 500);
 }
 
 // ── Treasures ────────────────────────────────────────
@@ -1307,7 +1444,11 @@ function _onGeoSuccess(pos) {
 function _onGeoError(err) {
   geoLastErrorCode = err.code;
   geoLastErrorAt = Date.now();
-  const msgs = { 1: 'Permission GPS refusée — active la localisation dans les réglages', 2: 'GPS indisponible', 3: 'Délai GPS dépassé — reste à l\'air libre' };
+  const msgs = {
+    1: 'Permission GPS refusée — Réglages > Localisation > Autoriser',
+    2: 'GPS indisponible — passe en zone dégagée puis relance GPS',
+    3: 'GPS trop lent — reste a l\'air libre puis relance GPS'
+  };
   const bar = document.getElementById('radarBar');
   bar.textContent = '📍 ' + (msgs[err.code] || 'Erreur GPS');
   bar.className = '';
@@ -1681,6 +1822,11 @@ function _showCompassToast() {
 }
 
 async function requestCompassPermission() {
+  if (typeof DeviceOrientationEvent === 'undefined' || typeof DeviceOrientationEvent.requestPermission !== 'function') {
+    _attachOrientationListeners();
+    scheduleCompassRender(true);
+    return;
+  }
   try {
     const res = await DeviceOrientationEvent.requestPermission();
     localStorage.setItem('u3dq_compassAsked', '1');
@@ -2047,7 +2193,7 @@ async function _startNativeScan(status, isStg, _qrLog) {
   } catch(err) {
     if (_nativeStream) { _nativeStream.getTracks().forEach(t => t.stop()); _nativeStream = null; }
     _qrLog('getUserMedia ERR: ' + (err.message||err).toString().slice(0,60));
-    status.textContent = '⚠️ Caméra refusée — ' + (err.message||err).toString().slice(0,60);
+    status.textContent = '⚠️ Caméra bloquée. Autorise la caméra puis utilise Photo du polaroid (secours).';
     status.className = 'qr-err';
     document.getElementById('qrTips').style.display = 'block';
   }
@@ -2087,7 +2233,7 @@ async function _startHtml5Scan(status, isStg, _qrLog) {
   } catch(err) {
     html5QrInst = null;
     _qrLog('ZXing start ERR: ' + (err.message||err).toString().slice(0,60));
-    status.textContent = '⚠️ Caméra refusée — ' + (err.message||err).toString().slice(0,60);
+    status.textContent = '⚠️ Caméra bloquée. Autorise la caméra puis utilise Photo du polaroid (secours).';
     status.className = 'qr-err';
     document.getElementById('qrTips').style.display = 'block';
   }
