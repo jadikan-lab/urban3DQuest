@@ -110,14 +110,33 @@
     /* ── Flash mode accent theming ── */
     body.flash-mode nav{border-bottom-color:rgba(255,61,138,.22)}
     body.flash-mode nav button.active{background:rgba(255,61,138,.14);border-bottom-color:var(--magenta)}
+    body.flash-mode #navDeclic .nav-icon{animation:flashNavPulse 1.4s ease-in-out infinite}
+    body.flash-mode #navDeclic{color:var(--magenta)!important}
     body.flash-mode #modeQuickGuide{background:rgba(255,61,138,.07);border-bottom-color:rgba(255,61,138,.22)}
     body.flash-mode #modeGuideTitle{color:var(--magenta)}
     body.flash-mode #radarBar{border-color:rgba(255,61,138,.45);color:var(--magenta)}
     body.flash-mode #radarBar.near{color:#db2777;border-color:#db2777;background:rgba(253,242,248,.97);box-shadow:0 2px 20px rgba(219,39,119,.2);animation:none}
     body.flash-mode #radarBar.very-near{color:var(--magenta);border-color:var(--magenta);background:rgba(255,240,248,.97);box-shadow:0 2px 28px rgba(255,61,138,.4)}
+    @keyframes flashNavPulse{0%,100%{filter:drop-shadow(0 0 0px var(--magenta));transform:scale(1)}50%{filter:drop-shadow(0 0 6px var(--magenta));transform:scale(1.18)}}
     /* ── Flash taken toast ── */
     #flashTakenToast{position:absolute;top:12px;left:50%;transform:translateX(-50%) translateY(-10px);background:rgba(15,23,42,.93);border:1.5px solid rgba(255,61,138,.55);border-radius:22px;padding:10px 20px;font-size:0.84rem;font-weight:800;color:var(--magenta);z-index:250;white-space:nowrap;backdrop-filter:blur(10px);font-family:var(--mono);pointer-events:none;opacity:0;transition:opacity .3s,transform .3s}
     #flashTakenToast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    /* ── Welcome return toast ── */
+    #welcomeToast{position:fixed;top:calc(env(safe-area-inset-top) + 64px);left:50%;transform:translateX(-50%) translateY(-8px);background:rgba(255,255,255,.97);border:1.5px solid #22c55e;border-radius:22px;padding:10px 20px;font-size:0.82rem;font-weight:800;color:#16a34a;z-index:400;white-space:nowrap;backdrop-filter:blur(10px);font-family:var(--mono);pointer-events:none;opacity:0;transition:opacity .35s,transform .35s;box-shadow:0 4px 20px rgba(22,163,74,.18)}
+    #welcomeToast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    /* ── Found modal flash overlay ── */
+    #foundFlashOverlay{position:absolute;inset:0;border-radius:var(--radius-lg);background:#fff;pointer-events:none;opacity:0;z-index:10}
+    #foundFlashOverlay.flash{animation:foundFlashAnim .55s ease-out forwards}
+    @keyframes foundFlashAnim{0%{opacity:.85}100%{opacity:0}}
+    /* ── Leaderboard tabs ── */
+    #lbTabs{display:flex;gap:0;margin-bottom:10px;border:1px solid var(--line-2);border-radius:12px;overflow:hidden;background:var(--bg)}
+    .lb-tab{flex:1;padding:10px 8px;border:none;background:none;font-size:0.78rem;font-weight:800;color:var(--ink-2);cursor:pointer;font-family:var(--mono);transition:background .15s,color .15s}
+    .lb-tab.active{background:var(--surface);color:var(--ink);border-bottom:2px solid var(--magenta)}
+    /* ── Tutorial photo ── */
+    #qtExamplePhoto{width:100%;border-radius:10px;object-fit:cover;max-height:110px;margin-bottom:10px;display:none;border:1px solid var(--line-2)}
+    /* ── Tutorial compass iOS highlight ── */
+    .qt-btn.compass-required{border:2px solid var(--magenta)!important;color:#fff!important;background:linear-gradient(135deg,var(--magenta),#a855f7)!important;animation:compassBtnPulse 1.8s ease-in-out infinite}
+    @keyframes compassBtnPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,61,138,.5)}60%{box-shadow:0 0 0 8px rgba(255,61,138,0)}}
     /* ── Keyframes ── */
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:.7}}
     @keyframes compassSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
@@ -498,9 +517,14 @@
 
 <!-- ── Leaderboard ───────────────────────────────────── -->
 <div id="panelScores" class="panel">
+  <div id="lbTabs">
+    <button class="lb-tab active" id="lbTabQuete" onclick="switchLbTab('quete')">📌 Quête</button>
+    <button class="lb-tab" id="lbTabFlash" onclick="switchLbTab('flash')">⚡ Flash</button>
+  </div>
   <div id="myCard"></div>
   <hr class="lp-line" style="margin:0 0 4px">
   <div id="lbList"><p style="color:var(--ink-3);text-align:center;padding:40px">Chargement…</p></div>
+  <div id="lbFlashList" style="display:none"><p style="color:var(--ink-3);text-align:center;padding:40px">Chargement…</p></div>
   <div class="lb-refresh" id="lbRefresh"></div>
   <div style="text-align:center;font-size:0.62rem;color:var(--ink-3);padding-bottom:8px" id="gameVersion"></div>
 </div>
@@ -559,7 +583,8 @@
 
 <!-- ── Found modal ───────────────────────────────────── -->
 <div id="foundModal">
-  <div class="found-box">
+  <div class="found-box" style="position:relative;overflow:hidden">
+    <div id="foundFlashOverlay"></div>
     <img id="foundPhoto" style="width:100%;max-height:160px;object-fit:cover;border-radius:10px;margin-bottom:10px;display:none" alt="photo du trésor">
     <div id="foundPhotoStrip" style="display:none;margin-bottom:10px"></div>
     <div class="found-emoji" id="foundEmoji">📷</div>
@@ -578,6 +603,7 @@
   <div id="quickTutorialCard">
     <h3>Choisis ton style en 30 secondes</h3>
     <p>2 modes, 2 boucles de jeu: tu peux démarrer tout de suite puis revenir ici quand tu veux.</p>
+    <img id="qtExamplePhoto" src="" alt="Exemple de balise physique">
     <div class="qt-grid">
       <div class="qt-card">
         <strong>Quête</strong>
@@ -590,10 +616,11 @@
     </div>
     <div class="qt-actions">
       <button class="qt-btn primary" onclick="tutorialEnableGps()">1) Activer GPS</button>
-      <button class="qt-btn secondary" onclick="tutorialEnableCompass()">2) Activer compas</button>
+      <button class="qt-btn secondary" id="tutorialCompassBtn" onclick="tutorialEnableCompass()">2) Activer compas</button>
       <button class="qt-btn ghost" onclick="closeQuickTutorial()">3) Jouer maintenant</button>
     </div>
     <div class="qt-note">Astuce: active GPS + compas avant de démarrer pour une meilleure fluidité.</div>
+    <div id="qtCompassNote" style="display:none;margin-top:8px;font-size:0.74rem;color:var(--magenta);font-weight:700;font-family:var(--mono)">⚠️ iOS détecté — active le compas (étape 2) pour que les flèches s'orientent vers les balises.</div>
   </div>
 </div>
 
@@ -616,6 +643,9 @@
 </div>
 
 <!-- ── Pause screen ──────────────────────────────────── -->
+<!-- ── Welcome return toast ── -->
+<div id="welcomeToast"></div>
+
 <div id="pauseScreen">
   <div style="font-size:3rem">⏸</div>
   <h2>Jeu en pause</h2>
@@ -657,7 +687,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.10.25';
+const GAME_VERSION = 'v3.10.26';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -959,6 +989,11 @@ async function initGame(pendingFoundId) {
       const gs = new Date(c.gameStart);
       if (!isNaN(gs.getTime())) gameStart = gs;
     }
+    // Tutorial example photo
+    if (c.examplePhotoUrl) {
+      const qtp = document.getElementById('qtExamplePhoto');
+      if (qtp) { qtp.src = c.examplePhotoUrl; qtp.style.display = 'block'; }
+    }
   }
 
   // Load treasures & init map
@@ -1013,6 +1048,18 @@ async function initGame(pendingFoundId) {
   }
 
   maybeOpenQuickTutorial();
+  // Welcome back toast for returning players
+  if (myPseudo && myFoundCount > 0) {
+    const remaining = treasures.filter(t => t.type === 'fixed' && !(t.found_by && t.found_by.split(',').includes(myPseudo))).length;
+    if (remaining > 0) {
+      const wt = document.getElementById('welcomeToast');
+      if (wt) {
+        wt.textContent = `Bon retour ${myPseudo} ! Il te reste ${remaining} polaroid${remaining > 1 ? 's' : ''} à trouver.`;
+        wt.classList.add('show');
+        setTimeout(() => wt.classList.remove('show'), 4000);
+      }
+    }
+  }
 }
 
 // ── QR balise checkin ────────────────────────────────
@@ -1209,6 +1256,15 @@ function tutorialEnableCompass() {
 function maybeOpenQuickTutorial() {
   updateTutorialEntryPoints();
   if (tutorialSeen) return;
+  // On iOS: highlight compass button + show note
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const hasCompassAPI = typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function';
+  if (isIOS && hasCompassAPI) {
+    const btn = document.getElementById('tutorialCompassBtn');
+    const note = document.getElementById('qtCompassNote');
+    if (btn) btn.classList.add('compass-required');
+    if (note) note.style.display = 'block';
+  }
   setTimeout(() => openQuickTutorial(), 500);
 }
 
@@ -2529,8 +2585,9 @@ function showFoundResult(status, t, durationSec) {
     if (t.type === 'fixed') {
       emoji.textContent = '📷';
       label.textContent = 'POLAROID RÉVÉLÉ';
-      title.textContent = `Polaroid revele. Ta quete avance.`;
-      dur.textContent   = '';
+      title.textContent = `Polaroid révélé !`;
+      // Temps de session (depuis le démarrage ou la 1ère balise trouvée)
+      dur.textContent = durationSec != null ? '⏱ ' + formatDuration(durationSec) + ' depuis le début' : '';
       // Compte combien de fixes il reste
       const remaining = treasures.filter(tr =>
         tr.type === 'fixed' &&
@@ -2538,7 +2595,7 @@ function showFoundResult(status, t, durationSec) {
         tr.id !== t.id
       ).length;
       if (remaining > 0) {
-        desc.textContent = `Il te reste ${remaining} polaroid${remaining > 1 ? 's' : ''} à révéler. Continue !`;
+        desc.textContent = `Il te reste ${remaining} polaroid${remaining > 1 ? 's' : ''} à trouver. Plus vite tu les trouves tous, meilleur ton classement !`;
       } else {
         // All fixed found — fetch reward message from config
         desc.textContent = '🏆 Incroyable ! Ta quete est complete !';
@@ -2570,6 +2627,15 @@ function showFoundResult(status, t, durationSec) {
     desc.textContent  = 'Trop tard. Ce flash a déjà été pris.';
   }
   modal.classList.add('open');
+  // Flash overlay on success
+  if (status === 'success') {
+    const overlay = document.getElementById('foundFlashOverlay');
+    if (overlay) {
+      overlay.classList.remove('flash');
+      void overlay.offsetWidth; // force reflow
+      overlay.classList.add('flash');
+    }
+  }
 }
 
 function closeFound() { document.getElementById('foundModal').classList.remove('open'); }
@@ -2593,6 +2659,19 @@ function pseudoGradient(pseudo) {
   for (let i = 0; i < pseudo.length; i++) seed = (seed * 31 + pseudo.charCodeAt(i)) & 0xffff;
   const palette = ['#ff3d8a','#00e5ff','#ffb020','#a855f7','#4ade80','#60a5fa','#f87171'];
   return `linear-gradient(135deg,${palette[seed % palette.length]},${palette[(seed*7+3) % palette.length]})`;
+}
+
+let activeLbTab = 'quete';
+function switchLbTab(tab) {
+  activeLbTab = tab === 'flash' ? 'flash' : 'quete';
+  const bq = document.getElementById('lbTabQuete');
+  const bf = document.getElementById('lbTabFlash');
+  const lq = document.getElementById('lbList');
+  const lf = document.getElementById('lbFlashList');
+  if (bq) bq.classList.toggle('active', activeLbTab === 'quete');
+  if (bf) bf.classList.toggle('active', activeLbTab === 'flash');
+  if (lq) lq.style.display = activeLbTab === 'quete' ? 'block' : 'none';
+  if (lf) lf.style.display = activeLbTab === 'flash' ? 'block' : 'none';
 }
 
 // ── Leaderboard ──────────────────────────────────────
@@ -2758,6 +2837,32 @@ async function loadLeaderboard() {
   }
 
   document.getElementById('lbList').innerHTML = html;
+  // Flash-only leaderboard
+  const flashRows = Object.entries(players)
+    .map(([pseudo, d]) => ({ pseudo, flashCount: d.uniqueEvents.length }))
+    .filter(r => r.flashCount > 0)
+    .sort((a, b) => b.flashCount - a.flashCount);
+
+  let flashHtml = '';
+  if (!flashRows.length) {
+    flashHtml = '<p style="color:#475569;text-align:center;padding:50px 20px">⚡ Aucun score Flash pour le moment</p>';
+  } else {
+    flashHtml += `<div class="lb-divider">⚡ Classement Flash · ${flashRows.length} joueur${flashRows.length > 1 ? 's' : ''}</div>`;
+    flashRows.forEach((p, i) => {
+      const rankIcon = i < 3 ? medals[i] : `<span style="font-size:0.85rem;color:#475569;font-weight:700">${i+1}</span>`;
+      const isMe = p.pseudo === myPseudo;
+      flashHtml += `<div class="lb-row${isMe ? ' lb-me' : ''}">
+        <div class="lb-rank">${rankIcon}</div>
+        <div class="lb-avatar" style="background:${pseudoGradient(p.pseudo)}">${escHtml(p.pseudo[0].toUpperCase())}</div>
+        <div class="lb-body">
+          <div class="lb-name">${escHtml(p.pseudo)}</div>
+          <div class="lb-score"><strong>⚡ ${p.flashCount} flash${p.flashCount > 1 ? 's' : ''}</strong></div>
+        </div>
+      </div>`;
+    });
+  }
+  document.getElementById('lbFlashList').innerHTML = flashHtml;
+  switchLbTab(activeLbTab);
   document.getElementById('lbRefresh').textContent = '↻ ' + new Date().toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
   } catch(renderErr) {
     el.innerHTML = `<p style="color:#f87171;text-align:center;padding:40px">⚠️ Erreur rendu : ${escHtml(renderErr.message)}</p>`;
@@ -2769,6 +2874,16 @@ function startLbPolling() {
   loadLeaderboard();
   if (lbInterval) clearInterval(lbInterval);
   lbInterval = setInterval(loadLeaderboard, 10000);
+}
+
+let _lbActiveTab = 'quete';
+function switchLbTab(tab) {
+  _lbActiveTab = tab;
+  document.getElementById('lbTabQuete').classList.toggle('active', tab === 'quete');
+  document.getElementById('lbTabFlash').classList.toggle('active', tab === 'flash');
+  document.getElementById('lbList').style.display     = tab === 'quete' ? 'block' : 'none';
+  document.getElementById('lbFlashList').style.display = tab === 'flash' ? 'block' : 'none';
+  document.getElementById('myCard').style.display = 'block';
 }
 
 // ── Page Visibility API — pause timers en arrière-plan ──
