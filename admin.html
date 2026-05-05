@@ -428,7 +428,7 @@ var SUPABASE_ENV=resolveSupabaseEnv();
 var SUPABASE_URL=SUPABASE_ENV.url;
 var SUPABASE_KEY=SUPABASE_ENV.key;
 var GAME_BASE_URL='https://jadikan-lab.github.io/urban3DQuest';
-var GAME_WEB_VERSION='85a3242'; // cache-busting for mobile scans
+var GAME_WEB_VERSION='21a5a4a'; // cache-busting for mobile scans
 function buildGameUrl(param,value){return GAME_BASE_URL+'/?'+param+'='+value+'&v='+GAME_WEB_VERSION;}
 var ADMIN_UI_VERSION='v3.9.8';
 var db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
