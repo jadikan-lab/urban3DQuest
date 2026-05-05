@@ -268,6 +268,7 @@
     /* ── Compass corner widget (rose des vents transparente) ── */
     #compassCorner{position:absolute;left:10px;bottom:56px;z-index:1000;display:none;align-items:center;justify-content:center;background:transparent;border:none;border-radius:0;padding:0;box-shadow:none;font-family:var(--mono);width:60px;height:60px}
     #compassCorner.active{display:flex}
+    #compassNorthLabel{position:absolute;left:50%;top:-14px;transform:translateX(-50%);font-size:0.78rem;font-weight:900;color:#4a3518;background:rgba(255,248,239,0.92);border:1px solid rgba(90,69,38,.35);border-radius:999px;padding:0 6px;line-height:1.25;letter-spacing:.02em;pointer-events:none;box-shadow:0 1px 4px rgba(45,36,24,.18)}
     #compassRose{position:relative;width:58px;height:58px;display:flex;align-items:center;justify-content:center;transform:rotate(0deg);transform-origin:50% 50%;transition:transform .24s ease}
     #compassRoseSvg{width:58px;height:58px;display:block;filter:drop-shadow(0 1px 4px rgba(45,36,24,.32))}
     /* ── Android GPS settle hint ── */
@@ -516,9 +517,9 @@
     <button id="arrowToggleBtn" onclick="toggleCompassArrows()" style="position:absolute;bottom:14px;right:10px;z-index:1000;background:rgba(255,255,255,.9);border:1.5px solid var(--line-2);border-radius:12px;color:var(--ink);font-size:0.75rem;font-weight:700;padding:7px 12px;cursor:pointer;backdrop-filter:blur(6px)">Polaroids</button>
     <button id="locateMeBtn" onclick="recenterMap()" style="position:absolute;bottom:14px;left:10px;z-index:1000;background:rgba(255,255,255,.9);border:1.5px solid var(--line-2);border-radius:12px;color:var(--ink-2);font-size:1.1rem;padding:7px 11px;cursor:pointer;backdrop-filter:blur(6px);display:none" title="Recentrer sur ma position"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="10" r="2.5" fill="currentColor"/><line x1="10" y1="1" x2="10" y2="4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="10" y1="15.5" x2="10" y2="19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="1" y1="10" x2="4.5" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="15.5" y1="10" x2="19" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
     <div id="compassCorner" aria-label="Boussole">
+      <div id="compassNorthLabel" aria-hidden="true">N</div>
       <div id="compassRose" aria-hidden="true">
         <svg id="compassRoseSvg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <text x="50" y="16" text-anchor="middle" font-size="15" font-weight="900" fill="#5a4526" stroke="#fff8ef" stroke-width="1.6" paint-order="stroke" font-family="'JetBrains Mono', monospace">N</text>
           <circle cx="50" cy="50" r="44" fill="none" stroke="#5a4526" stroke-width="4"/>
           <circle cx="50" cy="50" r="38" fill="none" stroke="#6f5630" stroke-width="1.5"/>
           <g stroke="#6b522e" stroke-width="1.3" stroke-linecap="round">
@@ -765,6 +766,8 @@ let compassEventCount = 0;
 let compassEventRate = 0;
 let compassLastRateTick = Date.now();
 let compassDebugInterval = null;
+let compassLastRawAt = 0;
+let orientationListenersAttached = false;
 let mapCenter    = [45.1885, 5.7245]; // default Grenoble, overridden by config
 let activeQuests = [];  // empty = all quests visible
 let gameStart    = null;  // Date or null — reference timestamp for score calc
@@ -1448,7 +1451,8 @@ function applyExploreMapLock() {
     mapFollowing = true;
     if (locateBtn) locateBtn.style.display = 'none';
     if (gameMap.dragging) gameMap.dragging.disable();
-    if (gameMap.touchZoom) gameMap.touchZoom.disable();
+    if (gameMap.options) gameMap.options.touchZoom = 'center';
+    if (gameMap.touchZoom && !gameMap.touchZoom.enabled()) gameMap.touchZoom.enable();
     if (gameMap.scrollWheelZoom) gameMap.scrollWheelZoom.disable();
     if (gameMap.doubleClickZoom) gameMap.doubleClickZoom.disable();
     if (gameMap.boxZoom) gameMap.boxZoom.disable();
@@ -1458,6 +1462,7 @@ function applyExploreMapLock() {
       gameMap.setView([playerLat, playerLng], gameMap.getZoom(), { animate: true });
     }
   } else {
+    if (gameMap.options) gameMap.options.touchZoom = true;
     if (gameMap.dragging && !gameMap.dragging.enabled()) gameMap.dragging.enable();
     if (gameMap.touchZoom && !gameMap.touchZoom.enabled()) gameMap.touchZoom.enable();
     if (gameMap.scrollWheelZoom && !gameMap.scrollWheelZoom.enabled()) gameMap.scrollWheelZoom.enable();
@@ -1534,7 +1539,19 @@ function renderMarkers() {
       return;
     }
 
-    // All other cases (found uniques, found fixed): luminous pin
+    // Fixed found by this player: keep a very small green dot.
+    if (t.type === 'fixed' && isMine) {
+      mapMarkers[t.id] = L.circleMarker([t.lat, t.lng], {
+        radius: 4,
+        color: '#166534',
+        weight: 1,
+        fillColor: '#22c55e',
+        fillOpacity: 0.9
+      }).addTo(gameMap).on('click', () => openTreasureSheet(t));
+      return;
+    }
+
+    // All other cases (found uniques): luminous pin
     const icon = L.divIcon({
       html: `<div class="pin found"><div class="pin-halo"></div><div class="pin-core">✓</div></div>`,
       className: '', iconSize: [36, 36], iconAnchor: [18, 18]
@@ -1896,16 +1913,27 @@ function _smoothHeading(prev, next, factor) {
 
 function _setHeading(nextHeading, source) {
   if (!Number.isFinite(nextHeading)) return;
-  compassRawHeading = _normHeading(nextHeading);
+  const normalized = _normHeading(nextHeading);
+  const now = Date.now();
+
+  // Ignore abrupt jumps coming from noisy magnetic readings.
+  if (compassRawHeading !== null && compassLastRawAt > 0) {
+    const dt = Math.max(1, now - compassLastRawAt);
+    const jump = Math.abs((((normalized - compassRawHeading) + 540) % 360) - 180);
+    if (dt < 220 && jump > 70) return;
+  }
+
+  compassRawHeading = normalized;
+  compassLastRawAt = now;
   compassLastEventSource = source || 'unknown';
   compassEventCount += 1;
-  const now = Date.now();
   if (now - compassLastRateTick >= 1000) {
     compassEventRate = Math.round((compassEventCount * 1000) / (now - compassLastRateTick));
     compassEventCount = 0;
     compassLastRateTick = now;
   }
-  deviceHeading = _smoothHeading(deviceHeading, _normHeading(nextHeading), 0.42);
+  const factor = source === 'webkit' ? 0.2 : 0.16;
+  deviceHeading = _smoothHeading(deviceHeading, normalized, factor);
   applyMapHeadingRotation();
   scheduleCompassRender();
 }
@@ -2016,6 +2044,8 @@ async function requestCompassPermission() {
 }
 
 function _attachOrientationListeners() {
+  if (orientationListenersAttached) return;
+  orientationListenersAttached = true;
   let hasAbsolute = false;
 
   // Prefer deviceorientationabsolute (Android Chrome 67+) — true north
@@ -2032,6 +2062,7 @@ function _attachOrientationListeners() {
   window.addEventListener('deviceorientation', e => {
     // iOS: webkitCompassHeading is directly clockwise from north
     if (typeof e.webkitCompassHeading === 'number' && e.webkitCompassHeading >= 0) {
+      if (typeof e.webkitCompassAccuracy === 'number' && e.webkitCompassAccuracy > 45) return;
       _setHeading(e.webkitCompassHeading, 'webkit');
       return;
     }
