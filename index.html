@@ -695,7 +695,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.10.26';
+const GAME_VERSION = 'v3.10.27';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -1386,11 +1386,23 @@ function applyExploreMapLock() {
     mapFollowing = true;
     if (locateBtn) locateBtn.style.display = 'none';
     if (gameMap.dragging) gameMap.dragging.disable();
+    if (gameMap.touchZoom) gameMap.touchZoom.disable();
+    if (gameMap.scrollWheelZoom) gameMap.scrollWheelZoom.disable();
+    if (gameMap.doubleClickZoom) gameMap.doubleClickZoom.disable();
+    if (gameMap.boxZoom) gameMap.boxZoom.disable();
+    if (gameMap.keyboard) gameMap.keyboard.disable();
+    if (gameMap.tap) gameMap.tap.disable();
     if (playerLat !== null && playerLng !== null) {
       gameMap.setView([playerLat, playerLng], gameMap.getZoom(), { animate: true });
     }
   } else {
     if (gameMap.dragging && !gameMap.dragging.enabled()) gameMap.dragging.enable();
+    if (gameMap.touchZoom && !gameMap.touchZoom.enabled()) gameMap.touchZoom.enable();
+    if (gameMap.scrollWheelZoom && !gameMap.scrollWheelZoom.enabled()) gameMap.scrollWheelZoom.enable();
+    if (gameMap.doubleClickZoom && !gameMap.doubleClickZoom.enabled()) gameMap.doubleClickZoom.enable();
+    if (gameMap.boxZoom && !gameMap.boxZoom.enabled()) gameMap.boxZoom.enable();
+    if (gameMap.keyboard && !gameMap.keyboard.enabled()) gameMap.keyboard.enable();
+    if (gameMap.tap && !gameMap.tap.enabled()) gameMap.tap.enable();
   }
 }
 
