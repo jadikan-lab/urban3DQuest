@@ -262,10 +262,20 @@
     #radarCenterLabel{display:none}
     .radar-cardinal{position:absolute;font-size:0.7rem;font-weight:900;color:#fda4af;font-family:var(--mono);transform:translate(-50%,-50%);z-index:2;text-shadow:0 0 8px rgba(251,113,133,.85);letter-spacing:.05em}
     /* ── Compass corner widget (rose des vents transparente) ── */
-    #compassCorner{position:absolute;left:10px;bottom:74px;z-index:1000;display:none;align-items:center;justify-content:center;background:transparent;border:none;border-radius:0;padding:0;box-shadow:none;font-family:var(--mono)}
+    #compassCorner{position:absolute;left:10px;bottom:56px;z-index:1000;display:none;align-items:center;justify-content:center;background:transparent;border:none;border-radius:0;padding:0;box-shadow:none;font-family:var(--mono);width:60px;height:60px}
     #compassCorner.active{display:flex}
-    #compassRose{position:relative;width:70px;height:70px;display:flex;align-items:center;justify-content:center;transform:rotate(0deg);transform-origin:50% 50%;transition:transform .24s ease}
-    #compassRoseSvg{width:70px;height:70px;display:block;filter:drop-shadow(0 1px 4px rgba(45,36,24,.32))}
+    #compassRose{position:relative;width:58px;height:58px;display:flex;align-items:center;justify-content:center;transform:rotate(0deg);transform-origin:50% 50%;transition:transform .24s ease}
+    #compassRoseSvg{width:58px;height:58px;display:block;filter:drop-shadow(0 1px 4px rgba(45,36,24,.32))}
+    /* ── Android GPS settle hint ── */
+    #gpsSettleHint{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:1000;display:none;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.9);border:1px solid var(--line-2);box-shadow:0 6px 18px rgba(26,24,38,.14);font-family:var(--mono);color:var(--ink-2);font-size:0.67rem;font-weight:700;letter-spacing:.02em;backdrop-filter:blur(5px)}
+    #gpsSettleHint.active{display:flex}
+    .gsh-icon{position:relative;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center}
+    .gsh-icon::before,.gsh-icon::after{content:'';position:absolute;border-radius:50%;border:1.7px solid #0ea5e9;border-top-color:transparent;border-left-color:rgba(14,165,233,.45)}
+    .gsh-icon::before{inset:0;animation:gshSpin 1.1s linear infinite}
+    .gsh-icon::after{inset:4px;animation:gshSpin .75s linear reverse infinite}
+    .gsh-dot{width:5px;height:5px;border-radius:50%;background:#0ea5e9;box-shadow:0 0 0 0 rgba(14,165,233,.55);animation:gshPulse 1.4s ease-out infinite}
+    @keyframes gshSpin{to{transform:rotate(360deg)}}
+    @keyframes gshPulse{0%{box-shadow:0 0 0 0 rgba(14,165,233,.5)}70%{box-shadow:0 0 0 7px rgba(14,165,233,0)}100%{box-shadow:0 0 0 0 rgba(14,165,233,0)}}
     #gpsKickBtn{display:none;position:absolute;top:10px;left:10px;z-index:1000;padding:11px 14px;background:rgba(217,119,6,.96);border:1px solid #f59e0b;border-radius:12px;color:#fff7ed;font-size:0.78rem;font-weight:800;cursor:pointer;min-height:48px}
     #locateMeBtn{min-height:48px!important;min-width:48px!important;padding:10px!important;transition:transform .1s}
     #locateMeBtn:active{transform:scale(0.9)}
@@ -504,7 +514,7 @@
     <div id="compassCorner" aria-label="Boussole">
       <div id="compassRose" aria-hidden="true">
         <svg id="compassRoseSvg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <text x="50" y="9" text-anchor="middle" font-size="10" font-weight="900" fill="#5a4526" font-family="'JetBrains Mono', monospace">N</text>
+          <text x="50" y="13" text-anchor="middle" font-size="10" font-weight="900" fill="#5a4526" font-family="'JetBrains Mono', monospace">N</text>
           <circle cx="50" cy="50" r="44" fill="none" stroke="#5a4526" stroke-width="4"/>
           <circle cx="50" cy="50" r="38" fill="none" stroke="#6f5630" stroke-width="1.5"/>
           <g stroke="#6b522e" stroke-width="1.3" stroke-linecap="round">
@@ -533,6 +543,10 @@
           <circle cx="50" cy="50" r="7" fill="#5a4526"/>
         </svg>
       </div>
+    </div>
+    <div id="gpsSettleHint" aria-live="polite">
+      <span class="gsh-icon" aria-hidden="true"><span class="gsh-dot"></span></span>
+      <span>Calage GPS en cours…</span>
     </div>
     <button id="gpsKickBtn" onclick="requestGpsKick()">📍 Activer GPS</button>
     <button id="compassPermBtn" onclick="requestCompassPermission()" style="display:none;position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1000;padding:8px 16px;background:linear-gradient(135deg,#3b82f6,#6366f1);border:none;border-radius:12px;color:#fff;font-size:0.82rem;font-weight:700;cursor:pointer;backdrop-filter:blur(6px)">🧭 Activer le compas (iOS)</button>
@@ -782,6 +796,17 @@ let tutorialSeen = localStorage.getItem('u3dq_tuto_seen') === '1';
 function isIOSDevice() {
   return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+function isAndroidDevice() {
+  return /Android/i.test(navigator.userAgent || '');
+}
+
+function updateGpsSettleHint() {
+  const el = document.getElementById('gpsSettleHint');
+  if (!el) return;
+  const shouldShow = isAndroidDevice() && activeTab === 'explore' && activeGameMode === 'fixed' && playerLat === null;
+  el.classList.toggle('active', shouldShow);
 }
 
 // ── Startup ──────────────────────────────────────────
