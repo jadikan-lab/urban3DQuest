@@ -211,8 +211,9 @@
     #arrowToggleBtn:active{transform:scale(0.9)}
     /* ── Overlay flèches direction ── */
     #arrowOverlay{position:absolute;inset:0;pointer-events:none;z-index:900;overflow:visible}
-    .dir-arrow{position:absolute;pointer-events:auto;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transform:translate(-50%,-50%);-webkit-tap-highlight-color:transparent}
+    .dir-arrow{position:absolute;pointer-events:auto;cursor:pointer;transform:translate(-50%,-50%);-webkit-tap-highlight-color:transparent}
     .dir-arrow:active{opacity:0.7}
+    .dir-arrow-label{position:absolute;pointer-events:auto;cursor:pointer;background:rgba(15,23,42,.92);font-size:0.8rem;font-weight:800;padding:3px 9px;border-radius:10px;border:1.5px solid;white-space:nowrap;backdrop-filter:blur(4px);transform:translate(-50%,-50%);line-height:1}
     /* ── Fond radar boussole ── */
     #radarBg{position:absolute;inset:0;z-index:850;background:
       radial-gradient(circle at 50% 50%,rgba(13,26,56,.12) 0%,rgba(2,6,16,.38) 100%),
@@ -588,7 +589,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.10.16';
+const GAME_VERSION = 'v3.10.17';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -639,7 +640,7 @@ let compassArrowMode = true; // toggle: show direction arrows on minimap
 let mapFollowing = true; // true = map follows GPS, false = user is panning freely
 let lastArrowLat = null, lastArrowLng = null, lastArrowHeading = null; // throttle
 const ARROW_PALETTE = ['#f472b6', '#fb923c', '#22d3ee', '#a78bfa', '#4ade80'];
-const MAX_FIXED_ARROWS = 5;
+const MAX_FIXED_ARROWS = 3;
 let myToken = localStorage.getItem('u3dq_token') || ''; // session token for single-session enforcement
 let activeGameMode = (localStorage.getItem('u3dq_game_mode') || 'fixed') === 'unique' ? 'unique' : 'fixed';
 const revealedFixedClues = new Set(myPseudo ? JSON.parse(localStorage.getItem(`u3dq_clues_${myPseudo}`) || '[]') : []); // fixed clues unlocked by proximity, persisted per player
@@ -1161,6 +1162,7 @@ function applyExploreMapLock() {
   if (lockOnPlayer) {
     mapFollowing = true;
     if (locateBtn) locateBtn.style.display = 'none';
+    if (gameMap.dragging) gameMap.dragging.disable();
     if (playerLat !== null && playerLng !== null) {
       gameMap.setView([playerLat, playerLng], gameMap.getZoom(), { animate: true });
     }
@@ -1884,10 +1886,22 @@ function updateCompass() {
                  style="transform:rotate(${relBearing}deg);transform-origin:50% 72%;filter:drop-shadow(0 2px 8px rgba(0,0,0,.7));display:block">
               <polygon points="22,2 38,40 22,28 6,40" fill="${color}" stroke="#0f172a" stroke-width="3"/>
             </svg>
-            <div style="background:rgba(15,23,42,.92);color:${color};font-size:0.82rem;font-weight:800;padding:4px 10px;border-radius:10px;border:1.5px solid ${color};white-space:nowrap;backdrop-filter:blur(4px);line-height:1">${distStr}${inRange ? ' ✓' : ''}</div>
           `;
           div.addEventListener('click', () => openTreasureSheet(t));
           overlay.appendChild(div);
+          // Label pushed further along the same axis to avoid overlap
+          const labelR = Math.min(R + 70, Math.min(mapElC.offsetWidth, mapElC.offsetHeight) * 0.47);
+          const lx = cx + labelR * Math.sin(rad);
+          const ly = cy - labelR * Math.cos(rad);
+          const lbl = document.createElement('div');
+          lbl.className = 'dir-arrow-label';
+          lbl.style.left = Math.max(28, Math.min(mapElC.offsetWidth - 28, lx)) + 'px';
+          lbl.style.top  = Math.max(16, Math.min(mapElC.offsetHeight - 16, ly)) + 'px';
+          lbl.style.color = color;
+          lbl.style.borderColor = color;
+          lbl.textContent = distStr + (inRange ? ' ✓' : '');
+          lbl.addEventListener('click', () => openTreasureSheet(t));
+          overlay.appendChild(lbl);
         });
       }
     }
