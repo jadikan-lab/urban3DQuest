@@ -59,6 +59,9 @@
     header{background:var(--bg);padding:3px 6px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--line)}
     body.env-stg header{background:linear-gradient(180deg,#f7efe3 0%,var(--bg) 100%)}
     header h1{display:none}
+    .brand-tag{flex:1;min-width:0;text-align:center;font-family:var(--mono);font-size:0.58rem;letter-spacing:.04em;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .brand-tag a{color:var(--magenta);font-weight:700;text-decoration:none}
+    .brand-tag a:active{opacity:.8}
     .pseudo-chip{background:rgba(0,229,255,0.12);color:var(--cyan);padding:2px 7px;border-radius:12px;font-size:0.64rem;font-weight:600;font-family:var(--mono)}
     /* ── GPS chip — point de statut ── */
     #gpsChip{display:flex;align-items:center;gap:4px;padding:2px 7px;border-radius:12px;font-size:0.62rem;font-weight:700;background:var(--surface);border:1px solid var(--line-2);color:var(--ink-2);cursor:default;transition:all 0.4s;font-family:var(--mono)}
@@ -88,7 +91,7 @@
     .panel{display:none!important}
     .panel.active{display:block!important;flex:1;overflow:hidden;min-height:0}
     #panelExplore.active{display:flex!important;flex-direction:column;flex:1;overflow:hidden;min-height:0;position:relative}
-    #miniMap{flex:1;border-bottom:2px solid var(--line-2);min-height:0;position:relative;overflow:hidden;background:#dfe7f1;transform:translateZ(0)}
+    #miniMap{flex:1;border-bottom:2px solid var(--line-2);min-height:0;position:relative;overflow:hidden;background:#f0ede8;transform:translateZ(0)}
     #miniMap .leaflet-map-pane,
     #miniMap .leaflet-tile-pane,
     #miniMap .leaflet-marker-pane,
@@ -221,7 +224,7 @@
     .radar-spoke.major{width:2px;height:44%;background:linear-gradient(180deg,rgba(251,113,133,.72),rgba(251,113,133,0))}
     .radar-spoke.minor{width:1px;height:39%;background:linear-gradient(180deg,rgba(251,113,133,.35),rgba(251,113,133,0))}
     #radarCenterDot{position:absolute;width:14px;height:14px;border-radius:50%;background:#fb7185;box-shadow:0 0 14px rgba(251,113,133,.9),0 0 4px rgba(255,255,255,.5);top:50%;left:50%;transform:translate(-50%,-50%);z-index:3}
-    #radarCenterLabel{position:absolute;top:50%;left:50%;transform:translate(-50%,12px);font-size:0.56rem;font-weight:900;color:#fda4af;font-family:var(--mono);letter-spacing:.08em;text-shadow:0 0 6px rgba(251,113,133,.8);z-index:3}
+    #radarCenterLabel{display:none}
     .radar-cardinal{position:absolute;font-size:0.7rem;font-weight:900;color:#fda4af;font-family:var(--mono);transform:translate(-50%,-50%);z-index:2;text-shadow:0 0 8px rgba(251,113,133,.85);letter-spacing:.05em}
     #gpsKickBtn{display:none;position:absolute;top:10px;left:10px;z-index:1000;padding:7px 10px;background:rgba(217,119,6,.92);border:1px solid #f59e0b;border-radius:10px;color:#fff7ed;font-size:0.72rem;font-weight:800;cursor:pointer}
     #locateMeBtn{min-height:48px!important;min-width:48px!important;padding:10px!important;transition:transform .1s}
@@ -406,6 +409,7 @@
     <span id="gpsDot"></span>
     <span id="gpsLabel">GPS…</span>
   </span>
+  <div class="brand-tag">Urban 3D Quest by <a href="https://www.instagram.com/jadikan/" target="_blank" rel="noopener noreferrer">Jadikan</a></div>
   <span class="pseudo-chip" id="headerPseudo" onclick="onHeaderPseudoClick()" style="cursor:pointer"></span>
 </header>
 <nav role="tablist" aria-label="Navigation principale">
@@ -635,6 +639,7 @@ let compassArrowMode = true; // toggle: show direction arrows on minimap
 let mapFollowing = true; // true = map follows GPS, false = user is panning freely
 let lastArrowLat = null, lastArrowLng = null, lastArrowHeading = null; // throttle
 const ARROW_PALETTE = ['#f472b6', '#fb923c', '#22d3ee', '#a78bfa', '#4ade80'];
+const MAX_FIXED_ARROWS = 5;
 let myToken = localStorage.getItem('u3dq_token') || ''; // session token for single-session enforcement
 let activeGameMode = (localStorage.getItem('u3dq_game_mode') || 'fixed') === 'unique' ? 'unique' : 'fixed';
 const revealedFixedClues = new Set(myPseudo ? JSON.parse(localStorage.getItem(`u3dq_clues_${myPseudo}`) || '[]') : []); // fixed clues unlocked by proximity, persisted per player
@@ -1143,6 +1148,8 @@ function initMap() {
     var btn = document.getElementById('locateMeBtn');
     if (btn) btn.style.display = 'block';
   });
+  gameMap.on('zoom move moveend resize', () => scheduleCompassRender(true));
+  window.addEventListener('resize', () => scheduleCompassRender(true));
   applyExploreMapLock();
   renderMarkers();
 }
@@ -1599,9 +1606,11 @@ function applyMapHeadingRotation() {
   const shouldRotate = activeTab === 'explore' && activeGameMode === 'fixed' && playerLat !== null && deviceHeading !== null;
   if (!shouldRotate) {
     mapPane.style.rotate = '0deg';
+    mapPane.style.scale = '1';
     mapPane.style.transformOrigin = '50% 50%';
     if (radarBg) {
       radarBg.style.rotate = '0deg';
+      radarBg.style.scale = '1';
       radarBg.style.transformOrigin = '50% 50%';
     }
     return;
@@ -1609,11 +1618,17 @@ function applyMapHeadingRotation() {
   const p = gameMap.latLngToContainerPoint([playerLat, playerLng]);
   const origin = `${p.x}px ${p.y}px`;
   const rot = `${-deviceHeading}deg`;
+  const mapSize = gameMap.getSize ? gameMap.getSize() : null;
+  const minSide = mapSize ? Math.max(1, Math.min(mapSize.x, mapSize.y)) : 1;
+  const diag = mapSize ? Math.hypot(mapSize.x, mapSize.y) : minSide;
+  const radarScale = Math.min(1.48, Math.max(1.22, diag / minSide));
   mapPane.style.transformOrigin = origin;
   mapPane.style.rotate = rot;
+  mapPane.style.scale = '1.08';
   if (radarBg) {
     radarBg.style.transformOrigin = origin;
     radarBg.style.rotate = rot;
+    radarBg.style.scale = String(radarScale);
   }
 }
 
@@ -1778,7 +1793,8 @@ function updateCompass() {
   applyMapHeadingRotation();
 
   if (gameMap) {
-    const headingChanged = lastArrowHeading === null || Math.abs((deviceHeading || 0) - lastArrowHeading) > 2;
+    const headingDelta = lastArrowHeading === null ? 999 : Math.abs((((deviceHeading || 0) - lastArrowHeading + 540) % 360) - 180);
+    const headingChanged = lastArrowHeading === null || headingDelta > 2;
     const posChanged = lastArrowLat === null || haversine(playerLat, playerLng, lastArrowLat, lastArrowLng) > 0.8;
 
     if (posChanged || headingChanged) {
@@ -1837,13 +1853,16 @@ function updateCompass() {
       });
 
       if (compassArrowMode && activeGameMode === 'fixed') {
-        const unfoundFixed = treasures
-          .filter(t => t.type === 'fixed' && !(t.found_by && t.found_by.split(',').includes(myPseudo)))
+        const fixedPlaced = treasures
+          .filter(t => t.type === 'fixed')
+          .filter(t => Number.isFinite(t.lat) && Number.isFinite(t.lng))
+          .filter(t => !!t.placed_at)
           .map(t => ({ ...t, dist: haversine(playerLat, playerLng, t.lat, t.lng) }))
           .sort((a, b) => a.dist - b.dist)
-          .slice(0, 3);
+          .slice(0, MAX_FIXED_ARROWS);
 
-        unfoundFixed.forEach((t, idx) => {
+        fixedPlaced.forEach((t, idx) => {
+          const isFoundByMe = !!(t.found_by && t.found_by.split(',').includes(myPseudo));
           const absBearing = bearingTo(playerLat, playerLng, t.lat, t.lng);
           // Keep arrows in screen coordinates so they always point toward the target
           // even while the map/radar rotate with the device heading.
@@ -1851,6 +1870,7 @@ function updateCompass() {
           const color   = ARROW_PALETTE[idx % ARROW_PALETTE.length];
           const distStr = t.dist < 1000 ? `${Math.round(t.dist)}m` : `${(t.dist/1000).toFixed(1)}km`;
           const inRange = t.dist <= proximityR;
+          const alpha = isFoundByMe ? 0.52 : 1;
           const rad     = relBearing * Math.PI / 180;
           const x       = cx + R * Math.sin(rad);
           let y         = cy - R * Math.cos(rad);
@@ -1860,12 +1880,13 @@ function updateCompass() {
           div.className = 'dir-arrow';
           div.style.left = x + 'px';
           div.style.top  = y + 'px';
+          div.style.opacity = String(alpha);
           div.innerHTML = `
             <svg width="44" height="54" viewBox="0 0 44 54" xmlns="http://www.w3.org/2000/svg"
                  style="transform:rotate(${relBearing}deg);transform-origin:50% 72%;filter:drop-shadow(0 2px 8px rgba(0,0,0,.7));display:block">
               <polygon points="22,2 38,40 22,28 6,40" fill="${color}" stroke="#0f172a" stroke-width="3"/>
             </svg>
-            <div style="background:rgba(15,23,42,.92);color:${color};font-size:0.82rem;font-weight:800;padding:4px 10px;border-radius:10px;border:1.5px solid ${color};white-space:nowrap;backdrop-filter:blur(4px);line-height:1">${distStr}${inRange ? ' ✓' : ''}</div>
+            <div style="background:rgba(15,23,42,.92);color:${color};font-size:0.82rem;font-weight:800;padding:4px 10px;border-radius:10px;border:1.5px solid ${color};white-space:nowrap;backdrop-filter:blur(4px);line-height:1">${distStr}${inRange ? ' ✓' : ''}${isFoundByMe ? ' • pris' : ''}</div>
           `;
           div.addEventListener('click', () => openTreasureSheet(t));
           overlay.appendChild(div);
