@@ -768,6 +768,8 @@ let compassLastRateTick = Date.now();
 let compassDebugInterval = null;
 let compassLastRawAt = 0;
 let orientationListenersAttached = false;
+let compassVisualAngle = null;
+let mapVisualAngle = null;
 let mapCenter    = [45.1885, 5.7245]; // default Grenoble, overridden by config
 let activeQuests = [];  // empty = all quests visible
 let gameStart    = null;  // Date or null — reference timestamp for score calc
@@ -1911,6 +1913,13 @@ function _smoothHeading(prev, next, factor) {
   return _normHeading(prev + delta * factor);
 }
 
+function _nextVisualAngle(previous, target) {
+  if (!Number.isFinite(target)) return previous;
+  if (!Number.isFinite(previous)) return target;
+  const delta = ((target - previous + 540) % 360) - 180;
+  return previous + delta;
+}
+
 function _setHeading(nextHeading, source) {
   if (!Number.isFinite(nextHeading)) return;
   const normalized = _normHeading(nextHeading);
@@ -1945,6 +1954,7 @@ function applyMapHeadingRotation() {
   if (!mapPane) return;
   const shouldRotate = activeTab === 'explore' && activeGameMode === 'fixed' && playerLat !== null && deviceHeading !== null;
   if (!shouldRotate) {
+    mapVisualAngle = null;
     mapPane.style.rotate = '0deg';
     mapPane.style.scale = '1';
     mapPane.style.transformOrigin = '50% 50%';
@@ -1957,7 +1967,8 @@ function applyMapHeadingRotation() {
   }
   const p = gameMap.latLngToContainerPoint([playerLat, playerLng]);
   const origin = `${p.x}px ${p.y}px`;
-  const rot = `${-deviceHeading}deg`;
+  mapVisualAngle = _nextVisualAngle(mapVisualAngle, -deviceHeading);
+  const rot = `${mapVisualAngle}deg`;
   const mapSize = gameMap.getSize ? gameMap.getSize() : null;
   const minSide = mapSize ? Math.max(1, Math.min(mapSize.x, mapSize.y)) : 1;
   const diag = mapSize ? Math.hypot(mapSize.x, mapSize.y) : minSide;
@@ -2130,8 +2141,13 @@ function updateCompassCorner() {
   if (!el || !rose) return;
   const show = activeTab === 'explore' && activeGameMode === 'fixed' && playerLat !== null && deviceHeading !== null;
   el.classList.toggle('active', show);
-  if (!show) return;
-  rose.style.transform = `rotate(${-deviceHeading}deg)`;
+  if (!show) {
+    compassVisualAngle = null;
+    rose.style.transform = 'rotate(0deg)';
+    return;
+  }
+  compassVisualAngle = _nextVisualAngle(compassVisualAngle, -deviceHeading);
+  rose.style.transform = `rotate(${compassVisualAngle}deg)`;
 }
 
 function updateCompass() {
