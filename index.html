@@ -756,7 +756,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.10.28';
+const GAME_VERSION = 'v3.11.0';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -856,6 +856,7 @@ async function logoutPlayer() {
   if (pseudo) {
     await db.from('players').update({ session_token: null }).eq('pseudo', pseudo);
     localStorage.removeItem(`u3dq_clues_${pseudo}`);
+    localStorage.removeItem(`u3dq_first_fixed_at_${pseudo}`);
   }
   localStorage.removeItem('u3dq_pseudo');
   localStorage.removeItem('u3dq_token');
@@ -2670,6 +2671,7 @@ async function processFindById(treasureId) {
 
 async function _doProcessFind(treasureId) {
   if (!myPseudo) { _checkinError('Mode invité : connecte-toi pour révéler des polaroids.'); return; }
+  const foundCountBefore = myFoundCount;
   // Fetch treasure fresh from DB
   const { data: t, error } = await db.from('treasures').select('*').eq('id', treasureId).single();
   if (error || !t) { _checkinError('Polaroid introuvable — il a peut-être été retiré.'); return; }
@@ -2710,6 +2712,18 @@ async function _doProcessFind(treasureId) {
   // Log event
   await db.from('events').insert({ pseudo: myPseudo, treasure_id: t.id, treasure_type: t.type, duration_sec: durationSec });
 
+  let durationSecHunt = null;
+  if (t.type === 'fixed') {
+    const firstFixedKey = `u3dq_first_fixed_at_${myPseudo}`;
+    if (foundCountBefore === 0) {
+      localStorage.setItem(firstFixedKey, String(Date.now()));
+      durationSecHunt = 0;
+    } else {
+      const firstFixedAt = Number(localStorage.getItem(firstFixedKey) || 0);
+      durationSecHunt = firstFixedAt ? Math.max(0, Math.round((Date.now() - firstFixedAt) / 1000)) : 0;
+    }
+  }
+
   // Update player score — on incrémente local seulement après confirmation DB
   const updScore      = myScore + durationSec;
   const updFoundCount = myFoundCount + 1;
@@ -2729,10 +2743,10 @@ async function _doProcessFind(treasureId) {
   // Haptic feedback
   if (navigator.vibrate) navigator.vibrate([80, 40, 160]);
 
-  showFoundResult('success', t, durationSec);
+  showFoundResult('success', t, durationSec, durationSecHunt);
 }
 
-function showFoundResult(status, t, durationSec) {
+function showFoundResult(status, t, durationSec, durationSecHunt) {
   const modal = document.getElementById('foundModal');
   const emoji  = document.getElementById('foundEmoji');
   const label  = document.getElementById('foundLabel');
@@ -2754,20 +2768,24 @@ function showFoundResult(status, t, durationSec) {
 
   if (status === 'success') {
     if (t.type === 'fixed') {
-      emoji.textContent = '📷';
-      label.textContent = 'POLAROID RÉVÉLÉ';
-      title.textContent = `Polaroid révélé !`;
-      // Temps de session (depuis le démarrage ou la 1ère balise trouvée)
-      dur.textContent = durationSec != null ? '⏱ ' + formatDuration(durationSec) + ' depuis le début' : '';
       // Compte combien de fixes il reste
       const remaining = treasures.filter(tr =>
         tr.type === 'fixed' &&
         !(tr.found_by && tr.found_by.split(',').includes(myPseudo)) &&
         tr.id !== t.id
       ).length;
-      if (remaining > 0) {
-        desc.textContent = `Il te reste ${remaining} polaroid${remaining > 1 ? 's' : ''} à trouver. Plus vite tu les trouves tous, meilleur ton classement !`;
-      } else {
+      const foundNow = fixedTotal - remaining;
+      if (foundNow === 1) {
+        emoji.textContent = '📷';
+        label.textContent = 'PREMIÈRE RÉVÉLATION';
+        title.textContent = 'La chasse commence !';
+        desc.textContent = `Le chrono est lancé. Trouve les ${fixedTotal - 1} autres polaroids le plus vite possible.`;
+        dur.textContent = '';
+      } else if (remaining === 0) {
+        emoji.textContent = '📷';
+        label.textContent = 'POLAROID RÉVÉLÉ';
+        title.textContent = 'Polaroid révélé !';
+        dur.textContent = durationSec != null ? '⏱ ' + formatDuration(durationSec) + ' depuis le début' : '';
         // All fixed found — fetch reward message from config
         desc.textContent = '🏆 Incroyable ! Ta quete est complete !';
         db.from('config').select('key,value').then(({ data: cfgData }) => {
@@ -2776,6 +2794,38 @@ function showFoundResult(status, t, durationSec) {
           const msg = activeQuests.map(q => cfg['rewardMessage_'+q]).find(m => m) || cfg['rewardMessage'] || '';
           if (msg) desc.innerHTML = `🏆 Ta quete est complete !<br><br>📍 <strong>${escHtml(msg)}</strong>`;
         });
+      } else if (remaining === 1) {
+        emoji.textContent = '🔥';
+        label.textContent = 'PRESQUE !';
+        title.textContent = 'Plus qu\'un !';
+        desc.textContent = 'Un seul polaroid te sépare de la fin. Tout se joue maintenant.';
+        dur.textContent = durationSecHunt != null ? '⏱ ' + formatDuration(durationSecHunt) : '';
+      } else if (remaining === 2) {
+        emoji.textContent = '⚡';
+        label.textContent = 'EN FEU';
+        title.textContent = 'Il n\'en reste plus que deux.';
+        desc.textContent = 'Tu y es presque. Ne lâche rien.';
+        dur.textContent = durationSecHunt != null ? '⏱ ' + formatDuration(durationSecHunt) : '';
+      } else if (remaining === 3) {
+        emoji.textContent = '🎯';
+        label.textContent = 'BON RYTHME';
+        title.textContent = 'Encore trois à trouver.';
+        desc.textContent = 'La fin approche. Reste concentré.';
+        dur.textContent = durationSecHunt != null ? '⏱ ' + formatDuration(durationSecHunt) : '';
+      } else {
+        const midMessages = [
+          { emoji: '📷', label: 'RÉVÉLÉ', title: 'Polaroid révélé.', desc: `Continue, il t'en reste ${remaining}.` },
+          { emoji: '🗺️', label: 'EN ROUTE', title: 'Belle trouvaille.', desc: `${remaining} polaroids t'attendent encore.` },
+          { emoji: '👁️', label: 'TROUVÉ', title: 'Tu as l\'œil.', desc: `Plus que ${remaining} dans ce quartier.` },
+          { emoji: '📍', label: 'MARQUÉ', title: 'Dans la boîte.', desc: `${remaining} restants. Ne ralentis pas.` },
+          { emoji: '🏃', label: 'EN CHASSE', title: 'La quête avance.', desc: `${remaining} polaroids à révéler.` }
+        ];
+        const msg = midMessages[foundNow % midMessages.length];
+        emoji.textContent = msg.emoji;
+        label.textContent = msg.label;
+        title.textContent = msg.title;
+        desc.textContent = msg.desc;
+        dur.textContent = durationSecHunt != null ? '⏱ ' + formatDuration(durationSecHunt) : '';
       }
     } else {
       emoji.textContent = '⚡';
