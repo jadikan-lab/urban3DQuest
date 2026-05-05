@@ -551,7 +551,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.10.3';
+const GAME_VERSION = 'v3.10.4';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -837,7 +837,8 @@ async function initGame(pendingFoundId) {
   // Start orientation sensor (Android = no permission; iOS = button shown)
   startOrientationWatch();
 
-  startGeoWatch();
+  // iOS Safari needs a small delay after page load before watchPosition works reliably
+  setTimeout(() => startGeoWatch(), 300);
   startLbPolling();
   updateProgressBar();
 
@@ -2212,7 +2213,7 @@ document.addEventListener('visibilitychange', () => {
     stopCompassInterval();
     if (geoWatch !== null) { navigator.geolocation.clearWatch(geoWatch); geoWatch = null; }
   } else {
-    startGeoWatch();
+    setTimeout(() => startGeoWatch(), 300);
     if (myPseudo || activeTab === 'scores') startLbPolling();
     if (activeTab === 'explore') startCompassInterval();
     updateRadar();
