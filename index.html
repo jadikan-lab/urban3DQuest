@@ -56,12 +56,12 @@
     .btn-main:active{transform:scale(0.97);opacity:0.9}
     .btn-main:disabled{opacity:0.5;cursor:default}
     /* ── Header ── */
-    header{background:var(--bg);padding:5px 8px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--line)}
+    header{background:var(--bg);padding:3px 6px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--line)}
     body.env-stg header{background:linear-gradient(180deg,#f7efe3 0%,var(--bg) 100%)}
-    header h1{font-size:0.72rem;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink-2);letter-spacing:0.03em;font-weight:700;font-family:var(--mono);text-transform:uppercase}
-    .pseudo-chip{background:rgba(0,229,255,0.12);color:var(--cyan);padding:3px 8px;border-radius:14px;font-size:0.68rem;font-weight:600;font-family:var(--mono)}
+    header h1{display:none}
+    .pseudo-chip{background:rgba(0,229,255,0.12);color:var(--cyan);padding:2px 7px;border-radius:12px;font-size:0.64rem;font-weight:600;font-family:var(--mono)}
     /* ── GPS chip — point de statut ── */
-    #gpsChip{display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:14px;font-size:0.66rem;font-weight:700;background:var(--surface);border:1px solid var(--line-2);color:var(--ink-2);cursor:default;transition:all 0.4s;font-family:var(--mono)}
+    #gpsChip{display:flex;align-items:center;gap:4px;padding:2px 7px;border-radius:12px;font-size:0.62rem;font-weight:700;background:var(--surface);border:1px solid var(--line-2);color:var(--ink-2);cursor:default;transition:all 0.4s;font-family:var(--mono)}
     #gpsDot{width:6px;height:6px;border-radius:50%;background:var(--ink-3);flex-shrink:0;transition:background 0.4s}
     #gpsChip.gps-ok{border-color:#16a34a;color:#4ade80;background:rgba(22,163,74,.12)}
     #gpsChip.gps-ok #gpsDot{background:#4ade80;box-shadow:0 0 6px #22c55e}
@@ -71,10 +71,10 @@
     #gpsChip.gps-bad #gpsDot{background:#f87171}
     /* ── Navigation ── */
     nav{display:flex;background:var(--surface);border-bottom:1px solid var(--line-2);padding:0 1px}
-    nav button{flex:1;padding:6px 2px;min-height:38px;background:none;border:none;color:var(--ink-3);font-size:0.72rem;font-weight:700;cursor:pointer;letter-spacing:0.01em;transition:color 0.15s,background 0.15s;display:flex;flex-direction:column;align-items:center;gap:1px;font-family:var(--display)}
-    .nav-icon{display:flex;align-items:center;justify-content:center;width:18px;height:18px}
-    .nav-icon svg{width:18px;height:18px}
-    .nav-label{font-size:0.62rem;font-weight:700;letter-spacing:.01em}
+    nav button{flex:1;padding:4px 2px;min-height:34px;background:none;border:none;color:var(--ink-3);font-size:0.68rem;font-weight:700;cursor:pointer;letter-spacing:0.01em;transition:color 0.15s,background 0.15s;display:flex;flex-direction:column;align-items:center;gap:0;font-family:var(--display)}
+    .nav-icon{display:flex;align-items:center;justify-content:center;width:16px;height:16px}
+    .nav-icon svg{width:16px;height:16px}
+    .nav-label{font-size:0.58rem;font-weight:700;letter-spacing:.01em}
     nav button.active{color:var(--ink);border-bottom:2px solid var(--magenta);background:rgba(255,61,138,.1);font-weight:800}
     nav button:active{background:rgba(26,24,38,.05)}
     /* ── More menu ── */
@@ -292,13 +292,13 @@
     .me-dot{width:16px;height:16px;border-radius:50%;background:#3b82f6;border:3px solid #fff;box-shadow:0 0 0 4px rgba(59,130,246,0.35)}
 
     /* ── Nearest list (bas de la Carte) ── */
-    #nearestList{background:var(--surface);border-top:1px solid var(--line);flex-shrink:0;display:none;flex-direction:column;box-shadow:0 -2px 16px rgba(26,24,38,.06);padding-bottom:calc(52px + env(safe-area-inset-bottom))}
-    .nl-header{font-family:var(--mono);font-size:0.56rem;font-weight:700;text-transform:uppercase;letter-spacing:0.09em;color:var(--ink-3);padding:7px 14px 3px}
-    .nl-item{display:flex;align-items:center;gap:8px;padding:7px 12px;cursor:pointer;border-top:1px solid var(--line)}
+    #nearestList{background:rgba(255,255,255,.9);border-top:1px solid var(--line);flex-shrink:0;display:none;align-items:center;gap:6px;box-shadow:0 -2px 12px rgba(26,24,38,.06);padding:5px 8px calc(5px + env(safe-area-inset-bottom));overflow-x:auto;white-space:nowrap}
+    .nl-header{font-family:var(--mono);font-size:0.52rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-3);padding:4px 6px;border:1px solid var(--line);border-radius:10px;flex-shrink:0;background:var(--surface)}
+    .nl-item{display:inline-flex;align-items:center;gap:6px;padding:5px 8px;cursor:pointer;border:1px solid var(--line);border-radius:10px;flex-shrink:0;background:var(--surface)}
     .nl-item:active{background:var(--bg)}
-    .nl-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
-    .nl-name{flex:1;min-width:0;font-size:0.78rem;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .nl-dist{font-family:var(--mono);font-size:0.68rem;color:var(--ink-3);flex-shrink:0;margin-right:0}
+    .nl-dot{width:7px;height:7px;border-radius:2px;flex-shrink:0}
+    .nl-name{max-width:92px;min-width:0;font-size:0.7rem;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .nl-dist{font-family:var(--mono);font-size:0.62rem;color:var(--ink-3);flex-shrink:0;margin-right:0}
     .nl-arr{font-size:0.8rem;color:var(--ink-3);flex-shrink:0}
 
     /* ── Treasure sheet (bottom sheet au tap d'un pin) ── */
@@ -1043,6 +1043,7 @@ function setGameMode(mode) {
   lastArrowHeading = null;
   _clearArrows();
   applyExploreMapLock();
+  applyMapHeadingRotation();
   updateCompass();
 }
 
@@ -1272,6 +1273,7 @@ function _onGeoSuccess(pos) {
 
   updateRadar();
   updateNearestCard();
+  applyMapHeadingRotation();
   scheduleCompassRender(true);
   // Force immediate arrow draw on first GPS fix (don't wait for compass interval)
   if (firstFix) scheduleCompassRender(true);
@@ -1569,7 +1571,43 @@ function _setHeading(nextHeading, source) {
     compassLastRateTick = now;
   }
   deviceHeading = _smoothHeading(deviceHeading, _normHeading(nextHeading), 0.42);
+  applyMapHeadingRotation();
   scheduleCompassRender();
+}
+
+function applyMapHeadingRotation() {
+  if (!gameMap) return;
+  const mapPane = gameMap.getPane('mapPane');
+  const radarBg = document.getElementById('radarBg');
+  const arrowOverlay = document.getElementById('arrowOverlay');
+  if (!mapPane) return;
+  const shouldRotate = activeTab === 'explore' && activeGameMode === 'fixed' && playerLat !== null && deviceHeading !== null;
+  if (!shouldRotate) {
+    mapPane.style.rotate = '0deg';
+    mapPane.style.transformOrigin = '50% 50%';
+    if (radarBg) {
+      radarBg.style.rotate = '0deg';
+      radarBg.style.transformOrigin = '50% 50%';
+    }
+    if (arrowOverlay) {
+      arrowOverlay.style.rotate = '0deg';
+      arrowOverlay.style.transformOrigin = '50% 50%';
+    }
+    return;
+  }
+  const p = gameMap.latLngToContainerPoint([playerLat, playerLng]);
+  const origin = `${p.x}px ${p.y}px`;
+  const rot = `${-deviceHeading}deg`;
+  mapPane.style.transformOrigin = origin;
+  mapPane.style.rotate = rot;
+  if (radarBg) {
+    radarBg.style.transformOrigin = origin;
+    radarBg.style.rotate = rot;
+  }
+  if (arrowOverlay) {
+    arrowOverlay.style.transformOrigin = origin;
+    arrowOverlay.style.rotate = rot;
+  }
 }
 
 function scheduleCompassRender(force) {
@@ -1730,6 +1768,7 @@ function updateCompass() {
   _updateRadarBg();
   if (activeTab !== 'explore') return;
   if (playerLat === null || !treasures.length) return;
+  applyMapHeadingRotation();
 
   if (gameMap) {
     const headingChanged = lastArrowHeading === null || Math.abs((deviceHeading || 0) - lastArrowHeading) > 2;
@@ -1777,15 +1816,15 @@ function updateCompass() {
         s.style.left = cx + 'px';
         s.style.top = cy + 'px';
       });
-      // Cardinal indicators: keep absolute N/E/S/O while phone rotates
+      // Cardinal indicators stay in map/world coordinates.
+      // The shared world rotation is applied in applyMapHeadingRotation().
       const cardinals = { N: 0, E: 90, S: 180, O: 270 };
       const cardinalEls = mapElC.querySelectorAll('.radar-cardinal');
       cardinalEls.forEach((el) => {
         const dir = el.dataset.dir;
         const base = cardinals[dir];
         if (base === undefined) return;
-        const ang = (base - (deviceHeading || 0) + 360) % 360;
-        const rad = ang * Math.PI / 180;
+        const rad = base * Math.PI / 180;
         el.style.left = (cx + R * 0.87 * Math.sin(rad)) + 'px';
         el.style.top = (cy - R * 0.87 * Math.cos(rad)) + 'px';
       });
@@ -1799,12 +1838,12 @@ function updateCompass() {
 
         unfoundFixed.forEach((t, idx) => {
           const absBearing = bearingTo(playerLat, playerLng, t.lat, t.lng);
-          // Compass-relative: subtract device heading so arrows point toward target relative to phone orientation
-          const relBearing = (absBearing - (deviceHeading || 0) + 360) % 360;
+          // Keep arrows in world coordinates; world rotation is shared with the map.
+          const worldBearing = absBearing;
           const color   = ARROW_PALETTE[idx % ARROW_PALETTE.length];
           const distStr = t.dist < 1000 ? `${Math.round(t.dist)}m` : `${(t.dist/1000).toFixed(1)}km`;
           const inRange = t.dist <= proximityR;
-          const rad     = relBearing * Math.PI / 180;
+          const rad     = worldBearing * Math.PI / 180;
           const x       = cx + R * Math.sin(rad);
           let y         = cy - R * Math.cos(rad);
           y = Math.max(38, Math.min(mapElC.offsetHeight - 82, y));
@@ -1815,7 +1854,7 @@ function updateCompass() {
           div.style.top  = y + 'px';
           div.innerHTML = `
             <svg width="44" height="54" viewBox="0 0 44 54" xmlns="http://www.w3.org/2000/svg"
-                 style="transform:rotate(${relBearing}deg);transform-origin:50% 72%;filter:drop-shadow(0 2px 8px rgba(0,0,0,.7));display:block">
+                 style="transform:rotate(${worldBearing}deg);transform-origin:50% 72%;filter:drop-shadow(0 2px 8px rgba(0,0,0,.7));display:block">
               <polygon points="22,2 38,40 22,28 6,40" fill="${color}" stroke="#0f172a" stroke-width="3"/>
             </svg>
             <div style="background:rgba(15,23,42,.92);color:${color};font-size:0.82rem;font-weight:800;padding:4px 10px;border-radius:10px;border:1.5px solid ${color};white-space:nowrap;backdrop-filter:blur(4px);line-height:1">${distStr}${inRange ? ' ✓' : ''}</div>
@@ -2559,17 +2598,20 @@ function showTab(name, btn) {
     updateRadar();
     _updateRadarBg();
     applyExploreMapLock();
+    applyMapHeadingRotation();
   } else if (name === 'scores') {
     stopCompassInterval();
     document.getElementById('captureFab').style.display = 'none';
     _clearArrows();
     _updateRadarBg();
+    applyMapHeadingRotation();
     loadLeaderboard();
   } else if (name === 'moi') {
     stopCompassInterval();
     document.getElementById('captureFab').style.display = 'none';
     _clearArrows();
     _updateRadarBg();
+    applyMapHeadingRotation();
     const ps = document.getElementById('parcoursSection');
     if (ps) ps.style.display = activeGameMode === 'fixed' ? 'block' : 'none';
     if (activeGameMode === 'fixed') loadBalises();
