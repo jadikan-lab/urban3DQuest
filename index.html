@@ -107,6 +107,14 @@
     #miniMap.mode-fixed .leaflet-tile-pane{filter:saturate(.92) contrast(1.02)}
     #miniMap.mode-flash{background:radial-gradient(circle at 50% 0%,rgba(255,61,138,.12),rgba(240,237,232,1) 58%);box-shadow:inset 0 0 0 2px rgba(255,61,138,.18);border-bottom-color:rgba(255,61,138,.3)}
     #miniMap.mode-flash .leaflet-tile-pane{filter:saturate(1.08) hue-rotate(-10deg) contrast(1.03)}
+    #gpsLoadingPanel{position:absolute;inset:0;z-index:950;display:none;align-items:center;justify-content:center;padding:22px;background:linear-gradient(180deg,rgba(238,246,247,.94) 0%,rgba(240,237,232,.97) 100%);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+    #gpsLoadingPanel.active{display:flex}
+    .gps-loading-card{width:min(320px,100%);padding:22px 18px;border-radius:20px;background:rgba(255,255,255,.92);border:1px solid rgba(0,229,255,.18);box-shadow:0 10px 28px rgba(26,24,38,.12);text-align:center}
+    .gps-loading-spinner{width:44px;height:44px;margin:0 auto 14px;border-radius:50%;border:3px solid rgba(14,165,233,.18);border-top-color:#0ea5e9;border-right-color:#22d3ee;animation:gpsLoadingSpin 1s linear infinite}
+    .gps-loading-title{font-size:0.82rem;font-weight:900;color:#0f172a;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+    .gps-loading-copy{font-size:0.82rem;line-height:1.55;color:var(--ink-2)}
+    .gps-loading-note{margin-top:10px;font-size:0.7rem;font-weight:700;color:#0284c7;font-family:var(--mono)}
+    @keyframes gpsLoadingSpin{to{transform:rotate(360deg)}}
     /* ── Radar bar ── */
     #radarBar{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.97);border:1px solid var(--line-2);border-radius:24px;padding:11px 20px;font-size:0.94rem;font-weight:800;color:var(--ink-2);z-index:200;display:none;white-space:nowrap;backdrop-filter:blur(8px);box-shadow:0 2px 20px rgba(26,24,38,.12);letter-spacing:0.01em;font-family:var(--mono)}
     #radarBar.near{color:#d97706;border-color:#d97706;background:rgba(255,252,235,.97);box-shadow:0 2px 20px rgba(217,119,6,.15)}
@@ -549,6 +557,14 @@
         </svg>
       </div>
     </div>
+    <div id="gpsLoadingPanel" aria-live="polite" aria-hidden="true">
+      <div class="gps-loading-card">
+        <div class="gps-loading-spinner" aria-hidden="true"></div>
+        <div class="gps-loading-title">Connexion GPS</div>
+        <div class="gps-loading-copy">La carte se calibre avant de démarrer la boussole. Attends la première position GPS.</div>
+        <div class="gps-loading-note">Les autres panneaux restent accessibles.</div>
+      </div>
+    </div>
     <div id="gpsSettleHint" aria-live="polite">
       <span class="gsh-icon" aria-hidden="true"><span class="gsh-dot"></span></span>
       <span>Calage GPS en cours…</span>
@@ -818,6 +834,15 @@ function updateGpsSettleHint() {
   el.classList.toggle('active', shouldShow);
 }
 
+function updateGpsLoadingPanel() {
+  const panel = document.getElementById('gpsLoadingPanel');
+  if (!panel) return;
+  const shouldShow = activeTab === 'explore' && activeGameMode === 'fixed' && playerLat === null;
+  panel.classList.toggle('active', shouldShow);
+  panel.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
+  updateGpsSettleHint();
+}
+
 // ── Startup ──────────────────────────────────────────
 let bgMap = null;
 
@@ -1036,6 +1061,7 @@ async function continueAsGuest() {
 async function initGame(pendingFoundId) {
   updateHeader();
   updateModeUI();
+  updateGpsLoadingPanel();
   document.body.classList.toggle('flash-mode', activeGameMode === 'unique');
   document.getElementById('radarBar').style.display = 'block';
 
@@ -1281,6 +1307,7 @@ function setGameMode(mode) {
   applyExploreMapLock();
   applyMapHeadingRotation();
   updateCompass();
+  updateGpsLoadingPanel();
 }
 
 // Reconnexion depuis mode invité : rouvre l'écran pseudo
@@ -1616,6 +1643,7 @@ function _onGeoSuccess(pos) {
   updateNearestCard();
   applyMapHeadingRotation();
   scheduleCompassRender(true);
+  updateGpsLoadingPanel();
   // Force immediate arrow draw on first GPS fix (don't wait for compass interval)
   if (firstFix) scheduleCompassRender(true);
 }
@@ -1645,6 +1673,7 @@ function _onGeoError(err) {
     if (geoWatch !== null) { navigator.geolocation.clearWatch(geoWatch); geoWatch = null; }
     setTimeout(() => startGeoWatch(true, false), 1200);
   }
+  updateGpsLoadingPanel();
 }
 
 function requestGpsKick() {
@@ -1657,6 +1686,7 @@ function requestGpsKick() {
   const gpsKickBtn = document.getElementById('gpsKickBtn');
   if (gpsKickBtn) gpsKickBtn.style.display = 'none';
   geoPreferHighAccuracy = false;
+  updateGpsLoadingPanel();
   startGeoWatch(true, false);
   navigator.geolocation.getCurrentPosition(pos => {
     _onGeoSuccess(pos);
@@ -1668,6 +1698,7 @@ function requestGpsKick() {
 function startGeoWatch(forceRestart, preferredHighAccuracy) {
   if (!navigator.geolocation) {
     document.getElementById('radarBar').textContent = '📍 GPS non disponible sur cet appareil';
+    updateGpsLoadingPanel();
     return;
   }
   if (geoWatch !== null) {
@@ -1680,6 +1711,7 @@ function startGeoWatch(forceRestart, preferredHighAccuracy) {
   const chip0 = document.getElementById('gpsChip');
   const lbl0  = document.getElementById('gpsLabel');
   if (chip0 && lbl0) { lbl0.textContent = '…'; chip0.className = 'gps-mid'; }
+  updateGpsLoadingPanel();
 
   const useHighAccuracy = preferredHighAccuracy !== undefined ? preferredHighAccuracy : geoPreferHighAccuracy;
   geoLastStartAt = Date.now();
@@ -3037,6 +3069,7 @@ document.addEventListener('visibilitychange', () => {
     if (myPseudo || activeTab === 'scores') startLbPolling();
     if (activeTab === 'explore') startCompassInterval();
     updateRadar();
+    updateGpsLoadingPanel();
   }
 });
 
@@ -3055,6 +3088,7 @@ function showTab(name, btn) {
   if (name !== 'explore') document.getElementById('radarBar').style.display = 'none';
   const gpsKickBtn = document.getElementById('gpsKickBtn');
   if (gpsKickBtn) gpsKickBtn.style.display = (name === 'explore' && isIOSDevice() && playerLat === null) ? 'block' : 'none';
+  updateGpsLoadingPanel();
   if (name === 'explore') {
     setTimeout(() => gameMap && gameMap.invalidateSize(), 60);
     startCompassInterval();
