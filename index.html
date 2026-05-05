@@ -88,7 +88,11 @@
     .panel{display:none!important}
     .panel.active{display:block!important;flex:1;overflow:hidden;min-height:0}
     #panelExplore.active{display:flex!important;flex-direction:column;flex:1;overflow:hidden;min-height:0;position:relative}
-    #miniMap{flex:1;border-bottom:2px solid var(--line-2);min-height:0;position:relative}
+    #miniMap{flex:1;border-bottom:2px solid var(--line-2);min-height:0;position:relative;overflow:hidden;background:#dfe7f1;transform:translateZ(0)}
+    #miniMap .leaflet-map-pane,
+    #miniMap .leaflet-tile-pane,
+    #miniMap .leaflet-marker-pane,
+    #miniMap .leaflet-overlay-pane{backface-visibility:hidden;transform-style:preserve-3d;will-change:transform}
     /* ── Radar bar ── */
     #radarBar{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.97);border:1px solid var(--line-2);border-radius:24px;padding:10px 26px;font-size:0.9rem;font-weight:700;color:var(--ink-2);z-index:200;display:none;white-space:nowrap;backdrop-filter:blur(8px);box-shadow:0 2px 20px rgba(26,24,38,.12);letter-spacing:0.01em;font-family:var(--mono)}
     #radarBar.near{color:#d97706;border-color:#d97706;background:rgba(255,252,235,.97);box-shadow:0 2px 20px rgba(217,119,6,.15)}
@@ -188,7 +192,7 @@
     .my-card-done{height:100%;background:linear-gradient(90deg,#22c55e,#16a34a);border-radius:4px}
     .lb-divider{font-size:0.68rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:.1em;text-align:center;padding:6px 0 8px;font-family:var(--mono)}
     /* ── Modal trésor trouvé ── */
-    #foundModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:700;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+    #foundModal{display:none;position:fixed;inset:0;background:rgba(3,6,16,.97);z-index:2500;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
     #foundModal.open{display:flex}
     .found-box{background:var(--surface);border-radius:var(--radius-lg);padding:28px 24px;width:100%;max-width:400px;text-align:center;border:1px solid rgba(255,61,138,0.3);box-shadow:0 0 0 1px rgba(255,61,138,0.1),0 8px 48px rgba(255,61,138,0.15);animation:foundPop 0.38s cubic-bezier(.34,1.56,.64,1)}
     .found-label{font-family:var(--mono);font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.12em;color:var(--magenta);margin-bottom:6px}
@@ -303,7 +307,7 @@
     /* ── Treasure sheet (bottom sheet au tap d'un pin) ── */
     #treasureSheet{display:none;position:fixed;inset:0;z-index:1200}
     #treasureSheet.open{display:block}
-    .ts-backdrop{position:absolute;inset:0;background:rgba(26,24,38,0.3);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+    .ts-backdrop{position:absolute;inset:0;background:rgba(5,6,16,0.82);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
     .ts-card{position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-radius:var(--radius-lg) var(--radius-lg) 0 0;padding:0 0 calc(24px + env(safe-area-inset-bottom));max-height:90vh;overflow-y:auto;animation:slideUp 0.28s cubic-bezier(.16,1,.3,1)}
     .ts-handle{width:36px;height:4px;border-radius:2px;background:var(--line-2);margin:12px auto 18px}
     .ts-badge-wrap{padding:0 20px 14px;text-align:center}
@@ -1591,7 +1595,6 @@ function applyMapHeadingRotation() {
   if (!gameMap) return;
   const mapPane = gameMap.getPane('mapPane');
   const radarBg = document.getElementById('radarBg');
-  const arrowOverlay = document.getElementById('arrowOverlay');
   if (!mapPane) return;
   const shouldRotate = activeTab === 'explore' && activeGameMode === 'fixed' && playerLat !== null && deviceHeading !== null;
   if (!shouldRotate) {
@@ -1600,10 +1603,6 @@ function applyMapHeadingRotation() {
     if (radarBg) {
       radarBg.style.rotate = '0deg';
       radarBg.style.transformOrigin = '50% 50%';
-    }
-    if (arrowOverlay) {
-      arrowOverlay.style.rotate = '0deg';
-      arrowOverlay.style.transformOrigin = '50% 50%';
     }
     return;
   }
@@ -1615,10 +1614,6 @@ function applyMapHeadingRotation() {
   if (radarBg) {
     radarBg.style.transformOrigin = origin;
     radarBg.style.rotate = rot;
-  }
-  if (arrowOverlay) {
-    arrowOverlay.style.transformOrigin = origin;
-    arrowOverlay.style.rotate = rot;
   }
 }
 
@@ -1850,12 +1845,13 @@ function updateCompass() {
 
         unfoundFixed.forEach((t, idx) => {
           const absBearing = bearingTo(playerLat, playerLng, t.lat, t.lng);
-          // Keep arrows in world coordinates; world rotation is shared with the map.
-          const worldBearing = absBearing;
+          // Keep arrows in screen coordinates so they always point toward the target
+          // even while the map/radar rotate with the device heading.
+          const relBearing = (absBearing - (deviceHeading || 0) + 360) % 360;
           const color   = ARROW_PALETTE[idx % ARROW_PALETTE.length];
           const distStr = t.dist < 1000 ? `${Math.round(t.dist)}m` : `${(t.dist/1000).toFixed(1)}km`;
           const inRange = t.dist <= proximityR;
-          const rad     = worldBearing * Math.PI / 180;
+          const rad     = relBearing * Math.PI / 180;
           const x       = cx + R * Math.sin(rad);
           let y         = cy - R * Math.cos(rad);
           y = Math.max(38, Math.min(mapElC.offsetHeight - 82, y));
@@ -1866,7 +1862,7 @@ function updateCompass() {
           div.style.top  = y + 'px';
           div.innerHTML = `
             <svg width="44" height="54" viewBox="0 0 44 54" xmlns="http://www.w3.org/2000/svg"
-                 style="transform:rotate(${worldBearing}deg);transform-origin:50% 72%;filter:drop-shadow(0 2px 8px rgba(0,0,0,.7));display:block">
+                 style="transform:rotate(${relBearing}deg);transform-origin:50% 72%;filter:drop-shadow(0 2px 8px rgba(0,0,0,.7));display:block">
               <polygon points="22,2 38,40 22,28 6,40" fill="${color}" stroke="#0f172a" stroke-width="3"/>
             </svg>
             <div style="background:rgba(15,23,42,.92);color:${color};font-size:0.82rem;font-weight:800;padding:4px 10px;border-radius:10px;border:1.5px solid ${color};white-space:nowrap;backdrop-filter:blur(4px);line-height:1">${distStr}${inRange ? ' ✓' : ''}</div>
