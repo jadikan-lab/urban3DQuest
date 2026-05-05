@@ -123,8 +123,8 @@
     .cmp-hint{font-size:0.8rem;color:var(--cyan);margin-bottom:8px}
     .cmp-capture{width:100%;padding:10px;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:10px;color:#fff;font-weight:800;cursor:pointer;font-size:0.95rem;box-shadow:0 2px 12px rgba(34,197,94,.4);min-height:52px}
     /* ── Capture FAB ── */
-    #captureFab{position:fixed;bottom:calc(58px + env(safe-area-inset-bottom));right:18px;padding:16px 24px;min-height:56px;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:16px;font-size:1.05rem;font-weight:800;color:#fff;cursor:pointer;z-index:1000;box-shadow:0 4px 24px rgba(34,197,94,.5);display:none;animation:pulse 1.2s infinite;letter-spacing:0.03em;transition:transform 0.1s}
-    #captureFab:active{transform:scale(0.94)}
+    #captureFab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(64px + env(safe-area-inset-bottom));width:78px;height:78px;min-height:78px;padding:0;background:radial-gradient(circle at 30% 30%,#ffffff 0%,#f8fafc 42%,#e2e8f0 100%);border:6px solid rgba(15,23,42,.74);border-radius:999px;font-size:2rem;font-weight:800;color:#0f172a;cursor:pointer;z-index:1000;box-shadow:0 8px 26px rgba(15,23,42,.35),0 0 0 2px rgba(255,255,255,.7) inset;display:none;letter-spacing:0;transition:transform 0.1s,box-shadow .2s}
+    #captureFab:active{transform:translateX(-50%) scale(0.94)}
     /* ── Progress bar ── */
     #progressBar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--line-2);padding:8px 16px 12px;z-index:200;display:none;padding-bottom:calc(8px + env(safe-area-inset-bottom))}
     #progressBar .pb-label{display:flex;justify-content:space-between;font-size:0.78rem;color:var(--ink-2);margin-bottom:6px;font-family:var(--mono)}
@@ -405,9 +405,9 @@
     <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2C7.686 2 5 4.8 5 8.2c0 4.8 6 11.8 6 11.8s6-7 6-11.8C17 4.8 14.314 2 11 2z"/><circle cx="11" cy="8" r="2.2"/></svg></span>
     <span class="nav-label">Série</span>
   </button>
-  <button aria-label="Le Déclic" role="tab" aria-selected="false" id="navDeclic" onclick="setGameMode('unique');showTab('explore',this)">
+  <button aria-label="Le Flash" role="tab" aria-selected="false" id="navDeclic" onclick="setGameMode('unique');showTab('explore',this)">
     <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="14,2 7,12 11,12 8,20 15,10 11,10"/></svg></span>
-    <span class="nav-label">Déclic</span>
+    <span class="nav-label">Flash</span>
   </button>
   <button aria-label="Compte" role="tab" aria-selected="false" id="navCompte" onclick="showTab('moi',this)">
     <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="7" r="4"/><path d="M2 20c0-4.418 4.03-8 9-8s9 3.582 9 8"/></svg></span>
@@ -475,7 +475,7 @@
 </div>
 
 <!-- ── Capture FAB (balises fixes GPS) ──────────────── -->
-<button id="captureFab" onclick="captureFixed()" aria-label="Révéler ce polaroid">📷 Révéler ce polaroid</button>
+<button id="captureFab" onclick="captureFixed()" aria-label="Déclencher l'obturateur">📸</button>
 
 <!-- ── Progress bar ──────────────────────────────────── -->
 <div id="progressBar">
@@ -562,7 +562,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.10.9';
+const GAME_VERSION = 'v3.10.10';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -602,6 +602,9 @@ let geoLastFixAt    = 0;
 let geoLastStartAt  = 0;
 let geoLastErrorCode = null;
 let geoLastErrorAt   = 0;
+let geoPreferHighAccuracy = true;
+let geoNoFixHintTimer = null;
+let geoGestureKickBound = false;
 let playerMarker    = null; // GPS position marker on miniMap
 let accuracyCircle  = null; // GPS accuracy circle on miniMap
 let lastHapticZone  = null;
@@ -613,6 +616,11 @@ const ARROW_PALETTE = ['#f472b6', '#fb923c', '#22d3ee', '#a78bfa', '#4ade80'];
 let myToken = localStorage.getItem('u3dq_token') || ''; // session token for single-session enforcement
 let activeGameMode = (localStorage.getItem('u3dq_game_mode') || 'fixed') === 'unique' ? 'unique' : 'fixed';
 const revealedFixedClues = new Set(myPseudo ? JSON.parse(localStorage.getItem(`u3dq_clues_${myPseudo}`) || '[]') : []); // fixed clues unlocked by proximity, persisted per player
+
+function isIOSDevice() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
 
 // ── Startup ──────────────────────────────────────────
 let bgMap = null;
@@ -878,6 +886,16 @@ async function initGame(pendingFoundId) {
       if (playerLat === null) requestGpsKick();
     });
   }
+  if (isIOSDevice() && !geoGestureKickBound) {
+    geoGestureKickBound = true;
+    const oneShotKick = () => {
+      if (playerLat === null) requestGpsKick();
+      document.removeEventListener('touchend', oneShotKick, true);
+      document.removeEventListener('click', oneShotKick, true);
+    };
+    document.addEventListener('touchend', oneShotKick, true);
+    document.addEventListener('click', oneShotKick, true);
+  }
   startLbPolling();
   updateProgressBar();
 
@@ -992,7 +1010,7 @@ function updateModeUI() {
   if (pbLabel) {
     pbLabel.textContent = activeGameMode === 'fixed'
       ? 'Polaroids révélés'
-      : 'Déclics empochés';
+      : 'Flashs empochés';
   }
 
   if (arrowBtn) arrowBtn.style.display = activeGameMode === 'fixed' ? 'block' : 'none';
@@ -1133,14 +1151,14 @@ function renderMarkers() {
     const opacity = isTaken && !isMine ? 0.4 : 1;
 
     const popup = isTaken && !isMine
-      ? `<b>${escHtml(tLabel(t))}</b><br>🔒 Déclic déjà pris`
+      ? `<b>${escHtml(tLabel(t))}</b><br>🔒 Flash déjà pris`
       : (() => {
           const urls = getPhotoUrls(t.photo_url);
           const safeUrls = urls.map(safeImgUrl).filter(Boolean);
           const ph = safeUrls.map(u =>
             `<img src="${escHtml(u)}" onclick="openPhotoViewer('${jsSingleQuoted(u)}')" style="width:100%;max-height:180px;object-fit:cover;border-radius:8px;margin-bottom:6px;display:block;cursor:zoom-in">`
           ).join('');
-          return `<div style="min-width:220px">${ph}<b style="font-size:0.95rem">${escHtml(tLabel(t))}</b><br><span style="font-size:0.82em;color:#888">${t.type === 'fixed' ? '� La Série' : '⚡ Le Déclic'}</span>${t.hint ? `<br><span style="font-size:0.82em;color:#93c5fd">💡 ${escHtml(t.hint)}</span>` : ''}${safeUrls.length ? `<br><span style="font-size:0.75em;color:#64748b">👆 Tap photo pour agrandir</span>` : ''}</div>`;
+          return `<div style="min-width:220px">${ph}<b style="font-size:0.95rem">${escHtml(tLabel(t))}</b><br><span style="font-size:0.82em;color:#888">${t.type === 'fixed' ? '� La Série' : '⚡ Le Flash'}</span>${t.hint ? `<br><span style="font-size:0.82em;color:#93c5fd">💡 ${escHtml(t.hint)}</span>` : ''}${safeUrls.length ? `<br><span style="font-size:0.75em;color:#64748b">👆 Tap photo pour agrandir</span>` : ''}</div>`;
         })();
 
     // Unique treasures not yet found: fuzzy circle — center is randomly OFFSET from
@@ -1176,11 +1194,13 @@ function _onGeoSuccess(pos) {
   geoLastFixAt = Date.now();
   geoLastErrorCode = null;
   geoLastErrorAt = 0;
+  geoPreferHighAccuracy = true;
+  if (geoNoFixHintTimer) { clearTimeout(geoNoFixHintTimer); geoNoFixHintTimer = null; }
   // Smooth GPS: keep last 5 positions, weighted average
   gpsHistory.push({ lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy });
-  if (gpsHistory.length > 5) gpsHistory.shift();
+  if (gpsHistory.length > 3) gpsHistory.shift();
   const firstFix = gpsHistory.length === 1;
-  const weights = [1, 2, 3, 4, 5].slice(gpsHistory.length > 5 ? 0 : 5 - gpsHistory.length);
+  const weights = [1, 2, 3].slice(3 - gpsHistory.length);
   const totalW = weights.reduce((a,b) => a+b, 0);
   playerLat = gpsHistory.reduce((s, p, i) => s + p.lat * weights[i], 0) / totalW;
   playerLng = gpsHistory.reduce((s, p, i) => s + p.lng * weights[i], 0) / totalW;
@@ -1214,13 +1234,13 @@ function _onGeoSuccess(pos) {
       playerMarker.setLatLng(pos2);
     }
     if (activeTab === 'explore' && mapFollowing) {
-      gameMap.setView(pos2, gameMap.getZoom(), { animate: true });
+      gameMap.setView(pos2, gameMap.getZoom(), { animate: false });
     }
   }
 
   updateRadar();
   updateNearestCard();
-  scheduleCompassRender(false);
+  scheduleCompassRender(true);
   // Force immediate arrow draw on first GPS fix (don't wait for compass interval)
   if (firstFix) scheduleCompassRender(true);
 }
@@ -1238,8 +1258,9 @@ function _onGeoError(err) {
 
   // iOS can stall geolocation; retry automatically except when permission is denied.
   if (err.code !== 1) {
+    geoPreferHighAccuracy = false;
     if (geoWatch !== null) { navigator.geolocation.clearWatch(geoWatch); geoWatch = null; }
-    setTimeout(() => startGeoWatch(true), 1200);
+    setTimeout(() => startGeoWatch(true, false), 1200);
   }
 }
 
@@ -1250,15 +1271,16 @@ function requestGpsKick() {
     bar.textContent = '📍 Relance GPS…';
     bar.className = '';
   }
-  startGeoWatch(true);
+  geoPreferHighAccuracy = false;
+  startGeoWatch(true, false);
   navigator.geolocation.getCurrentPosition(pos => {
     _onGeoSuccess(pos);
   }, err => {
     _onGeoError(err);
-  }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
+  }, { enableHighAccuracy: false, timeout: 12000, maximumAge: 0 });
 }
 
-function startGeoWatch(forceRestart) {
+function startGeoWatch(forceRestart, preferredHighAccuracy) {
   if (!navigator.geolocation) {
     document.getElementById('radarBar').textContent = '📍 GPS non disponible sur cet appareil';
     return;
@@ -1274,18 +1296,29 @@ function startGeoWatch(forceRestart) {
   const lbl0  = document.getElementById('gpsLabel');
   if (chip0 && lbl0) { lbl0.textContent = '…'; chip0.className = 'gps-mid'; }
 
+  const useHighAccuracy = preferredHighAccuracy !== undefined ? preferredHighAccuracy : geoPreferHighAccuracy;
   geoLastStartAt = Date.now();
 
   // Warmup one-shot often helps iOS Safari deliver the first fix reliably.
   navigator.geolocation.getCurrentPosition(pos => {
     _onGeoSuccess(pos);
-  }, () => {}, { enableHighAccuracy: true, timeout: 9000, maximumAge: 0 });
+  }, () => {}, { enableHighAccuracy: useHighAccuracy, timeout: 9000, maximumAge: 0 });
 
   geoWatch = navigator.geolocation.watchPosition(pos => {
     _onGeoSuccess(pos);
   }, err => {
     _onGeoError(err);
-  }, { enableHighAccuracy: true, maximumAge: 4000, timeout: 10000 });
+  }, { enableHighAccuracy: useHighAccuracy, maximumAge: 3000, timeout: 9000 });
+
+  if (geoNoFixHintTimer) clearTimeout(geoNoFixHintTimer);
+  geoNoFixHintTimer = setTimeout(() => {
+    if (playerLat !== null) return;
+    const bar = document.getElementById('radarBar');
+    if (bar && isIOSDevice()) {
+      bar.textContent = '📍 GPS lent sur iOS — touche le badge GPS pour relancer';
+      bar.className = '';
+    }
+  }, 11000);
 
   if (!geoWatchdog) {
     geoWatchdog = setInterval(() => {
@@ -1293,7 +1326,11 @@ function startGeoWatch(forceRestart) {
       const now = Date.now();
       const noFirstFix = playerLat === null && geoLastStartAt > 0 && (now - geoLastStartAt > 14000);
       const staleFix = playerLat !== null && geoLastFixAt > 0 && (now - geoLastFixAt > 22000);
-      if (noFirstFix || staleFix) startGeoWatch(true);
+      if (noFirstFix || staleFix) {
+        const nextHigh = staleFix ? true : false;
+        geoPreferHighAccuracy = nextHigh;
+        startGeoWatch(true, nextHigh);
+      }
     }, 6000);
   }
 }
@@ -1325,7 +1362,7 @@ function destinationPoint(lat, lng, bearing, distM) {
 // Human-readable label for a treasure (never shows raw ID or generic "sans nom")
 function tLabel(t) {
   if (t.label && t.label.trim()) return t.label.trim();
-  return t.type === 'fixed' ? '� Polaroid' : '⚡ Déclic';
+  return t.type === 'fixed' ? '� Polaroid' : '⚡ Flash';
 }
 
 function distLabel(d) {
@@ -1369,7 +1406,7 @@ function updateRadar() {
       .filter(t => !(t.found_by && t.found_by.split(',').includes(myPseudo)));
 
     if (!uniqueLeft.length) {
-      bar.textContent = '✅ Tous les déclics ont été pris !';
+      bar.textContent = '✅ Tous les flashs ont été pris !';
       bar.className = '';
       fab.style.display = 'none';
       nearestFixed = null;
@@ -1644,7 +1681,7 @@ function updateCompass() {
 
   if (gameMap) {
     const headingChanged = lastArrowHeading === null || Math.abs((deviceHeading || 0) - lastArrowHeading) > 2;
-    const posChanged = lastArrowLat === null || haversine(playerLat, playerLng, lastArrowLat, lastArrowLng) > 2;
+    const posChanged = lastArrowLat === null || haversine(playerLat, playerLng, lastArrowLat, lastArrowLng) > 0.8;
 
     if (posChanged || headingChanged) {
       lastArrowLat = playerLat; lastArrowLng = playerLng; lastArrowHeading = deviceHeading || 0;
@@ -2212,8 +2249,8 @@ function showFoundResult(status, t, durationSec) {
       }
     } else {
       emoji.textContent = '⚡';
-      label.textContent = 'DÉCLIC !';
-      title.textContent = `Déclic ! Tu es le seul à l'avoir.`;
+      label.textContent = 'FLASH !';
+      title.textContent = `Flash ! Tu es le seul à l'avoir.`;
       dur.textContent   = formatDuration(durationSec);
       desc.textContent  = '';
     }
@@ -2228,7 +2265,7 @@ function showFoundResult(status, t, durationSec) {
     label.textContent = 'TROP TARD';
     title.textContent = 'Trop tard !';
     dur.textContent   = '';
-    desc.textContent  = 'Trop tard. Ce déclic a déjà été pris.';
+    desc.textContent  = 'Trop tard. Ce flash a déjà été pris.';
   }
   modal.classList.add('open');
 }
@@ -2523,7 +2560,7 @@ async function loadCarnet() {
       const t = tMap[ev.treasure_id];
       const label = t ? escHtml(tLabel(t)) : escHtml(ev.treasure_id);
       const isUnique = ev.treasure_type === 'unique';
-      const typeLabel = isUnique ? 'Le Déclic' : 'La Série';
+      const typeLabel = isUnique ? 'Le Flash' : 'La Série';
       const typeClass = isUnique ? 'cn-unique' : 'cn-fixed';
       const date = new Date(ev.created_at).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
       const durStr = ev.duration_sec ? `⏱ ${formatDuration(ev.duration_sec)}` : '';
@@ -2596,7 +2633,7 @@ function updateNearestCard() {
   _nearestTreasure = pool[0];
   const count = pool.length;
   const header = isUniqueMode
-    ? `${count} DÉCLIC${count > 1 ? 'S' : ''} À CHASSER`
+    ? `${count} FLASH${count > 1 ? 'S' : ''} À CHASSER`
     : `${count} POLAROID${count > 1 ? 'S' : ''} LES PLUS PROCHES`;
 
   el.style.display = 'flex';
@@ -2630,7 +2667,7 @@ function revealFixedClueFromSheet(id) {
 function openTreasureSheet(t) {
   const isMine   = t.found_by && t.found_by.split(',').includes(myPseudo);
   const isTaken  = t.type === 'unique' && t.found_by && t.found_by.length > 0;
-  const typeLabel = t.type === 'fixed' ? 'Polaroid · La Série' : 'Polaroid · Le Déclic';
+  const typeLabel = t.type === 'fixed' ? 'Polaroid · La Série' : 'Polaroid · Le Flash';
   const isFixedLocked = t.type === 'fixed' && !isMine;
   const urls     = getPhotoUrls(t.photo_url);
   const safeUrls = urls.map(safeImgUrl).filter(Boolean);
@@ -2644,7 +2681,7 @@ function openTreasureSheet(t) {
     `<img src="${escHtml(u)}" onclick="openPhotoViewer('${jsSingleQuoted(u)}')" class="ts-photo">`
   ).join('');
   const badge = isMine ? '<span class="ts-badge ts-badge-found">✓ Révélé</span>'
-    : isTaken ? '<span class="ts-badge ts-badge-taken">🔒 Déclic pris</span>'
+    : isTaken ? '<span class="ts-badge ts-badge-taken">🔒 Flash pris</span>'
     : '<span class="ts-badge ts-badge-open">· À révéler</span>';
   const cta = (!isMine && !isTaken && t.type === 'unique' && t.lat && t.lng)
     ? `<button class="ts-cta" onclick="recenterOn(${t.lat},${t.lng})">M'y emmener →</button>` : '';
@@ -2735,7 +2772,7 @@ async function loadMoi() {
     <div class="moi-pseudo">${escHtml(pseudo)}</div>
     <div class="moi-grid">
       <div class="moi-tile"><div class="moi-tile-val">${myFixed}</div><div class="moi-tile-lbl">La Série</div></div>
-      <div class="moi-tile"><div class="moi-tile-val">${myUnique}</div><div class="moi-tile-lbl">Le Déclic</div></div>
+      <div class="moi-tile"><div class="moi-tile-val">${myUnique}</div><div class="moi-tile-lbl">Le Flash</div></div>
       <div class="moi-tile"><div class="moi-tile-val">${myFixed + myUnique}</div><div class="moi-tile-lbl">Total révélé</div></div>
       <div class="moi-tile"><div class="moi-tile-val">${rank}</div><div class="moi-tile-lbl">Classement</div></div>
     </div>
