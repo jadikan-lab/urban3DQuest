@@ -56,13 +56,13 @@
     .btn-main:active{transform:scale(0.97);opacity:0.9}
     .btn-main:disabled{opacity:0.5;cursor:default}
     /* ── Header ── */
-    header{background:var(--bg);padding:8px 10px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--line)}
+    header{background:var(--bg);padding:5px 8px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--line)}
     body.env-stg header{background:linear-gradient(180deg,#f7efe3 0%,var(--bg) 100%)}
-    header h1{font-size:0.82rem;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink-2);letter-spacing:0.04em;font-weight:700;font-family:var(--mono);text-transform:uppercase}
-    .pseudo-chip{background:rgba(0,229,255,0.12);color:var(--cyan);padding:4px 10px;border-radius:20px;font-size:0.78rem;font-weight:600;font-family:var(--mono)}
+    header h1{font-size:0.72rem;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink-2);letter-spacing:0.03em;font-weight:700;font-family:var(--mono);text-transform:uppercase}
+    .pseudo-chip{background:rgba(0,229,255,0.12);color:var(--cyan);padding:3px 8px;border-radius:14px;font-size:0.68rem;font-weight:600;font-family:var(--mono)}
     /* ── GPS chip — point de statut ── */
-    #gpsChip{display:flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;font-size:0.78rem;font-weight:700;background:var(--surface);border:1px solid var(--line-2);color:var(--ink-2);cursor:default;transition:all 0.4s;font-family:var(--mono)}
-    #gpsDot{width:8px;height:8px;border-radius:50%;background:var(--ink-3);flex-shrink:0;transition:background 0.4s}
+    #gpsChip{display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:14px;font-size:0.66rem;font-weight:700;background:var(--surface);border:1px solid var(--line-2);color:var(--ink-2);cursor:default;transition:all 0.4s;font-family:var(--mono)}
+    #gpsDot{width:6px;height:6px;border-radius:50%;background:var(--ink-3);flex-shrink:0;transition:background 0.4s}
     #gpsChip.gps-ok{border-color:#16a34a;color:#4ade80;background:rgba(22,163,74,.12)}
     #gpsChip.gps-ok #gpsDot{background:#4ade80;box-shadow:0 0 6px #22c55e}
     #gpsChip.gps-mid{border-color:#d97706;color:#fbbf24;background:rgba(217,119,6,.1)}
@@ -70,11 +70,12 @@
     #gpsChip.gps-bad{border-color:#dc2626;color:#f87171;background:rgba(220,38,38,.15);animation:pulse 0.8s infinite}
     #gpsChip.gps-bad #gpsDot{background:#f87171}
     /* ── Navigation ── */
-    nav{display:flex;background:var(--surface);border-bottom:1px solid var(--line-2);padding:0 2px}
-    nav button{flex:1;padding:10px 4px;min-height:46px;background:none;border:none;color:var(--ink-3);font-size:0.8rem;font-weight:700;cursor:pointer;letter-spacing:0.01em;transition:color 0.15s,background 0.15s;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--display)}
-    .nav-icon{display:flex;align-items:center;justify-content:center;width:22px;height:22px}
-    .nav-label{font-size:0.7rem;font-weight:700;letter-spacing:.02em}
-    nav button.active{color:var(--ink);border-bottom:3px solid var(--magenta);background:rgba(255,61,138,.1);font-weight:800}
+    nav{display:flex;background:var(--surface);border-bottom:1px solid var(--line-2);padding:0 1px}
+    nav button{flex:1;padding:6px 2px;min-height:38px;background:none;border:none;color:var(--ink-3);font-size:0.72rem;font-weight:700;cursor:pointer;letter-spacing:0.01em;transition:color 0.15s,background 0.15s;display:flex;flex-direction:column;align-items:center;gap:1px;font-family:var(--display)}
+    .nav-icon{display:flex;align-items:center;justify-content:center;width:18px;height:18px}
+    .nav-icon svg{width:18px;height:18px}
+    .nav-label{font-size:0.62rem;font-weight:700;letter-spacing:.01em}
+    nav button.active{color:var(--ink);border-bottom:2px solid var(--magenta);background:rgba(255,61,138,.1);font-weight:800}
     nav button:active{background:rgba(26,24,38,.05)}
     /* ── More menu ── */
     #moreMenu{display:none;position:fixed;inset:0;z-index:500}
@@ -123,8 +124,9 @@
     .cmp-hint{font-size:0.8rem;color:var(--cyan);margin-bottom:8px}
     .cmp-capture{width:100%;padding:10px;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:10px;color:#fff;font-weight:800;cursor:pointer;font-size:0.95rem;box-shadow:0 2px 12px rgba(34,197,94,.4);min-height:52px}
     /* ── Capture FAB ── */
-    #captureFab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(64px + env(safe-area-inset-bottom));width:78px;height:78px;min-height:78px;padding:0;background:radial-gradient(circle at 30% 30%,#ffffff 0%,#f8fafc 42%,#e2e8f0 100%);border:6px solid rgba(15,23,42,.74);border-radius:999px;font-size:2rem;font-weight:800;color:#0f172a;cursor:pointer;z-index:1000;box-shadow:0 8px 26px rgba(15,23,42,.35),0 0 0 2px rgba(255,255,255,.7) inset;display:none;letter-spacing:0;transition:transform 0.1s,box-shadow .2s}
-    #captureFab:active{transform:translateX(-50%) scale(0.94)}
+    #captureFab{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:74px;height:74px;min-height:74px;padding:0;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.95) 0%,rgba(248,250,252,.86) 42%,rgba(226,232,240,.82) 100%);border:4px solid rgba(15,23,42,.72);border-radius:999px;font-size:0;color:transparent;cursor:pointer;z-index:1100;box-shadow:0 10px 24px rgba(15,23,42,.3),0 0 0 2px rgba(255,255,255,.72) inset;display:none;letter-spacing:0;transition:transform 0.1s,box-shadow .2s;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+    #captureFab::after{content:'';position:absolute;inset:14px;border-radius:999px;border:4px solid rgba(15,23,42,.8);background:rgba(255,255,255,.18)}
+    #captureFab:active{transform:translate(-50%,-50%) scale(0.94)}
     /* ── Progress bar ── */
     #progressBar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--line-2);padding:8px 16px 12px;z-index:200;display:none;padding-bottom:calc(8px + env(safe-area-inset-bottom))}
     #progressBar .pb-label{display:flex;justify-content:space-between;font-size:0.78rem;color:var(--ink-2);margin-bottom:6px;font-family:var(--mono)}
@@ -207,15 +209,18 @@
     .dir-arrow:active{opacity:0.7}
     /* ── Fond radar boussole ── */
     #radarBg{position:absolute;inset:0;z-index:850;background:
-      radial-gradient(circle at 50% 50%,rgba(13,26,56,.18) 0%,rgba(2,6,16,.42) 100%),
-      repeating-conic-gradient(from 0deg,rgba(56,189,248,.05) 0deg 14deg,rgba(15,23,42,0) 14deg 28deg);
+      radial-gradient(circle at 50% 50%,rgba(13,26,56,.12) 0%,rgba(2,6,16,.38) 100%),
+      repeating-conic-gradient(from 0deg,rgba(56,189,248,.08) 0deg 10deg,rgba(15,23,42,0) 10deg 20deg);
       display:none;pointer-events:none;backdrop-filter:blur(1.2px);-webkit-backdrop-filter:blur(1.2px)}
     #radarBg.active{display:block}
-    .radar-ring{position:absolute;border-radius:50%;border:1px solid rgba(56,189,248,0.14);top:50%;left:50%;transform:translate(-50%,-50%)}
-    .radar-spoke{position:absolute;top:50%;left:50%;width:1px;height:42%;background:linear-gradient(180deg,rgba(244,114,182,.45),rgba(244,114,182,0));transform-origin:50% 100%;z-index:1}
+    .radar-ring{position:absolute;border-radius:50%;border:1px solid rgba(56,189,248,0.2);top:50%;left:50%;transform:translate(-50%,-50%)}
+    .radar-spoke{position:absolute;top:50%;left:50%;transform-origin:50% 100%;z-index:1}
+    .radar-spoke.major{width:2px;height:44%;background:linear-gradient(180deg,rgba(251,113,133,.72),rgba(251,113,133,0))}
+    .radar-spoke.minor{width:1px;height:39%;background:linear-gradient(180deg,rgba(251,113,133,.35),rgba(251,113,133,0))}
     #radarCenterDot{position:absolute;width:14px;height:14px;border-radius:50%;background:#fb7185;box-shadow:0 0 14px rgba(251,113,133,.9),0 0 4px rgba(255,255,255,.5);top:50%;left:50%;transform:translate(-50%,-50%);z-index:3}
     #radarCenterLabel{position:absolute;top:50%;left:50%;transform:translate(-50%,12px);font-size:0.56rem;font-weight:900;color:#fda4af;font-family:var(--mono);letter-spacing:.08em;text-shadow:0 0 6px rgba(251,113,133,.8);z-index:3}
-    .radar-cardinal{position:absolute;font-size:0.68rem;font-weight:900;color:#fda4af;font-family:var(--mono);transform:translate(-50%,-50%);z-index:2;text-shadow:0 0 8px rgba(251,113,133,.85);letter-spacing:.05em}
+    .radar-cardinal{position:absolute;font-size:0.7rem;font-weight:900;color:#fda4af;font-family:var(--mono);transform:translate(-50%,-50%);z-index:2;text-shadow:0 0 8px rgba(251,113,133,.85);letter-spacing:.05em}
+    #gpsKickBtn{display:none;position:absolute;top:10px;left:10px;z-index:1000;padding:7px 10px;background:rgba(217,119,6,.92);border:1px solid #f59e0b;border-radius:10px;color:#fff7ed;font-size:0.72rem;font-weight:800;cursor:pointer}
     #locateMeBtn{min-height:48px!important;min-width:48px!important;padding:10px!important;transition:transform .1s}
     #locateMeBtn:active{transform:scale(0.9)}
     /* ── QR Scanner overlay ── */
@@ -424,6 +429,7 @@
   <div id="miniMap" style="position:relative">
     <button id="arrowToggleBtn" onclick="toggleCompassArrows()" style="position:absolute;bottom:14px;right:10px;z-index:1000;background:rgba(255,255,255,.9);border:1.5px solid var(--line-2);border-radius:12px;color:var(--ink);font-size:0.75rem;font-weight:700;padding:7px 12px;cursor:pointer;backdrop-filter:blur(6px)">Polaroids</button>
     <button id="locateMeBtn" onclick="recenterMap()" style="position:absolute;bottom:14px;left:10px;z-index:1000;background:rgba(255,255,255,.9);border:1.5px solid var(--line-2);border-radius:12px;color:var(--ink-2);font-size:1.1rem;padding:7px 11px;cursor:pointer;backdrop-filter:blur(6px);display:none" title="Recentrer sur ma position"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="10" r="2.5" fill="currentColor"/><line x1="10" y1="1" x2="10" y2="4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="10" y1="15.5" x2="10" y2="19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="1" y1="10" x2="4.5" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="15.5" y1="10" x2="19" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+    <button id="gpsKickBtn" onclick="requestGpsKick()">📍 Activer GPS</button>
     <button id="compassPermBtn" onclick="requestCompassPermission()" style="display:none;position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1000;padding:8px 16px;background:linear-gradient(135deg,#3b82f6,#6366f1);border:none;border-radius:12px;color:#fff;font-size:0.82rem;font-weight:700;cursor:pointer;backdrop-filter:blur(6px)">🧭 Activer le compas (iOS)</button>
     <button id="compassDebugBtn" onclick="toggleCompassDebug()" style="display:none;position:absolute;top:10px;right:10px;z-index:1000;padding:7px 10px;background:rgba(15,23,42,.9);border:1px solid #334155;border-radius:10px;color:#93c5fd;font-size:0.72rem;font-weight:700;cursor:pointer">DBG</button>
     <div id="compassDebug" style="display:none;position:absolute;top:10px;left:10px;z-index:1000;font-size:0.68rem;color:var(--ink-2);line-height:1.6;padding:8px 12px;background:rgba(255,255,255,.92);border-radius:8px;max-width:220px;border:1px solid var(--line-2)"></div>
@@ -562,7 +568,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.10.10';
+const GAME_VERSION = 'v3.10.11';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -1036,6 +1042,7 @@ function setGameMode(mode) {
   lastArrowLng = null;
   lastArrowHeading = null;
   _clearArrows();
+  applyExploreMapLock();
   updateCompass();
 }
 
@@ -1088,12 +1095,12 @@ function initMap() {
   const mapEl = document.getElementById('miniMap');
   const radarBg = document.createElement('div');
   radarBg.id = 'radarBg';
-  [0, 45, 90, 135].forEach((deg) => {
+  for (let deg = 0; deg < 360; deg += 30) {
     const s = document.createElement('div');
-    s.className = 'radar-spoke';
+    s.className = 'radar-spoke ' + (deg % 90 === 0 ? 'major' : 'minor');
     s.style.transform = `translate(-50%,-100%) rotate(${deg}deg)`;
     radarBg.appendChild(s);
-  });
+  }
   [1, 2, 3].forEach(() => { const r = document.createElement('div'); r.className = 'radar-ring'; radarBg.appendChild(r); });
   const dot = document.createElement('div'); dot.id = 'radarCenterDot'; radarBg.appendChild(dot);
   const centerLabel = document.createElement('div'); centerLabel.id = 'radarCenterLabel'; centerLabel.textContent = 'VOUS'; radarBg.appendChild(centerLabel);
@@ -1108,12 +1115,35 @@ function initMap() {
   const ov = document.createElement('div');
   ov.id = 'arrowOverlay';
   mapEl.appendChild(ov);
+  const captureBtn = document.getElementById('captureFab');
+  if (captureBtn && captureBtn.parentElement !== mapEl) mapEl.appendChild(captureBtn);
   gameMap.on('dragstart', function() {
+    if (activeGameMode === 'fixed') {
+      mapFollowing = true;
+      return;
+    }
     mapFollowing = false;
     var btn = document.getElementById('locateMeBtn');
     if (btn) btn.style.display = 'block';
   });
+  applyExploreMapLock();
   renderMarkers();
+}
+
+function applyExploreMapLock() {
+  if (!gameMap) return;
+  const lockOnPlayer = activeTab === 'explore' && activeGameMode === 'fixed';
+  const locateBtn = document.getElementById('locateMeBtn');
+  if (lockOnPlayer) {
+    mapFollowing = true;
+    if (gameMap.dragging && gameMap.dragging.enabled()) gameMap.dragging.disable();
+    if (locateBtn) locateBtn.style.display = 'none';
+    if (playerLat !== null && playerLng !== null) {
+      gameMap.setView([playerLat, playerLng], gameMap.getZoom(), { animate: false });
+    }
+  } else {
+    if (gameMap.dragging && !gameMap.dragging.enabled()) gameMap.dragging.enable();
+  }
 }
 
 function getPhotoUrls(raw){if(!raw)return[];if(raw.charAt(0)==='['){try{return JSON.parse(raw).filter(Boolean);}catch(e){}}return[raw];}
@@ -1196,6 +1226,8 @@ function _onGeoSuccess(pos) {
   geoLastErrorAt = 0;
   geoPreferHighAccuracy = true;
   if (geoNoFixHintTimer) { clearTimeout(geoNoFixHintTimer); geoNoFixHintTimer = null; }
+  const gpsKickBtn = document.getElementById('gpsKickBtn');
+  if (gpsKickBtn) gpsKickBtn.style.display = 'none';
   // Smooth GPS: keep last 5 positions, weighted average
   gpsHistory.push({ lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy });
   if (gpsHistory.length > 3) gpsHistory.shift();
@@ -1255,6 +1287,10 @@ function _onGeoError(err) {
   const chip = document.getElementById('gpsChip');
   const lbl  = document.getElementById('gpsLabel');
   if (chip && lbl) { lbl.textContent = 'off'; chip.className = 'gps-bad'; }
+  const gpsKickBtn = document.getElementById('gpsKickBtn');
+  if (gpsKickBtn && isIOSDevice() && activeTab === 'explore' && playerLat === null) {
+    gpsKickBtn.style.display = 'block';
+  }
 
   // iOS can stall geolocation; retry automatically except when permission is denied.
   if (err.code !== 1) {
@@ -1271,6 +1307,8 @@ function requestGpsKick() {
     bar.textContent = '📍 Relance GPS…';
     bar.className = '';
   }
+  const gpsKickBtn = document.getElementById('gpsKickBtn');
+  if (gpsKickBtn) gpsKickBtn.style.display = 'none';
   geoPreferHighAccuracy = false;
   startGeoWatch(true, false);
   navigator.geolocation.getCurrentPosition(pos => {
@@ -1314,17 +1352,19 @@ function startGeoWatch(forceRestart, preferredHighAccuracy) {
   geoNoFixHintTimer = setTimeout(() => {
     if (playerLat !== null) return;
     const bar = document.getElementById('radarBar');
+    const gpsKickBtn = document.getElementById('gpsKickBtn');
     if (bar && isIOSDevice()) {
       bar.textContent = '📍 GPS lent sur iOS — touche le badge GPS pour relancer';
       bar.className = '';
+      if (gpsKickBtn) gpsKickBtn.style.display = 'block';
     }
-  }, 11000);
+  }, 8000);
 
   if (!geoWatchdog) {
     geoWatchdog = setInterval(() => {
       if (document.hidden || !navigator.geolocation) return;
       const now = Date.now();
-      const noFirstFix = playerLat === null && geoLastStartAt > 0 && (now - geoLastStartAt > 14000);
+      const noFirstFix = playerLat === null && geoLastStartAt > 0 && (now - geoLastStartAt > 10000);
       const staleFix = playerLat !== null && geoLastFixAt > 0 && (now - geoLastFixAt > 22000);
       if (noFirstFix || staleFix) {
         const nextHigh = staleFix ? true : false;
@@ -1475,7 +1515,18 @@ function updateRadar() {
     bar.textContent = `Cherche bien, il est là.${gpsWeak ? ' ⚠️ GPS faible' : ''}${accStr}`;
     bar.className = 'very-near';
     nearestFixed = canCapture ? nearestF.t : null;
-    fab.style.display = (activeTab === 'explore' && canCapture) ? 'block' : 'none';
+    if (activeTab === 'explore' && canCapture && gameMap) {
+      const mapEl = document.getElementById('miniMap');
+      const p = gameMap.latLngToContainerPoint([playerLat, playerLng]);
+      const margin = 44;
+      const x = Math.max(margin, Math.min(mapEl.offsetWidth - margin, p.x));
+      const y = Math.max(margin, Math.min(mapEl.offsetHeight - margin, p.y));
+      fab.style.left = x + 'px';
+      fab.style.top = y + 'px';
+      fab.style.display = 'block';
+    } else {
+      fab.style.display = 'none';
+    }
     if (lastHapticZone !== 'capture') { lastHapticZone = 'capture'; haptic([100, 50, 100, 50, 200]); }
   }
 }
@@ -1576,6 +1627,7 @@ async function requestCompassPermission() {
       btn.style.display = 'none';
       _attachOrientationListeners();
       scheduleCompassRender(true);
+      if (playerLat === null) requestGpsKick();
     } else {
       btn.textContent = '⚠️ Compas refusé — flèches statiques';
       btn.classList.remove('compass-perm-pulse');
@@ -2496,11 +2548,14 @@ function showTab(name, btn) {
   document.getElementById('panel' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
   if (btn) { btn.classList.add('active'); btn.setAttribute('aria-selected', 'true'); }
   if (name !== 'explore') document.getElementById('radarBar').style.display = 'none';
+  const gpsKickBtn = document.getElementById('gpsKickBtn');
+  if (gpsKickBtn) gpsKickBtn.style.display = (name === 'explore' && isIOSDevice() && playerLat === null) ? 'block' : 'none';
   if (name === 'explore') {
     setTimeout(() => gameMap && gameMap.invalidateSize(), 60);
     startCompassInterval();
     updateRadar();
     _updateRadarBg();
+    applyExploreMapLock();
   } else if (name === 'scores') {
     stopCompassInterval();
     document.getElementById('captureFab').style.display = 'none';
