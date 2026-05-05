@@ -34,7 +34,7 @@
       --line-2:rgba(154,52,18,0.18);
     }
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:var(--display);background:var(--bg);color:var(--ink);height:100dvh;overflow:hidden;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top);-webkit-font-smoothing:antialiased}
+    body{font-family:var(--display);font-weight:500;background:var(--bg);color:var(--ink);height:100dvh;overflow:hidden;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top);-webkit-font-smoothing:antialiased}
     #envBanner{display:none;background:repeating-linear-gradient(135deg,#7c2d12 0 14px,#9a3412 14px 28px);color:#fff7ed;border-bottom:1px solid rgba(255,255,255,.18);padding:10px 14px;font-size:0.74rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;text-align:center;font-family:var(--mono);box-shadow:0 6px 20px rgba(154,52,18,.25)}
     body.env-stg #envBanner{display:block}
     #bgMap{position:fixed;inset:0;z-index:0}
@@ -237,7 +237,6 @@
     #gpsKickBtn{display:none;position:absolute;top:10px;left:10px;z-index:1000;padding:11px 14px;background:rgba(217,119,6,.96);border:1px solid #f59e0b;border-radius:12px;color:#fff7ed;font-size:0.78rem;font-weight:800;cursor:pointer;min-height:48px}
     #locateMeBtn{min-height:48px!important;min-width:48px!important;padding:10px!important;transition:transform .1s}
     #locateMeBtn:active{transform:scale(0.9)}
-    #outdoorToggleBtn{position:absolute;top:10px;right:10px;z-index:1000;padding:11px 13px;background:rgba(17,24,39,.92);border:1px solid rgba(255,255,255,.24);border-radius:12px;color:#fff;font-size:0.76rem;font-weight:800;cursor:pointer;min-height:48px}
     /* ── QR Scanner overlay ── */
     #qrOverlay{display:none;position:fixed;inset:0;background:var(--bg);z-index:2000;flex-direction:column;align-items:center;justify-content:center}
     #qrOverlay.open{display:flex}
@@ -271,23 +270,6 @@
     .qt-btn.secondary{background:#111827;color:#f9fafb}
     .qt-btn.ghost{background:#fff;color:#111827;border:1px solid var(--line-2)}
     .qt-note{font-size:0.7rem;color:var(--ink-3);margin-top:10px}
-
-    body.outdoor-boost{
-      --bg:#fbfaf7;
-      --surface:#ffffff;
-      --surface-2:#f6f3ee;
-      --ink:#0f172a;
-      --ink-2:#334155;
-      --ink-3:#64748b;
-      --line-2:rgba(15,23,42,0.25);
-    }
-    body.outdoor-boost #radarBar{background:#ffffff;border:2px solid #0f172a;color:#0f172a;box-shadow:0 2px 0 rgba(0,0,0,.16)}
-    body.outdoor-boost #arrowToggleBtn,
-    body.outdoor-boost #locateMeBtn,
-    body.outdoor-boost #openTutorialBtn,
-    body.outdoor-boost #tutorialMiniBtn,
-    body.outdoor-boost #outdoorToggleBtn{min-height:52px!important;font-size:0.82rem!important;font-weight:900!important}
-    body.outdoor-boost #gpsChip{border-width:2px;font-size:0.68rem}
 
     /* ── COMPOSANTS JADIKAN ────────────────────────────── */
 
@@ -457,9 +439,9 @@
   <span class="pseudo-chip" id="headerPseudo" onclick="onHeaderPseudoClick()" style="cursor:pointer"></span>
 </header>
 <nav role="tablist" aria-label="Navigation principale">
-  <button aria-label="Mode Parcours" role="tab" aria-selected="true" id="navSerie" class="active" onclick="setGameMode('fixed');showTab('explore',this)">
+  <button aria-label="Mode Quête" role="tab" aria-selected="true" id="navSerie" class="active" onclick="setGameMode('fixed');showTab('explore',this)">
     <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2C7.686 2 5 4.8 5 8.2c0 4.8 6 11.8 6 11.8s6-7 6-11.8C17 4.8 14.314 2 11 2z"/><circle cx="11" cy="8" r="2.2"/></svg></span>
-    <span class="nav-label">Parcours</span>
+    <span class="nav-label">Quête</span>
   </button>
   <button aria-label="Mode Flash" role="tab" aria-selected="false" id="navDeclic" onclick="setGameMode('unique');showTab('explore',this)">
     <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="14,2 7,12 11,12 8,20 15,10 11,10"/></svg></span>
@@ -476,8 +458,8 @@
 </nav>
 <div id="modeQuickGuide">
   <div id="modeGuideCopy">
-    <strong id="modeGuideTitle">Mode Parcours</strong>
-    <span id="modeGuideText">Trouve les balises fixes dans l'ordre: approche-toi, lis l'indice, puis scanne.</span>
+    <strong id="modeGuideTitle">Mode Quête</strong>
+    <span id="modeGuideText">Balise fixe: approche-toi, trouve l'objet et scanne.</span>
   </div>
   <button id="openTutorialBtn" onclick="openQuickTutorial()">Tutoriel 30s</button>
 </div>
@@ -488,7 +470,6 @@
     <button id="arrowToggleBtn" onclick="toggleCompassArrows()" style="position:absolute;bottom:14px;right:10px;z-index:1000;background:rgba(255,255,255,.9);border:1.5px solid var(--line-2);border-radius:12px;color:var(--ink);font-size:0.75rem;font-weight:700;padding:7px 12px;cursor:pointer;backdrop-filter:blur(6px)">Polaroids</button>
     <button id="locateMeBtn" onclick="recenterMap()" style="position:absolute;bottom:14px;left:10px;z-index:1000;background:rgba(255,255,255,.9);border:1.5px solid var(--line-2);border-radius:12px;color:var(--ink-2);font-size:1.1rem;padding:7px 11px;cursor:pointer;backdrop-filter:blur(6px);display:none" title="Recentrer sur ma position"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="10" r="2.5" fill="currentColor"/><line x1="10" y1="1" x2="10" y2="4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="10" y1="15.5" x2="10" y2="19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="1" y1="10" x2="4.5" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="15.5" y1="10" x2="19" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
     <button id="gpsKickBtn" onclick="requestGpsKick()">📍 Activer GPS</button>
-    <button id="outdoorToggleBtn" onclick="toggleOutdoorBoost()" aria-label="Activer le contraste extérieur">☀️ Outdoor</button>
     <button id="compassPermBtn" onclick="requestCompassPermission()" style="display:none;position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1000;padding:8px 16px;background:linear-gradient(135deg,#3b82f6,#6366f1);border:none;border-radius:12px;color:#fff;font-size:0.82rem;font-weight:700;cursor:pointer;backdrop-filter:blur(6px)">🧭 Activer le compas (iOS)</button>
     <button id="compassDebugBtn" onclick="toggleCompassDebug()" style="display:none;position:absolute;top:10px;right:10px;z-index:1000;padding:7px 10px;background:rgba(15,23,42,.9);border:1px solid #334155;border-radius:10px;color:#93c5fd;font-size:0.72rem;font-weight:700;cursor:pointer">DBG</button>
     <div id="compassDebug" style="display:none;position:absolute;top:10px;left:10px;z-index:1000;font-size:0.68rem;color:var(--ink-2);line-height:1.6;padding:8px 12px;background:rgba(255,255,255,.92);border-radius:8px;max-width:220px;border:1px solid var(--line-2)"></div>
@@ -517,7 +498,7 @@
   <div id="moiContent"></div>
   <div id="parcoursSection" style="display:none">
     <div class="bl-header">
-      <div class="bl-header-top">La Série · Parcours</div>
+      <div class="bl-header-top">La Série · Quête</div>
       <div class="bl-header-count" id="balisesCount">—</div>
     </div>
     <div id="balisList"></div>
@@ -587,12 +568,12 @@
     <p>2 modes, 2 boucles de jeu: tu peux démarrer tout de suite puis revenir ici quand tu veux.</p>
     <div class="qt-grid">
       <div class="qt-card">
-        <strong>Parcours</strong>
-        <span>Balises fixes dans l'ordre. Progression calme, guidage par proximité.</span>
+        <strong>Quête</strong>
+        <span>Balise fixe: approche-toi, trouve l'objet et scanne.</span>
       </div>
       <div class="qt-card">
         <strong>Flash</strong>
-        <span>Trésors uniques. Premier scan gagne, compétition en temps réel.</span>
+        <span>Trésor unique: trouve l'objet en premier.</span>
       </div>
     </div>
     <div class="qt-actions">
@@ -600,7 +581,7 @@
       <button class="qt-btn secondary" onclick="tutorialEnableCompass()">2) Activer compas</button>
       <button class="qt-btn ghost" onclick="closeQuickTutorial()">3) Jouer maintenant</button>
     </div>
-    <div class="qt-note">Astuce outdoor: active le bouton "☀️ Outdoor" sur la carte pour plus de contraste.</div>
+    <div class="qt-note">Astuce: active GPS + compas avant de démarrer pour une meilleure fluidité.</div>
   </div>
 </div>
 
@@ -664,7 +645,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.10.22';
+const GAME_VERSION = 'v3.10.23';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -719,7 +700,6 @@ const MAX_FIXED_ARROWS = 3;
 let myToken = localStorage.getItem('u3dq_token') || ''; // session token for single-session enforcement
 let activeGameMode = (localStorage.getItem('u3dq_game_mode') || 'fixed') === 'unique' ? 'unique' : 'fixed';
 const revealedFixedClues = new Set(myPseudo ? JSON.parse(localStorage.getItem(`u3dq_clues_${myPseudo}`) || '[]') : []); // fixed clues unlocked by proximity, persisted per player
-let outdoorBoost = localStorage.getItem('u3dq_outdoor_boost') === '1';
 let tutorialSeen = localStorage.getItem('u3dq_tuto_seen') === '1';
 
 function isIOSDevice() {
@@ -945,7 +925,6 @@ async function continueAsGuest() {
 async function initGame(pendingFoundId) {
   updateHeader();
   updateModeUI();
-  applyOutdoorBoost();
   document.getElementById('radarBar').style.display = 'block';
 
   // Load config
@@ -1127,11 +1106,11 @@ function updateModeUI() {
 
   if (guideTitle && guideText) {
     if (activeGameMode === 'fixed') {
-      guideTitle.textContent = 'Mode Parcours';
-      guideText.textContent = 'Balises fixes dans l\'ordre: approche-toi, lis l\'indice, puis scanne.';
+      guideTitle.textContent = 'Mode Quête';
+      guideText.textContent = 'Balise fixe: approche-toi, trouve l\'objet et scanne.';
     } else {
       guideTitle.textContent = 'Mode Flash';
-      guideText.textContent = 'Trésors uniques: premier scan gagne, les autres passent à la suivante.';
+      guideText.textContent = 'Trésor unique: trouve l\'objet en premier.';
     }
   }
 }
@@ -1178,18 +1157,6 @@ function onHeaderPseudoClick() {
     const inp = document.getElementById('pseudoInput');
     if (inp) { inp.value = ''; inp.focus(); }
   }
-}
-
-function applyOutdoorBoost() {
-  document.body.classList.toggle('outdoor-boost', outdoorBoost);
-  const btn = document.getElementById('outdoorToggleBtn');
-  if (btn) btn.textContent = outdoorBoost ? '☀️ Outdoor ON' : '☀️ Outdoor';
-}
-
-function toggleOutdoorBoost() {
-  outdoorBoost = !outdoorBoost;
-  localStorage.setItem('u3dq_outdoor_boost', outdoorBoost ? '1' : '0');
-  applyOutdoorBoost();
 }
 
 function openQuickTutorial() {
@@ -2850,7 +2817,7 @@ async function loadCarnet() {
       const t = tMap[ev.treasure_id];
       const label = t ? escHtml(tLabel(t)) : escHtml(ev.treasure_id);
       const isUnique = ev.treasure_type === 'unique';
-      const typeLabel = isUnique ? 'Flash' : 'Parcours';
+      const typeLabel = isUnique ? 'Flash' : 'Quête';
       const typeClass = isUnique ? 'cn-unique' : 'cn-fixed';
       const date = new Date(ev.created_at).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
       const durStr = ev.duration_sec ? `⏱ ${formatDuration(ev.duration_sec)}` : '';
@@ -2909,6 +2876,7 @@ function updateNearestCard() {
   const el = document.getElementById('nearestList');
   if (playerLat === null) { el.style.display = 'none'; return; }
   const isUniqueMode = activeGameMode === 'unique';
+  if (isUniqueMode) { el.style.display = 'none'; return; }
   const pool = treasures
     .filter(t => t.type === (isUniqueMode ? 'unique' : 'fixed'))
     .filter(t => t.lat && t.lng)
@@ -2922,9 +2890,7 @@ function updateNearestCard() {
 
   _nearestTreasure = pool[0];
   const count = pool.length;
-  const header = isUniqueMode
-    ? `${count} FLASH${count > 1 ? 'S' : ''} À CHASSER`
-    : `${count} POLAROID${count > 1 ? 'S' : ''} LES PLUS PROCHES`;
+  const header = `${count} POLAROID${count > 1 ? 'S' : ''} LES PLUS PROCHES`;
 
   el.style.display = 'flex';
   el.innerHTML = `<div class="nl-header">${header}</div>` +
@@ -3061,7 +3027,7 @@ async function loadMoi() {
     <div class="moi-avatar" style="background:${grad}">${escHtml(pseudo.charAt(0))}</div>
     <div class="moi-pseudo">${escHtml(pseudo)}</div>
     <div class="moi-grid">
-      <div class="moi-tile"><div class="moi-tile-val">${myFixed}</div><div class="moi-tile-lbl">Parcours</div></div>
+      <div class="moi-tile"><div class="moi-tile-val">${myFixed}</div><div class="moi-tile-lbl">Quête</div></div>
       <div class="moi-tile"><div class="moi-tile-val">${myFixed + myUnique}</div><div class="moi-tile-lbl">Total révélé</div></div>
       <div class="moi-tile"><div class="moi-tile-val">${rank}</div><div class="moi-tile-lbl">Classement</div></div>
     </div>
