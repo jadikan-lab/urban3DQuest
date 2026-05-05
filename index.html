@@ -206,7 +206,10 @@
     .dir-arrow{position:absolute;pointer-events:auto;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transform:translate(-50%,-50%);-webkit-tap-highlight-color:transparent}
     .dir-arrow:active{opacity:0.7}
     /* ── Fond radar boussole ── */
-    #radarBg{position:absolute;inset:0;z-index:850;background:radial-gradient(circle at 50% 50%,#0d1a38 0%,#020610 100%);display:none;pointer-events:none}
+    #radarBg{position:absolute;inset:0;z-index:850;background:
+      radial-gradient(circle at 50% 50%,rgba(13,26,56,.18) 0%,rgba(2,6,16,.42) 100%),
+      repeating-conic-gradient(from 0deg,rgba(56,189,248,.05) 0deg 14deg,rgba(15,23,42,0) 14deg 28deg);
+      display:none;pointer-events:none;backdrop-filter:blur(1.2px);-webkit-backdrop-filter:blur(1.2px)}
     #radarBg.active{display:block}
     .radar-ring{position:absolute;border-radius:50%;border:1px solid rgba(56,189,248,0.14);top:50%;left:50%;transform:translate(-50%,-50%)}
     #radarCenterDot{position:absolute;width:14px;height:14px;border-radius:50%;background:#22d3ee;box-shadow:0 0 14px #22d3ee,0 0 4px rgba(255,255,255,.5);top:50%;left:50%;transform:translate(-50%,-50%);z-index:2}
@@ -283,12 +286,12 @@
 
     /* ── Nearest list (bas de la Carte) ── */
     #nearestList{background:var(--surface);border-top:1px solid var(--line);flex-shrink:0;display:none;flex-direction:column;box-shadow:0 -2px 16px rgba(26,24,38,.06);padding-bottom:calc(52px + env(safe-area-inset-bottom))}
-    .nl-header{font-family:var(--mono);font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-3);padding:8px 16px 4px}
-    .nl-item{display:flex;align-items:center;gap:12px;padding:9px 16px;cursor:pointer;border-top:1px solid var(--line)}
+    .nl-header{font-family:var(--mono);font-size:0.56rem;font-weight:700;text-transform:uppercase;letter-spacing:0.09em;color:var(--ink-3);padding:7px 14px 3px}
+    .nl-item{display:flex;align-items:center;gap:8px;padding:7px 12px;cursor:pointer;border-top:1px solid var(--line)}
     .nl-item:active{background:var(--bg)}
-    .nl-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
-    .nl-name{flex:1;min-width:0;font-size:0.88rem;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .nl-dist{font-family:var(--mono);font-size:0.72rem;color:var(--ink-3);flex-shrink:0;margin-right:4px}
+    .nl-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+    .nl-name{flex:1;min-width:0;font-size:0.78rem;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .nl-dist{font-family:var(--mono);font-size:0.68rem;color:var(--ink-3);flex-shrink:0;margin-right:0}
     .nl-arr{font-size:0.8rem;color:var(--ink-3);flex-shrink:0}
 
     /* ── Treasure sheet (bottom sheet au tap d'un pin) ── */
@@ -420,6 +423,7 @@
     <button id="arrowToggleBtn" onclick="toggleCompassArrows()" style="position:absolute;bottom:14px;right:10px;z-index:1000;background:rgba(255,255,255,.9);border:1.5px solid var(--line-2);border-radius:12px;color:var(--ink);font-size:0.75rem;font-weight:700;padding:7px 12px;cursor:pointer;backdrop-filter:blur(6px)">Polaroids</button>
     <button id="locateMeBtn" onclick="recenterMap()" style="position:absolute;bottom:14px;left:10px;z-index:1000;background:rgba(255,255,255,.9);border:1.5px solid var(--line-2);border-radius:12px;color:var(--ink-2);font-size:1.1rem;padding:7px 11px;cursor:pointer;backdrop-filter:blur(6px);display:none" title="Recentrer sur ma position"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="10" r="2.5" fill="currentColor"/><line x1="10" y1="1" x2="10" y2="4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="10" y1="15.5" x2="10" y2="19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="1" y1="10" x2="4.5" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="15.5" y1="10" x2="19" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
     <button id="compassPermBtn" onclick="requestCompassPermission()" style="display:none;position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1000;padding:8px 16px;background:linear-gradient(135deg,#3b82f6,#6366f1);border:none;border-radius:12px;color:#fff;font-size:0.82rem;font-weight:700;cursor:pointer;backdrop-filter:blur(6px)">🧭 Activer le compas (iOS)</button>
+    <button id="compassDebugBtn" onclick="toggleCompassDebug()" style="display:none;position:absolute;top:10px;right:10px;z-index:1000;padding:7px 10px;background:rgba(15,23,42,.9);border:1px solid #334155;border-radius:10px;color:#93c5fd;font-size:0.72rem;font-weight:700;cursor:pointer">DBG</button>
     <div id="compassDebug" style="display:none;position:absolute;top:10px;left:10px;z-index:1000;font-size:0.68rem;color:var(--ink-2);line-height:1.6;padding:8px 12px;background:rgba(255,255,255,.92);border-radius:8px;max-width:220px;border:1px solid var(--line-2)"></div>
     <div id="radarBar"></div>
   </div>
@@ -556,7 +560,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.10.6';
+const GAME_VERSION = 'v3.10.7';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -573,6 +577,14 @@ let modeCompass  = true;  // show compass tab
 let activeTab    = 'explore';
 let deviceHeading = null; // degrees clockwise from north (from device sensor)
 let compassInterval = null;
+let compassRenderQueued = false;
+let compassLastRenderAt = 0;
+let compassRawHeading = null;
+let compassLastEventSource = 'none';
+let compassEventCount = 0;
+let compassEventRate = 0;
+let compassLastRateTick = Date.now();
+let compassDebugInterval = null;
 let mapCenter    = [45.1885, 5.7245]; // default Grenoble, overridden by config
 let activeQuests = [];  // empty = all quests visible
 let gameStart    = null;  // Date or null — reference timestamp for score calc
@@ -618,6 +630,8 @@ async function logoutPlayer() {
 function initEnvUI() {
   if (SUPABASE_ENV.name !== 'stg') return;
   document.body.classList.add('env-stg');
+  const dbgBtn = document.getElementById('compassDebugBtn');
+  if (dbgBtn) dbgBtn.style.display = 'block';
   const banner = document.getElementById('envBanner');
   if (banner) banner.textContent = 'PREPROD STG ' + GAME_VERSION + ' · BASE DE TEST';
   // STG : pas de mot de passe, juste le pseudo
@@ -1170,8 +1184,9 @@ function _onGeoSuccess(pos) {
 
   updateRadar();
   updateNearestCard();
+  scheduleCompassRender(false);
   // Force immediate arrow draw on first GPS fix (don't wait for compass interval)
-  if (firstFix) updateCompass();
+  if (firstFix) scheduleCompassRender(true);
 }
 
 function _onGeoError(err) {
@@ -1364,6 +1379,49 @@ function bearingTo(lat1, lng1, lat2, lng2) {
   return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
 }
 
+function _normHeading(h) {
+  return ((h % 360) + 360) % 360;
+}
+
+function _smoothHeading(prev, next, factor) {
+  if (prev === null || !Number.isFinite(prev)) return _normHeading(next);
+  const delta = ((next - prev + 540) % 360) - 180;
+  return _normHeading(prev + delta * factor);
+}
+
+function _setHeading(nextHeading, source) {
+  if (!Number.isFinite(nextHeading)) return;
+  compassRawHeading = _normHeading(nextHeading);
+  compassLastEventSource = source || 'unknown';
+  compassEventCount += 1;
+  const now = Date.now();
+  if (now - compassLastRateTick >= 1000) {
+    compassEventRate = Math.round((compassEventCount * 1000) / (now - compassLastRateTick));
+    compassEventCount = 0;
+    compassLastRateTick = now;
+  }
+  deviceHeading = _smoothHeading(deviceHeading, _normHeading(nextHeading), 0.42);
+  scheduleCompassRender();
+}
+
+function scheduleCompassRender(force) {
+  if (force) {
+    lastArrowLat = null; lastArrowLng = null; lastArrowHeading = null;
+  }
+  if (compassRenderQueued) return;
+  const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+  const minGap = 120;
+  const wait = Math.max(0, minGap - (now - compassLastRenderAt));
+  compassRenderQueued = true;
+  setTimeout(() => {
+    requestAnimationFrame(() => {
+      compassRenderQueued = false;
+      compassLastRenderAt = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+      updateCompass();
+    });
+  }, wait);
+}
+
 function startOrientationWatch() {
   // iOS 13+: needs explicit permission via a user-gesture button tap
   if (typeof DeviceOrientationEvent !== 'undefined' &&
@@ -1400,6 +1458,7 @@ async function requestCompassPermission() {
     if (res === 'granted') {
       btn.style.display = 'none';
       _attachOrientationListeners();
+      scheduleCompassRender(true);
     } else {
       btn.textContent = '⚠️ Compas refusé — flèches statiques';
       btn.classList.remove('compass-perm-pulse');
@@ -1419,7 +1478,7 @@ function _attachOrientationListeners() {
       hasAbsolute = true;
       // alpha = rotation around Z axis, clockwise from north on Android
       // Need to negate for clockwise compass heading
-      deviceHeading = (360 - e.alpha) % 360;
+      _setHeading((360 - e.alpha) % 360, 'absolute');
     }
   }, true);
 
@@ -1427,12 +1486,12 @@ function _attachOrientationListeners() {
   window.addEventListener('deviceorientation', e => {
     // iOS: webkitCompassHeading is directly clockwise from north
     if (typeof e.webkitCompassHeading === 'number' && e.webkitCompassHeading >= 0) {
-      deviceHeading = e.webkitCompassHeading;
+      _setHeading(e.webkitCompassHeading, 'webkit');
       return;
     }
     // Android fallback if absolute didn't fire
     if (!hasAbsolute && e.alpha !== null && e.alpha !== undefined) {
-      deviceHeading = (360 - e.alpha) % 360;
+      _setHeading((360 - e.alpha) % 360, 'alpha');
     }
   }, true);
 }
@@ -1478,8 +1537,9 @@ function updateProgressBar() {
 // ── Compass ───────────────────────────────────────────
 function startCompassInterval() {
   if (compassInterval) return;
-  updateCompass();
-  compassInterval = setInterval(updateCompass, 700);
+  scheduleCompassRender(true);
+  // Watchdog refresh: real-time updates are now driven by sensor events.
+  compassInterval = setInterval(() => scheduleCompassRender(false), 1000);
 }
 function stopCompassInterval() {
   if (compassInterval) { clearInterval(compassInterval); compassInterval = null; }
@@ -1503,7 +1563,7 @@ function updateCompass() {
   if (playerLat === null || !treasures.length) return;
 
   if (gameMap) {
-    const headingChanged = lastArrowHeading === null || Math.abs((deviceHeading || 0) - lastArrowHeading) > 5;
+    const headingChanged = lastArrowHeading === null || Math.abs((deviceHeading || 0) - lastArrowHeading) > 2;
     const posChanged = lastArrowLat === null || haversine(playerLat, playerLng, lastArrowLat, lastArrowLng) > 2;
 
     if (posChanged || headingChanged) {
@@ -1881,19 +1941,34 @@ function toggleCompassArrows() {
 function toggleCompassDebug() {
   const el = document.getElementById('compassDebug');
   const visible = el.style.display !== 'none';
-  if (visible) { el.style.display = 'none'; return; }
-  const allFixed = treasures.filter(t => t.type === 'fixed');
-  el.innerHTML = [
-    `GPS: ${playerLat !== null ? playerLat.toFixed(5)+', '+playerLng.toFixed(5) : '❌ null'}`,
-    `Heading: ${deviceHeading !== null ? Math.round(deviceHeading)+'°' : '❌ null'}`,
-    `Trésors total: ${treasures.length}`,
-    `Balises fixes: ${allFixed.length}`,
-    `activeTab: ${activeTab}`,
-    `compassInterval: ${compassInterval !== null ? '✅ actif' : '❌ null'}`,
-    `modeMap: ${modeMap} / modeCompass: ${modeCompass}`,
-    `myPseudo: ${myPseudo||'—'}`,
-  ].join('<br>');
+  if (visible) {
+    el.style.display = 'none';
+    if (compassDebugInterval) {
+      clearInterval(compassDebugInterval);
+      compassDebugInterval = null;
+    }
+    return;
+  }
+  const render = () => {
+    const allFixed = treasures.filter(t => t.type === 'fixed');
+    el.innerHTML = [
+      `GPS: ${playerLat !== null ? playerLat.toFixed(5)+', '+playerLng.toFixed(5) : '❌ null'}`,
+      `Heading lissé: ${deviceHeading !== null ? Math.round(deviceHeading)+'°' : '❌ null'}`,
+      `Heading brut: ${compassRawHeading !== null ? Math.round(compassRawHeading)+'°' : '❌ null'}`,
+      `Source capteur: ${compassLastEventSource}`,
+      `Events/sec: ${compassEventRate}`,
+      `Trésors total: ${treasures.length}`,
+      `Balises fixes: ${allFixed.length}`,
+      `activeTab: ${activeTab}`,
+      `compassInterval: ${compassInterval !== null ? '✅ actif' : '❌ null'}`,
+      `modeMap: ${modeMap} / modeCompass: ${modeCompass}`,
+      `myPseudo: ${myPseudo||'—'}`,
+    ].join('<br>');
+  };
+  render();
   el.style.display = 'block';
+  if (compassDebugInterval) clearInterval(compassDebugInterval);
+  compassDebugInterval = setInterval(render, 500);
 }
 
 
@@ -2400,7 +2475,7 @@ function updateNearestCard() {
     .filter(t => !isUniqueMode || !(t.found_by && t.found_by.length > 0))
     .map(t => ({ ...t, _dist: haversine(playerLat, playerLng, t.lat, t.lng) }))
     .sort((a, b) => a._dist - b._dist)
-    .slice(0, 5);
+    .slice(0, 2);
 
   if (!pool.length) { el.style.display = 'none'; return; }
 
@@ -2416,13 +2491,12 @@ function updateNearestCard() {
       const color = isUniqueMode ? '#db2777' : ARROW_PALETTE[idx % ARROW_PALETTE.length];
       const dist = t._dist < 1000 ? Math.round(t._dist) + '\u202fm' : (t._dist / 1000).toFixed(1) + '\u202fkm';
       const name = tLabel(t);
-      const shortName = name.length > 28 ? name.slice(0, 27) + '\u2026' : name;
+      const shortName = name.length > 20 ? name.slice(0, 19) + '\u2026' : name;
       const safeId = t.id.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
       return `<div class="nl-item" onclick="openTreasureSheet(treasures.find(x=>x.id==='${safeId}'))">
         <div class="nl-dot" style="background:${color};box-shadow:0 0 6px ${color}55"></div>
         <div class="nl-name">${escHtml(shortName)}</div>
         <div class="nl-dist">${escHtml(dist)}</div>
-        <div class="nl-arr">${isUniqueMode ? '⚡' : '↗'}</div>
       </div>`;
     }).join('');
 }
