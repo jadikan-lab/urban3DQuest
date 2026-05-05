@@ -201,6 +201,10 @@
     /* ── Boutons carte ── */
     #arrowToggleBtn{min-height:48px!important;min-width:48px!important;padding:10px 16px!important;font-size:0.8rem!important;font-weight:700!important;transition:transform .1s}
     #arrowToggleBtn:active{transform:scale(0.9)}
+    /* ── Overlay flèches direction ── */
+    #arrowOverlay{position:absolute;inset:0;pointer-events:none;z-index:400;overflow:hidden}
+    .dir-arrow{position:absolute;pointer-events:auto;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transform:translate(-50%,-50%);-webkit-tap-highlight-color:transparent}
+    .dir-arrow:active{opacity:0.7}
     #locateMeBtn{min-height:48px!important;min-width:48px!important;padding:10px!important;transition:transform .1s}
     #locateMeBtn:active{transform:scale(0.9)}
     /* ── QR Scanner overlay ── */
@@ -411,6 +415,7 @@
     <button id="locateMeBtn" onclick="recenterMap()" style="position:absolute;bottom:14px;left:10px;z-index:1000;background:rgba(255,255,255,.9);border:1.5px solid var(--line-2);border-radius:12px;color:var(--ink-2);font-size:1.1rem;padding:7px 11px;cursor:pointer;backdrop-filter:blur(6px);display:none" title="Recentrer sur ma position"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="10" r="2.5" fill="currentColor"/><line x1="10" y1="1" x2="10" y2="4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="10" y1="15.5" x2="10" y2="19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="1" y1="10" x2="4.5" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="15.5" y1="10" x2="19" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
     <button id="compassPermBtn" onclick="requestCompassPermission()" style="display:none;position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1000;padding:8px 16px;background:linear-gradient(135deg,#3b82f6,#6366f1);border:none;border-radius:12px;color:#fff;font-size:0.82rem;font-weight:700;cursor:pointer;backdrop-filter:blur(6px)">🧭 Activer le compas (iOS)</button>
     <div id="compassDebug" style="display:none;position:absolute;top:10px;left:10px;z-index:1000;font-size:0.68rem;color:var(--ink-2);line-height:1.6;padding:8px 12px;background:rgba(255,255,255,.92);border-radius:8px;max-width:220px;border:1px solid var(--line-2)"></div>
+    <div id="arrowOverlay"></div>
     <div id="radarBar"></div>
   </div>
   <div id="nearestList"></div>
@@ -546,7 +551,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.10.2';
+const GAME_VERSION = 'v3.10.3';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -972,8 +977,7 @@ function setGameMode(mode) {
   lastArrowLat = null;
   lastArrowLng = null;
   lastArrowHeading = null;
-  directionLayers.forEach(l => gameMap && gameMap.removeLayer(l));
-  directionLayers = [];
+  _clearArrows();
   updateCompass();
 }
 
@@ -1461,6 +1465,13 @@ function stopCompassInterval() {
   if (compassInterval) { clearInterval(compassInterval); compassInterval = null; }
 }
 
+function _clearArrows() {
+  directionLayers.forEach(l => gameMap && gameMap.removeLayer(l));
+  directionLayers = [];
+  const ov = document.getElementById('arrowOverlay');
+  if (ov) ov.innerHTML = '';
+}
+
 function updateCompass() {
   if (activeTab !== 'explore') return;
   if (playerLat === null || !treasures.length) return;
@@ -1472,59 +1483,44 @@ function updateCompass() {
     if (posChanged || headingChanged) {
       lastArrowLat = playerLat; lastArrowLng = playerLng; lastArrowHeading = deviceHeading || 0;
 
-      directionLayers.forEach(l => gameMap.removeLayer(l));
-      directionLayers = [];
+      _clearArrows();
 
       if (compassArrowMode && activeGameMode === 'fixed') {
         const unfoundFixed = treasures
           .filter(t => t.type === 'fixed' && !(t.found_by && t.found_by.split(',').includes(myPseudo)))
           .map(t => ({ ...t, dist: haversine(playerLat, playerLng, t.lat, t.lng) }))
           .sort((a, b) => a.dist - b.dist)
-          .slice(0, 5);
+          .slice(0, 3);
 
-        const arrowLen = 60;
+        const overlay = document.getElementById('arrowOverlay');
+        if (!overlay) return;
+        const mapEl = document.getElementById('miniMap');
+        const cx    = mapEl.offsetWidth / 2;
+        const cy    = mapEl.offsetHeight / 2;
+        const R     = Math.min(mapEl.offsetWidth, mapEl.offsetHeight) * 0.38;
 
         unfoundFixed.forEach((t, idx) => {
           const bearing = bearingTo(playerLat, playerLng, t.lat, t.lng);
-          const inRange = t.dist <= proximityR;
           const color   = ARROW_PALETTE[idx % ARROW_PALETTE.length];
           const distStr = t.dist < 1000 ? `${Math.round(t.dist)}m` : `${(t.dist/1000).toFixed(1)}km`;
-          const shortName = tLabel(t).length > 14 ? tLabel(t).slice(0, 13) + '…' : tLabel(t);
-          const arrowLabel = `${shortName} · ${distStr}`;
+          const inRange = t.dist <= proximityR;
+          const rad     = bearing * Math.PI / 180;
+          const x       = cx + R * Math.sin(rad);
+          const y       = cy - R * Math.cos(rad);
 
-          const tip   = destinationPoint(playerLat, playerLng, bearing, arrowLen);
-          const shaft = destinationPoint(playerLat, playerLng, bearing, arrowLen * 0.55);
-
-          const line = L.polyline([[playerLat, playerLng], tip], { color, weight: 2.5, opacity: 0.85, dashArray: '6 5' }).addTo(gameMap);
-
-          const arrowIcon = L.divIcon({
-            html: `<svg width="28" height="36" viewBox="0 0 28 36" xmlns="http://www.w3.org/2000/svg" style="transform:rotate(${bearing}deg);transform-origin:50% 75%;display:block">
-              <polygon points="14,0 22,20 14,15 6,20" fill="${color}" stroke="#0f172a" stroke-width="1.5"/>
-            </svg>`,
-            className: '', iconSize: [28, 36], iconAnchor: [14, 27]
-          });
-          const arrowMarker = L.marker(tip, { icon: arrowIcon, interactive: true, zIndexOffset: 500 }).addTo(gameMap);
-
-          // Popup with hint + photo on arrow click
-          const photos = getPhotoUrls(t.photo_url);
-          const photoHtml = photos.length
-            ? photos.map(safeImgUrl).filter(Boolean).map(u => `<img src="${escHtml(u)}" onclick="openPhotoViewer('${jsSingleQuoted(u)}')" style="width:100%;max-height:160px;object-fit:cover;border-radius:8px;margin-bottom:5px;display:block;cursor:zoom-in">`).join('')
-              + `<div style="font-size:0.72rem;color:#64748b;margin-bottom:6px">👆 Tap photo pour agrandir</div>`
-            : '';
-          const hintHtml = t.hint ? `<div style="font-size:0.8rem;color:#93c5fd;margin-top:4px">💡 ${escHtml(t.hint)}</div>` : '';
-          const inRangeHtml = inRange
-            ? `<button onclick="gameMap.closePopup();openQRScanner('${t.id.replace(/'/g,"\\'")}');" style="margin-top:8px;width:100%;padding:8px;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:8px;color:#fff;font-weight:700;cursor:pointer;font-size:0.85rem">� Révéler ce polaroid</button>`
-            : `<div style="font-size:0.75rem;color:#64748b;margin-top:6px;text-align:center">${distStr} — approche-toi</div>`;
-          const popupContent = `<div style="min-width:220px">${photoHtml}<b style="font-size:0.95rem">${escHtml(tLabel(t))}</b>${hintHtml}${inRangeHtml}</div>`;
-          arrowMarker.bindPopup(popupContent, { maxWidth: 280, className: 'dark-popup' });
-
-          const labelIcon = L.divIcon({
-            html: `<div style="background:rgba(15,23,42,.85);color:${color};font-size:0.68rem;font-weight:700;padding:2px 6px;border-radius:8px;border:1px solid ${color};white-space:nowrap;backdrop-filter:blur(4px)">${arrowLabel}</div>`,
-            className: '', iconSize: [60, 20], iconAnchor: [30, -4]
-          });
-          const labelMarker = L.marker(shaft, { icon: labelIcon, interactive: false, zIndexOffset: 501 }).addTo(gameMap);
-
-          directionLayers.push(line, arrowMarker, labelMarker);
+          const div = document.createElement('div');
+          div.className = 'dir-arrow';
+          div.style.left = x + 'px';
+          div.style.top  = y + 'px';
+          div.innerHTML = `
+            <svg width="44" height="54" viewBox="0 0 44 54" xmlns="http://www.w3.org/2000/svg"
+                 style="transform:rotate(${bearing}deg);transform-origin:50% 72%;filter:drop-shadow(0 2px 8px rgba(0,0,0,.7));display:block">
+              <polygon points="22,2 38,40 22,28 6,40" fill="${color}" stroke="#0f172a" stroke-width="3"/>
+            </svg>
+            <div style="background:rgba(15,23,42,.92);color:${color};font-size:0.82rem;font-weight:800;padding:4px 10px;border-radius:10px;border:1.5px solid ${color};white-space:nowrap;backdrop-filter:blur(4px);line-height:1">${distStr}${inRange ? ' ✓' : ''}</div>
+          `;
+          div.addEventListener('click', () => openTreasureSheet(t));
+          overlay.appendChild(div);
         });
       }
     }
@@ -1839,8 +1835,7 @@ function toggleCompassArrows() {
   }
   // Clear and redraw immediately by resetting throttle
   lastArrowLat = null; lastArrowLng = null; lastArrowHeading = null;
-  directionLayers.forEach(l => gameMap && gameMap.removeLayer(l));
-  directionLayers = [];
+  _clearArrows();
   updateCompass();
 }
 
@@ -2243,14 +2238,12 @@ function showTab(name, btn) {
   } else if (name === 'scores') {
     stopCompassInterval();
     document.getElementById('captureFab').style.display = 'none';
-    directionLayers.forEach(l => gameMap && gameMap.removeLayer(l));
-    directionLayers = [];
+    _clearArrows();
     loadLeaderboard();
   } else if (name === 'moi') {
     stopCompassInterval();
     document.getElementById('captureFab').style.display = 'none';
-    directionLayers.forEach(l => gameMap && gameMap.removeLayer(l));
-    directionLayers = [];
+    _clearArrows();
     const ps = document.getElementById('parcoursSection');
     if (ps) ps.style.display = activeGameMode === 'fixed' ? 'block' : 'none';
     if (activeGameMode === 'fixed') loadBalises();
@@ -2259,8 +2252,7 @@ function showTab(name, btn) {
   } else {
     stopCompassInterval();
     document.getElementById('captureFab').style.display = 'none';
-    directionLayers.forEach(l => gameMap && gameMap.removeLayer(l));
-    directionLayers = [];
+    _clearArrows();
   }
 }
 
