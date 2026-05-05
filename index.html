@@ -72,6 +72,8 @@
     #gpsChip.gps-mid #gpsDot{background:#fbbf24}
     #gpsChip.gps-bad{border-color:#dc2626;color:#f87171;background:rgba(220,38,38,.15);animation:pulse 0.8s infinite}
     #gpsChip.gps-bad #gpsDot{background:#f87171}
+    #tutorialMiniBtn{display:none;align-items:center;justify-content:center;min-height:28px;padding:3px 8px;border-radius:10px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink-2);font-size:0.62rem;font-weight:800;font-family:var(--mono);cursor:pointer;white-space:nowrap}
+    #tutorialMiniBtn:active{opacity:.8}
     /* ── Navigation ── */
     nav{display:flex;background:var(--surface);border-bottom:1px solid var(--line-2);padding:0 1px}
     nav button{flex:1;padding:6px 2px;min-height:46px;background:none;border:none;color:var(--ink-3);font-size:0.72rem;font-weight:800;cursor:pointer;letter-spacing:0.01em;transition:color 0.15s,background 0.15s;display:flex;flex-direction:column;align-items:center;gap:1px;font-family:var(--display)}
@@ -283,6 +285,7 @@
     body.outdoor-boost #arrowToggleBtn,
     body.outdoor-boost #locateMeBtn,
     body.outdoor-boost #openTutorialBtn,
+    body.outdoor-boost #tutorialMiniBtn,
     body.outdoor-boost #outdoorToggleBtn{min-height:52px!important;font-size:0.82rem!important;font-weight:900!important}
     body.outdoor-boost #gpsChip{border-width:2px;font-size:0.68rem}
 
@@ -449,6 +452,7 @@
     <span id="gpsDot"></span>
     <span id="gpsLabel">GPS…</span>
   </span>
+  <button id="tutorialMiniBtn" onclick="openQuickTutorial()" aria-label="Ouvrir le tutoriel">Aide</button>
   <div class="brand-tag">Urban 3D Quest by <a href="https://www.instagram.com/jadikan/" target="_blank" rel="noopener noreferrer">Jadikan</a></div>
   <span class="pseudo-chip" id="headerPseudo" onclick="onHeaderPseudoClick()" style="cursor:pointer"></span>
 </header>
@@ -457,9 +461,9 @@
     <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2C7.686 2 5 4.8 5 8.2c0 4.8 6 11.8 6 11.8s6-7 6-11.8C17 4.8 14.314 2 11 2z"/><circle cx="11" cy="8" r="2.2"/></svg></span>
     <span class="nav-label">Parcours</span>
   </button>
-  <button aria-label="Mode Capture" role="tab" aria-selected="false" id="navDeclic" onclick="setGameMode('unique');showTab('explore',this)">
+  <button aria-label="Mode Flash" role="tab" aria-selected="false" id="navDeclic" onclick="setGameMode('unique');showTab('explore',this)">
     <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="14,2 7,12 11,12 8,20 15,10 11,10"/></svg></span>
-    <span class="nav-label">Capture</span>
+    <span class="nav-label">Flash</span>
   </button>
   <button aria-label="Compte" role="tab" aria-selected="false" id="navCompte" onclick="showTab('moi',this)">
     <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="7" r="4"/><path d="M2 20c0-4.418 4.03-8 9-8s9 3.582 9 8"/></svg></span>
@@ -587,7 +591,7 @@
         <span>Balises fixes dans l'ordre. Progression calme, guidage par proximité.</span>
       </div>
       <div class="qt-card">
-        <strong>Capture</strong>
+        <strong>Flash</strong>
         <span>Trésors uniques. Premier scan gagne, compétition en temps réel.</span>
       </div>
     </div>
@@ -660,7 +664,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.10.18';
+const GAME_VERSION = 'v3.10.19';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -1126,10 +1130,17 @@ function updateModeUI() {
       guideTitle.textContent = 'Mode Parcours';
       guideText.textContent = 'Balises fixes dans l\'ordre: approche-toi, lis l\'indice, puis scanne.';
     } else {
-      guideTitle.textContent = 'Mode Capture';
+      guideTitle.textContent = 'Mode Flash';
       guideText.textContent = 'Trésors uniques: premier scan gagne, les autres passent à la suivante.';
     }
   }
+}
+
+function updateTutorialEntryPoints() {
+  const bigBtn = document.getElementById('openTutorialBtn');
+  const miniBtn = document.getElementById('tutorialMiniBtn');
+  if (bigBtn) bigBtn.style.display = tutorialSeen ? 'none' : 'inline-flex';
+  if (miniBtn) miniBtn.style.display = tutorialSeen ? 'inline-flex' : 'none';
 }
 
 function setGameMode(mode) {
@@ -1194,6 +1205,7 @@ function closeQuickTutorial(evt) {
   el.classList.remove('open');
   tutorialSeen = true;
   localStorage.setItem('u3dq_tuto_seen', '1');
+  updateTutorialEntryPoints();
 }
 
 function tutorialEnableGps() {
@@ -1214,6 +1226,7 @@ function tutorialEnableCompass() {
 }
 
 function maybeOpenQuickTutorial() {
+  updateTutorialEntryPoints();
   if (tutorialSeen) return;
   setTimeout(() => openQuickTutorial(), 500);
 }
