@@ -664,7 +664,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.10.20';
+const GAME_VERSION = 'v3.10.21';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -1890,21 +1890,12 @@ function _attachOrientationListeners() {
 function updateProgressBar() {
   const bar = document.getElementById('progressBar');
   if (!myPseudo) { bar.style.display = 'none'; return; }
-  bar.style.display = 'block';
   if (activeGameMode === 'unique') {
-    const myUniqueFound = treasures.filter(t =>
-      t.type === 'unique' &&
-      t.found_by && t.found_by.split(',').includes(myPseudo)
-    ).length;
-    const pct = myUniqueFound > 0 ? 100 : 0;
-    document.getElementById('pbCount').textContent = String(myUniqueFound);
-    document.getElementById('pbFill').style.width = pct + '%';
-    document.getElementById('pbFill').style.background =
-      myUniqueFound > 0
-        ? 'linear-gradient(90deg,#22c55e,#4ade80)'
-        : 'linear-gradient(90deg,#a21caf,#db2777)';
+    bar.style.display = 'none';
     return;
   }
+
+  bar.style.display = 'block';
 
   const myFixedFound = treasures.filter(t =>
     t.type === 'fixed' &&
@@ -2859,7 +2850,7 @@ async function loadCarnet() {
       const t = tMap[ev.treasure_id];
       const label = t ? escHtml(tLabel(t)) : escHtml(ev.treasure_id);
       const isUnique = ev.treasure_type === 'unique';
-      const typeLabel = isUnique ? 'Le Flash' : 'La Série';
+      const typeLabel = isUnique ? 'Plages' : 'Parcours';
       const typeClass = isUnique ? 'cn-unique' : 'cn-fixed';
       const date = new Date(ev.created_at).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
       const durStr = ev.duration_sec ? `⏱ ${formatDuration(ev.duration_sec)}` : '';
@@ -3070,8 +3061,7 @@ async function loadMoi() {
     <div class="moi-avatar" style="background:${grad}">${escHtml(pseudo.charAt(0))}</div>
     <div class="moi-pseudo">${escHtml(pseudo)}</div>
     <div class="moi-grid">
-      <div class="moi-tile"><div class="moi-tile-val">${myFixed}</div><div class="moi-tile-lbl">La Série</div></div>
-      <div class="moi-tile"><div class="moi-tile-val">${myUnique}</div><div class="moi-tile-lbl">Le Flash</div></div>
+      <div class="moi-tile"><div class="moi-tile-val">${myFixed}</div><div class="moi-tile-lbl">Parcours</div></div>
       <div class="moi-tile"><div class="moi-tile-val">${myFixed + myUnique}</div><div class="moi-tile-lbl">Total révélé</div></div>
       <div class="moi-tile"><div class="moi-tile-val">${rank}</div><div class="moi-tile-lbl">Classement</div></div>
     </div>
