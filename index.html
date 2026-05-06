@@ -774,6 +774,8 @@ let activeTab    = 'explore';
 let deviceHeading = null; // effective heading used by UI (degrees clockwise from north)
 let sensorHeading = null; // heading from device orientation events
 let headingSource = 'none'; // compass | gps-course | none
+let headingAutoOffset = 0; // degrees applied to sensorHeading to align with true travel course
+let headingOffsetSampleCount = 0;
 let compassInterval = null;
 let compassRenderQueued = false;
 let compassLastRenderAt = 0;
@@ -822,6 +824,11 @@ let myToken = localStorage.getItem('u3dq_token') || ''; // session token for sin
 let activeGameMode = (localStorage.getItem('u3dq_game_mode') || 'fixed') === 'unique' ? 'unique' : 'fixed';
 const revealedFixedClues = new Set(myPseudo ? JSON.parse(localStorage.getItem(`u3dq_clues_${myPseudo}`) || '[]') : []); // fixed clues unlocked by proximity, persisted per player
 let tutorialSeen = localStorage.getItem('u3dq_tuto_seen') === '1';
+
+const savedHeadingOffset = parseFloat(localStorage.getItem('u3dq_heading_offset') || '0');
+if (Number.isFinite(savedHeadingOffset)) {
+  headingAutoOffset = _normHeading(savedHeadingOffset);
+}
 
 function isIOSDevice() {
   return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
@@ -2029,7 +2036,22 @@ function _headingFromAlpha(alphaDeg) {
 function refreshEffectiveHeading() {
   const now = Date.now();
   const gpsCourseFresh = Number.isFinite(gpsCourseHeading) && gpsCourseSpeed >= 1.5 && (now - gpsCourseLastAt) <= 4500;
-  const target = gpsCourseFresh ? gpsCourseHeading : sensorHeading;
+  const correctedSensorHeading = Number.isFinite(sensorHeading)
+    ? _normHeading(sensorHeading + headingAutoOffset)
+    : null;
+
+  // Auto-calibration: when moving with acceptable GPS accuracy, align compass axis to GPS course.
+  if (gpsCourseFresh && Number.isFinite(correctedSensorHeading) && Number.isFinite(playerAccuracy) && playerAccuracy <= 30) {
+    const err = ((gpsCourseHeading - correctedSensorHeading + 540) % 360) - 180;
+    const gain = Math.abs(err) > 45 ? 0.18 : 0.07;
+    headingAutoOffset = _normHeading(headingAutoOffset + err * gain);
+    headingOffsetSampleCount += 1;
+    if (headingOffsetSampleCount % 6 === 0) {
+      localStorage.setItem('u3dq_heading_offset', String(Math.round(headingAutoOffset * 10) / 10));
+    }
+  }
+
+  const target = gpsCourseFresh ? gpsCourseHeading : correctedSensorHeading;
   if (!Number.isFinite(target)) {
     deviceHeading = null;
     headingSource = 'none';
@@ -2697,11 +2719,25 @@ function toggleCompassDebug() {
   }
   const render = () => {
     const allFixed = treasures.filter(t => t.type === 'fixed');
+    const correctedSensorHeading = Number.isFinite(sensorHeading)
+      ? _normHeading(sensorHeading + headingAutoOffset)
+      : null;
+    const gpsFresh = Number.isFinite(gpsCourseHeading) && (Date.now() - gpsCourseLastAt) <= 4500;
+    const headingDrift = (Number.isFinite(correctedSensorHeading) && Number.isFinite(gpsCourseHeading))
+      ? Math.round((((gpsCourseHeading - correctedSensorHeading + 540) % 360) - 180))
+      : null;
     el.innerHTML = [
       `GPS: ${playerLat !== null ? playerLat.toFixed(5)+', '+playerLng.toFixed(5) : '❌ null'}`,
       `Heading lissé: ${deviceHeading !== null ? Math.round(deviceHeading)+'°' : '❌ null'}`,
       `Heading brut: ${compassRawHeading !== null ? Math.round(compassRawHeading)+'°' : '❌ null'}`,
+      `Heading capteur: ${sensorHeading !== null ? Math.round(sensorHeading)+'°' : '❌ null'}`,
+      `Heading capteur corrigé: ${correctedSensorHeading !== null ? Math.round(correctedSensorHeading)+'°' : '❌ null'}`,
+      `Source cap effective: ${headingSource}`,
       `Source capteur: ${compassLastEventSource}`,
+      `Offset auto: ${Math.round(headingAutoOffset)}° (${headingOffsetSampleCount} échantillons)`,
+      `Cap GPS: ${Number.isFinite(gpsCourseHeading) ? Math.round(gpsCourseHeading)+'°' : '❌ null'} (${gpsFresh ? 'frais' : 'stale'})`,
+      `Vitesse GPS: ${Number.isFinite(gpsCourseSpeed) ? gpsCourseSpeed.toFixed(2)+' m/s' : '—'}`,
+      `Drift compas↔GPS: ${headingDrift !== null ? headingDrift+'°' : '—'}`,
       `Events/sec: ${compassEventRate}`,
       `Dernière erreur GPS: ${geoLastErrorCode !== null ? 'code '+geoLastErrorCode : 'aucune'}`,
       `Âge dernier fix: ${geoLastFixAt ? Math.round((Date.now()-geoLastFixAt)/1000)+'s' : '—'}`,
