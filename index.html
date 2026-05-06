@@ -190,6 +190,9 @@
     #flashHintPhoto{width:44px;height:44px;border-radius:10px;object-fit:cover;flex-shrink:0;border:1.5px solid rgba(255,61,138,.3)}
     #flashHintLabel{font-size:0.74rem;font-weight:700;color:var(--magenta);font-family:var(--mono);line-height:1.4}
     #flashHintSub{font-size:0.66rem;color:#db2777;font-family:var(--mono);font-weight:600}
+    #flashHint.quest-mode{background:rgba(240,255,244,.97);border-color:#16a34a}
+    #flashHint.quest-mode #flashHintLabel{color:#15803d}
+    #flashHint.quest-mode #flashHintSub{color:#4ade80}
     @keyframes flashHintIn{from{opacity:0;transform:translateX(-50%) translateY(-6px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
     /* ── Progress bar ── */
     #progressBar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--line-2);padding:8px 16px 12px;z-index:200;display:none;padding-bottom:calc(8px + env(safe-area-inset-bottom))}
@@ -255,6 +258,17 @@
     /* ── Modal trésor trouvé ── */
     #foundModal{display:none;position:fixed;inset:0;background:rgba(3,6,16,.97);z-index:2500;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
     #foundModal.open{display:flex}
+    #questCompleteModal{display:none;position:fixed;inset:0;background:rgba(3,6,16,.97);z-index:2600;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(8px)}
+    #questCompleteModal.open{display:flex}
+    .qc-box{background:var(--surface);border-radius:var(--radius-lg);padding:32px 24px;width:100%;max-width:400px;text-align:center;border:1px solid rgba(34,197,94,.4);box-shadow:0 0 0 1px rgba(34,197,94,.12),0 8px 48px rgba(34,197,94,.18);animation:foundPop 0.38s cubic-bezier(.34,1.56,.64,1)}
+    .qc-title{font-family:var(--mono);font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.12em;color:#4ade80;margin-bottom:8px}
+    .qc-quest{font-size:1.3rem;font-weight:800;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:20px;background:linear-gradient(135deg,#4ade80,#22d3ee);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+    .qc-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:22px}
+    .qc-stat{background:var(--bg-2);border-radius:var(--radius-sm);padding:12px 8px}
+    .qc-stat-val{font-size:1.4rem;font-weight:800;font-family:var(--mono);color:var(--ink)}
+    .qc-stat-lbl{font-size:0.62rem;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-3);margin-top:3px}
+    .btn-share{width:100%;padding:15px;border:none;border-radius:12px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-size:1rem;font-weight:800;cursor:pointer;margin-bottom:10px;font-family:var(--display)}
+    .btn-share:active{opacity:.88}
     .found-box{background:var(--surface);border-radius:var(--radius-lg);padding:28px 24px;width:100%;max-width:400px;text-align:center;border:1px solid rgba(255,61,138,0.3);box-shadow:0 0 0 1px rgba(255,61,138,0.1),0 8px 48px rgba(255,61,138,0.15);animation:foundPop 0.38s cubic-bezier(.34,1.56,.64,1)}
     .found-label{font-family:var(--mono);font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.12em;color:var(--magenta);margin-bottom:6px}
     .found-box h2{font-size:1.2rem;font-weight:800;margin-bottom:6px;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.03em}
@@ -444,6 +458,11 @@
     .bl-item-name{font-size:0.95rem;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .bl-item-sub{font-family:var(--mono);font-size:0.68rem;color:var(--ink-3);margin-top:2px}
     .bl-empty{text-align:center;padding:56px 20px;color:var(--ink-3);font-family:var(--mono);font-size:0.76rem;text-transform:uppercase;letter-spacing:0.06em}
+    .bl-section{display:flex;align-items:center;justify-content:space-between}
+    .bl-quest-prog{font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:10px;background:rgba(26,24,38,.07);color:var(--ink-3)}
+    .bl-quest-prog.started{background:rgba(251,191,36,.15);color:#d97706}
+    .bl-quest-prog.done{background:rgba(34,197,94,.15);color:#16a34a}
+    .bl-item.found{border-color:rgba(34,197,94,.35);background:rgba(240,255,244,.6)}
 
     /* ── MOI panel ── */
     #panelMoi{flex:1;overflow-y:auto;padding:24px 14px 80px;max-width:560px;margin:0 auto;width:100%}
@@ -678,6 +697,22 @@
   <div class="pb-track"><div class="pb-fill" id="pbFill" style="width:0%"></div></div>
 </div>
 
+<!-- ── Quest complete modal ──────────────────────────── -->
+<div id="questCompleteModal">
+  <div class="qc-box">
+    <div style="font-size:3rem;margin-bottom:10px">🏆</div>
+    <div class="qc-title">Quête accomplie !</div>
+    <div class="qc-quest" id="qcQuestName">—</div>
+    <div class="qc-stats">
+      <div class="qc-stat"><div class="qc-stat-val" id="qcCount">—</div><div class="qc-stat-lbl">Polaroids</div></div>
+      <div class="qc-stat"><div class="qc-stat-val" id="qcTime">—</div><div class="qc-stat-lbl">Temps</div></div>
+      <div class="qc-stat"><div class="qc-stat-val" id="qcRank">—</div><div class="qc-stat-lbl">Rang</div></div>
+    </div>
+    <button class="btn-share" id="qcShareBtn" onclick="shareQuestResult()">📤 Partager</button>
+    <button class="btn-main" onclick="closeQuestComplete()">Continuer</button>
+  </div>
+</div>
+
 <!-- ── Found modal ───────────────────────────────────── -->
 <div id="foundModal">
   <div class="found-box" style="position:relative;overflow:hidden">
@@ -784,7 +819,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.11.4';
+const GAME_VERSION = 'v3.12.0';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -1449,21 +1484,24 @@ async function loadTreasures() {
       t.found_by && t.found_by.length > 0 &&
       !(myPseudo && t.found_by.split(',').includes(myPseudo)) &&
       t.lat && t.lng &&
-      haversine(playerLat, playerLng, t.lat, t.lng) <= 2000
+      haversine(playerLat, playerLng, t.lat, t.lng) <= 300
     );
-    if (newlyTaken.length > 0) showFlashTakenToast(newlyTaken.length);
+    if (newlyTaken.length > 0) showFlashTakenToast(newlyTaken);
   }
 }
 
-function showFlashTakenToast(count) {
+function showFlashTakenToast(taken) {
   const el = document.getElementById('flashTakenToast');
   if (!el) return;
-  el.textContent = count > 1
-    ? `⚡ ${count} trésors viennent d'être pris !`
-    : '⚡ Trop tard — un trésor vient d\'être pris !';
+  if (taken.length === 1) {
+    const who = taken[0].found_by || '?';
+    el.textContent = `⚡ ${who} vient de prendre le trésor !`;
+  } else {
+    el.textContent = `⚡ ${taken.length} trésors viennent d'être pris !`;
+  }
   el.classList.add('show');
   clearTimeout(el._hideTimer);
-  el._hideTimer = setTimeout(() => el.classList.remove('show'), 3500);
+  el._hideTimer = setTimeout(() => el.classList.remove('show'), 4000);
 }
 
 // ── Map ──────────────────────────────────────────────
@@ -2012,6 +2050,13 @@ function updateRadar() {
     bar.textContent = `Cherche bien, il est là.${gpsWeak ? ' ⚠️ GPS faible' : ''}${accStr}`;
     bar.className = 'very-near';
     nearestFixed = canCapture ? nearestF.t : null;
+    // Révélation photo unique à la première entrée dans la zone
+    const t = nearestF.t;
+    if (t.photo_url && !revealedFixedClues.has(t.id)) {
+      revealedFixedClues.add(t.id);
+      if (myPseudo) localStorage.setItem(`u3dq_clues_${myPseudo}`, JSON.stringify([...revealedFixedClues]));
+      showFlashHint(t, 'Voilà ce que tu cherches — tu es dans la zone !', 'quest');
+    }
     if (activeTab === 'explore' && canCapture && gameMap) {
       const mapEl = document.getElementById('miniMap');
       const p = gameMap.latLngToContainerPoint([playerLat, playerLng]);
@@ -2028,7 +2073,7 @@ function updateRadar() {
   }
 }
 
-function showFlashHint(t, sub) {
+function showFlashHint(t, sub, mode) {
   const hint = document.getElementById('flashHint');
   const photoEl = document.getElementById('flashHintPhoto');
   const subEl = document.getElementById('flashHintSub');
@@ -2040,11 +2085,19 @@ function showFlashHint(t, sub) {
     photoEl.style.display = 'none';
   }
   subEl.textContent = sub;
+  hint.classList.toggle('quest-mode', mode === 'quest');
   hint.classList.add('active');
+  // En mode Quête : révélation unique, on cache après 7s
+  clearTimeout(hint._autoHide);
+  if (mode === 'quest') {
+    hint._autoHide = setTimeout(() => hint.classList.remove('active'), 7000);
+  }
 }
 
 function hideFlashHint() {
-  document.getElementById('flashHint').classList.remove('active');
+  const hint = document.getElementById('flashHint');
+  clearTimeout(hint._autoHide);
+  hint.classList.remove('active');
 }
 
 async function captureFixed() {
@@ -2948,6 +3001,20 @@ async function _doProcessFind(treasureId) {
   // Haptic feedback
   if (navigator.vibrate) navigator.vibrate([80, 40, 160]);
 
+  // Détecter fin de quête (balises fixes d'une quête nommée toutes trouvées)
+  if (t.type === 'fixed' && t.quest) {
+    const questBeacons = treasures.filter(x => x.type === 'fixed' && x.quest === t.quest);
+    const allFound = questBeacons.every(x => {
+      const fl = (x.found_by || '').split(',').filter(Boolean);
+      return fl.includes(myPseudo);
+    });
+    if (allFound && questBeacons.length > 0) {
+      showFoundResult('success', t, durationSec, durationSecHunt);
+      setTimeout(() => showQuestComplete(t.quest, durationSecHunt, questBeacons.length), 2200);
+      return;
+    }
+  }
+
   showFoundResult('success', t, durationSec, durationSecHunt);
 }
 
@@ -3298,8 +3365,9 @@ async function loadLeaderboard() {
 
 function startLbPolling() {
   loadLeaderboard();
+  loadTreasures();
   if (lbInterval) clearInterval(lbInterval);
-  lbInterval = setInterval(loadLeaderboard, 10000);
+  lbInterval = setInterval(() => { loadLeaderboard(); loadTreasures(); }, 10000);
 }
 
 let _lbActiveTab = 'quete';
@@ -3381,6 +3449,73 @@ function showTab(name, btn) {
 }
 
 function toggleMoreMenu() {}
+function _fmtDuration(secs) {
+  if (!secs || secs < 0) return '—';
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return m > 0 ? `${m}m ${s}s` : `${s}s`;
+}
+
+let _qcData = {};
+
+async function showQuestComplete(questName, totalSecs, beaconCount) {
+  _qcData = { questName, totalSecs, beaconCount };
+  document.getElementById('qcQuestName').textContent = questName;
+  document.getElementById('qcCount').textContent = beaconCount + '/' + beaconCount;
+  document.getElementById('qcTime').textContent = _fmtDuration(totalSecs);
+  document.getElementById('qcRank').textContent = '…';
+  document.getElementById('questCompleteModal').classList.add('open');
+
+  // Calcul du rang parmi les joueurs ayant complété cette quête
+  try {
+    const questBeaconIds = treasures
+      .filter(x => x.type === 'fixed' && x.quest === questName)
+      .map(x => x.id);
+    if (questBeaconIds.length > 0) {
+      const { data: evts } = await db.from('events')
+        .select('pseudo,treasure_id,duration_sec')
+        .in('treasure_id', questBeaconIds);
+      if (evts) {
+        const byPseudo = {};
+        evts.forEach(e => {
+          if (!byPseudo[e.pseudo]) byPseudo[e.pseudo] = { ids: new Set(), total: 0 };
+          byPseudo[e.pseudo].ids.add(e.treasure_id);
+          byPseudo[e.pseudo].total += (e.duration_sec || 0);
+        });
+        const completers = Object.entries(byPseudo)
+          .filter(([, v]) => v.ids.size >= questBeaconIds.length)
+          .sort((a, b) => a[1].total - b[1].total);
+        const idx = completers.findIndex(([p]) => p === myPseudo);
+        const rank = idx >= 0 ? '#' + (idx + 1) : '—';
+        document.getElementById('qcRank').textContent = rank + (completers.length > 1 ? '/' + completers.length : '');
+        _qcData.rank = rank;
+        _qcData.total = completers.length;
+      }
+    }
+  } catch(e) {
+    document.getElementById('qcRank').textContent = '—';
+  }
+}
+
+function closeQuestComplete() {
+  document.getElementById('questCompleteModal').classList.remove('open');
+}
+
+function shareQuestResult() {
+  const { questName, totalSecs, beaconCount, rank, total } = _qcData;
+  const timeStr = _fmtDuration(totalSecs);
+  const rankStr = rank && total ? ` · ${rank} sur ${total} joueurs` : '';
+  const text = `🏆 J'ai terminé la quête "${questName}" sur Urban3DQuest !\n📷 ${beaconCount} polaroids révélés · ⏱ ${timeStr}${rankStr}\n\nViens jouer : ${location.origin + location.pathname}`;
+  if (navigator.share) {
+    navigator.share({ title: 'Urban3DQuest — Quête accomplie !', text }).catch(() => {});
+  } else {
+    navigator.clipboard && navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById('qcShareBtn');
+      if (btn) { btn.textContent = '✓ Copié !'; setTimeout(() => { btn.textContent = '📤 Partager'; }, 2000); }
+    });
+  }
+}
+
 function closeMoreMenu() {}
 
 function resetCompassCalibration() {
@@ -3588,31 +3723,62 @@ function recenterOn(lat, lng) {
 // ── Balises panel ────────────────────────────────────
 function loadBalises() {
   const fixed = treasures.filter(t => t.type === 'fixed');
-  const count = document.getElementById('balisesCount');
-  const foundCount = fixed.filter(t => t.found_by && t.found_by.split(',').includes(myPseudo)).length;
-  if (count) count.textContent = foundCount + ' / ' + fixed.length + ' révélés';
-
-  const sorted = fixed
-    .map(t => ({ ...t, _dist: playerLat !== null ? haversine(playerLat, playerLng, t.lat, t.lng) : Infinity }))
-    .sort((a, b) => a._dist - b._dist);
+  const totalFound = fixed.filter(t => t.found_by && t.found_by.split(',').includes(myPseudo)).length;
+  const countEl = document.getElementById('balisesCount');
+  if (countEl) countEl.textContent = totalFound + ' / ' + fixed.length + ' révélés';
 
   const list = document.getElementById('balisList');
-  if (!sorted.length) { list.innerHTML = '<p style="color:var(--ink-3);text-align:center;padding:40px">Aucune balise</p>'; return; }
-  list.innerHTML = sorted.map((t, i) => {
-    const isMine = t.found_by && t.found_by.split(',').includes(myPseudo);
-    const distStr = t._dist === Infinity ? '' : t._dist < 1000 ? Math.round(t._dist) + ' m' : (t._dist/1000).toFixed(1) + ' km';
-    const numColors = ['#6366f1','#ec4899','#f59e0b','#10b981','#3b82f6'];
-    const bg = numColors[i % numColors.length];
-    const tid = escHtml(t.id);
-    return `<div class="bl-item" onclick="openTreasureSheet(treasures.find(x=>x.id==='${tid}'))">
-      <div class="bl-num" style="background:${bg}">${i+1}</div>
-      <div class="bl-info">
-        <div class="bl-item-name">${escHtml(tLabel(t))}</div>
-        <div class="bl-item-sub">${distStr ? escHtml(distStr) + ' · ' : ''}${isMine ? '✓ Révélé' : 'À révéler'}</div>
-      </div>
-      <div class="bl-arr">${isMine ? '✓' : '→'}</div>
-    </div>`;
-  }).join('');
+  if (!fixed.length) { list.innerHTML = '<p class="bl-empty">Aucune balise</p>'; return; }
+
+  // Group by quest field
+  const groups = {};
+  fixed.forEach(t => {
+    const q = t.quest || '';
+    if (!groups[q]) groups[q] = [];
+    groups[q].push(t);
+  });
+
+  const numColors = ['#6366f1','#ec4899','#f59e0b','#10b981','#3b82f6'];
+  const questNames = Object.keys(groups).sort((a, b) => {
+    if (!a && b) return 1;
+    if (a && !b) return -1;
+    return a.localeCompare(b);
+  });
+
+  const showGroups = questNames.length > 1 || (questNames.length === 1 && questNames[0] !== '');
+
+  let html = '';
+  questNames.forEach(questName => {
+    const items = groups[questName]
+      .map(t => ({ ...t, _dist: playerLat !== null ? haversine(playerLat, playerLng, t.lat, t.lng) : Infinity }))
+      .sort((a, b) => a._dist - b._dist);
+
+    const qFound = items.filter(t => t.found_by && t.found_by.split(',').includes(myPseudo)).length;
+    const qTotal = items.length;
+    const progClass = qFound >= qTotal ? 'done' : qFound > 0 ? 'started' : '';
+
+    if (showGroups) {
+      const label = questName || 'Sans quête';
+      html += `<div class="bl-section">${escHtml(label)}<span class="bl-quest-prog ${progClass}">${qFound}/${qTotal}</span></div>`;
+    }
+
+    items.forEach((t, i) => {
+      const isMine = t.found_by && t.found_by.split(',').includes(myPseudo);
+      const distStr = t._dist === Infinity ? '' : t._dist < 1000 ? Math.round(t._dist) + 'm' : (t._dist / 1000).toFixed(1) + 'km';
+      const bg = isMine ? '#22c55e' : numColors[i % numColors.length];
+      const tid = escHtml(t.id);
+      html += `<div class="bl-item${isMine ? ' found' : ''}" onclick="openTreasureSheet(treasures.find(x=>x.id==='${tid}'))">
+        <div class="bl-num" style="background:${bg}">${isMine ? '✓' : i + 1}</div>
+        <div class="bl-info">
+          <div class="bl-item-name">${escHtml(tLabel(t))}</div>
+          <div class="bl-item-sub">${distStr ? escHtml(distStr) + ' · ' : ''}${isMine ? '✓ Révélé' : 'À révéler'}</div>
+        </div>
+        <div class="bl-arr">${isMine ? '✓' : '→'}</div>
+      </div>`;
+    });
+  });
+
+  list.innerHTML = html;
 }
 
 // ── Moi panel ────────────────────────────────────────
