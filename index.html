@@ -185,6 +185,12 @@
     #flashFab{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);width:74px;height:74px;min-height:74px;padding:0;background:radial-gradient(circle at 32% 32%,rgba(255,255,255,.97) 0%,rgba(255,61,138,.28) 55%,rgba(200,30,90,.38) 100%);border:4px solid var(--magenta);border-radius:999px;font-size:0;color:transparent;cursor:pointer;z-index:1100;box-shadow:var(--glow-magenta),0 0 0 2px rgba(255,255,255,.72) inset;display:none;letter-spacing:0;transition:transform 0.12s;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);animation:flashFabPulse 1.2s ease-in-out infinite}
     #flashFab:active{transform:translateX(-50%) scale(0.93)}
     @keyframes flashFabPulse{0%,100%{box-shadow:var(--glow-magenta),0 0 0 2px rgba(255,255,255,.72) inset}50%{box-shadow:0 0 22px rgba(255,61,138,.95),0 0 54px rgba(255,61,138,.45),0 0 0 2px rgba(255,255,255,.72) inset}}
+    #flashHint{position:absolute;top:66px;left:50%;transform:translateX(-50%);display:none;align-items:center;gap:10px;background:rgba(255,240,248,.97);border:1.5px solid var(--magenta);border-radius:16px;padding:8px 14px 8px 8px;z-index:200;backdrop-filter:blur(8px);box-shadow:0 2px 20px rgba(255,61,138,.18);animation:flashHintIn .3s cubic-bezier(.16,1,.3,1);max-width:260px;pointer-events:none}
+    #flashHint.active{display:flex}
+    #flashHintPhoto{width:44px;height:44px;border-radius:10px;object-fit:cover;flex-shrink:0;border:1.5px solid rgba(255,61,138,.3)}
+    #flashHintLabel{font-size:0.74rem;font-weight:700;color:var(--magenta);font-family:var(--mono);line-height:1.4}
+    #flashHintSub{font-size:0.66rem;color:#db2777;font-family:var(--mono);font-weight:600}
+    @keyframes flashHintIn{from{opacity:0;transform:translateX(-50%) translateY(-6px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
     /* ── Progress bar ── */
     #progressBar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--line-2);padding:8px 16px 12px;z-index:200;display:none;padding-bottom:calc(8px + env(safe-area-inset-bottom))}
     #progressBar .pb-label{display:flex;justify-content:space-between;font-size:0.78rem;color:var(--ink-2);margin-bottom:6px;font-family:var(--mono)}
@@ -577,6 +583,13 @@
     <button id="compassDebugBtn" onclick="toggleCompassDebug()" style="display:none;position:absolute;top:10px;right:10px;z-index:1000;padding:7px 10px;background:rgba(15,23,42,.9);border:1px solid #334155;border-radius:10px;color:#93c5fd;font-size:0.72rem;font-weight:700;cursor:pointer">DBG</button>
     <div id="compassDebug" style="display:none;position:absolute;top:10px;left:10px;z-index:1000;font-size:0.68rem;color:var(--ink-2);line-height:1.6;padding:8px 12px;background:rgba(255,255,255,.92);border-radius:8px;max-width:220px;border:1px solid var(--line-2)"></div>
     <div id="radarBar"></div>
+    <div id="flashHint">
+      <img id="flashHintPhoto" src="" alt="">
+      <div>
+        <div id="flashHintLabel">Voilà ce que tu cherches</div>
+        <div id="flashHintSub">Encore quelques mètres…</div>
+      </div>
+    </div>
     <div id="flashTakenToast"></div>
   </div>
   <div id="nearestList"></div>
@@ -771,7 +784,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.11.3';
+const GAME_VERSION = 'v3.11.4';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -817,7 +830,8 @@ let gpsCourseLastPoint = null;
 let gpsHistory   = []; // last N positions for smoothing
 let nearestFixed  = null;
 let nearestUnique = null;
-const FLASH_CAPTURE_M = 10; // metres — seuil d'apparition du FAB Flash
+const FLASH_CAPTURE_M = 20; // metres — seuil d'apparition du FAB Flash
+const FLASH_HINT_M   = 50; // metres — seuil de révélation de la photo indice
 let lbInterval   = null;
 let geoWatch        = null;
 let geoWatchdog     = null;
@@ -1870,6 +1884,7 @@ function updateRadar() {
     bar.className = '';
     fab.style.display = 'none';
     flashFabEl.style.display = 'none';
+    hideFlashHint();
     nearestFixed = null;
     nearestUnique = null;
     lastHapticZone = null;
@@ -1910,29 +1925,44 @@ function updateRadar() {
 
     const uniqueDist = Math.round(nearestU.d);
     const flashFab = document.getElementById('flashFab');
+
     if (uniqueDist <= FLASH_CAPTURE_M) {
+      // Palier 3 — < 20m : FAB + hint + "scanne maintenant"
       bar.textContent = `${cStr} · 📷 Scanne-le maintenant !${accStr}`;
       bar.className = 'very-near';
       nearestUnique = nearestU.t;
       flashFab.style.display = 'block';
+      if (nearestU.t.photo_url) showFlashHint(nearestU.t, 'Tu es dessus — scanne !');
       if (lastHapticZone !== 'unique-capture') { lastHapticZone = 'unique-capture'; haptic([100, 50, 100, 50, 200]); }
-    } else if (uniqueDist <= proximityR) {
+    } else if (uniqueDist <= FLASH_HINT_M) {
+      // Palier 2 — < 50m : photo indice révélée, pas encore de FAB
       bar.textContent = `${cStr} · Cherche bien, il est là !${accStr}`;
       bar.className = 'very-near';
       nearestUnique = null;
       flashFab.style.display = 'none';
+      if (nearestU.t.photo_url) showFlashHint(nearestU.t, `À ~${uniqueDist}m — trouve l'objet`);
+      else hideFlashHint();
       if (lastHapticZone !== 'unique-near2') { lastHapticZone = 'unique-near2'; haptic([100, 50, 100, 50, 200]); }
     } else if (uniqueDist <= proximityR * 5) {
-      bar.textContent = `${cStr} · Tu chauffes !${accStr}`;
-      bar.className = 'near';
+      // Palier 1 — < 500m : "tu chauffes", rien de révélé
+      bar.textContent = uniqueDist <= proximityR
+        ? `${cStr} · Tu chauffes !${accStr}`
+        : `${cStr} · Un polaroid se cache dans ce quartier…${accStr}`;
+      bar.className = uniqueDist <= proximityR ? 'near' : '';
       nearestUnique = null;
       flashFab.style.display = 'none';
-      if (lastHapticZone !== 'unique-near') { lastHapticZone = 'unique-near'; haptic([80, 60, 80]); }
+      hideFlashHint();
+      if (uniqueDist <= proximityR) {
+        if (lastHapticZone !== 'unique-near') { lastHapticZone = 'unique-near'; haptic([80, 60, 80]); }
+      } else {
+        if (lastHapticZone !== 'unique-far') { lastHapticZone = 'unique-far'; }
+      }
     } else {
       bar.textContent = `${cStr} · Un polaroid se cache dans ce quartier…${accStr}`;
       bar.className = '';
       nearestUnique = null;
       flashFab.style.display = 'none';
+      hideFlashHint();
       if (lastHapticZone !== 'unique-far') { lastHapticZone = 'unique-far'; }
     }
 
@@ -1947,6 +1977,7 @@ function updateRadar() {
 
   flashFabEl.style.display = 'none';
   nearestUnique = null;
+  hideFlashHint();
 
   if (!fixedLeft.length) {
     bar.textContent = '✅ Ta quete est complete !';
@@ -1995,6 +2026,25 @@ function updateRadar() {
     }
     if (lastHapticZone !== 'capture') { lastHapticZone = 'capture'; haptic([100, 50, 100, 50, 200]); }
   }
+}
+
+function showFlashHint(t, sub) {
+  const hint = document.getElementById('flashHint');
+  const photoEl = document.getElementById('flashHintPhoto');
+  const subEl = document.getElementById('flashHintSub');
+  const url = safeImgUrl(getPhotoUrls(t.photo_url)[0]);
+  if (url) {
+    photoEl.src = url;
+    photoEl.style.display = 'block';
+  } else {
+    photoEl.style.display = 'none';
+  }
+  subEl.textContent = sub;
+  hint.classList.add('active');
+}
+
+function hideFlashHint() {
+  document.getElementById('flashHint').classList.remove('active');
 }
 
 async function captureFixed() {
