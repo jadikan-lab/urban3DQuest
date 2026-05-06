@@ -455,6 +455,7 @@
     .moi-tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px 12px;text-align:center}
     .moi-tile-val{font-size:1.6rem;font-weight:800;color:var(--ink);font-family:var(--mono)}
     .moi-tile-lbl{font-family:var(--mono);font-size:0.6rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-3);margin-top:4px}
+    .moi-calib{width:100%;padding:14px;background:transparent;border:1px solid rgba(99,102,241,0.4);border-radius:var(--radius);color:#818cf8;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:var(--display);text-align:center;margin-bottom:8px}
     .moi-logout{width:100%;padding:14px;background:transparent;border:1px solid rgba(248,113,113,0.4);border-radius:var(--radius);color:#ef4444;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:var(--display);text-align:center}
   </style>
 </head>
@@ -756,7 +757,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.11.1';
+const GAME_VERSION = 'v3.11.2';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -2062,7 +2063,7 @@ function refreshEffectiveHeading() {
     return;
   }
   headingSource = gpsCourseFresh ? 'gps-course' : 'compass';
-  const factor = headingSource === 'gps-course' ? 0.28 : 0.18;
+  const factor = headingSource === 'gps-course' ? 0.38 : 0.26;
   deviceHeading = _smoothHeading(deviceHeading, target, factor);
 }
 
@@ -3286,6 +3287,21 @@ function showTab(name, btn) {
 
 function toggleMoreMenu() {}
 function closeMoreMenu() {}
+
+function resetCompassCalibration() {
+  headingAutoOffset = 0;
+  headingOffsetSampleCount = 0;
+  deviceHeading = null;
+  localStorage.removeItem('u3dq_heading_offset');
+  const btn = document.getElementById('calibBtn');
+  if (btn) {
+    btn.textContent = '✓ Compas réinitialisé';
+    setTimeout(() => { btn.textContent = '🧭 Recalibrer le compas'; }, 2500);
+  }
+  refreshEffectiveHeading();
+  applyMapHeadingRotation();
+  scheduleCompassRender(true);
+}
 function showTabFromMore(name) { showTab(name, null); }
 
 // ── Pause ────────────────────────────────────────────
@@ -3533,6 +3549,7 @@ async function loadMoi() {
       <div class="moi-tile"><div class="moi-tile-val">${myFixed + myUnique}</div><div class="moi-tile-lbl">Total révélé</div></div>
       <div class="moi-tile"><div class="moi-tile-val">${rank}</div><div class="moi-tile-lbl">Classement</div></div>
     </div>
+    ${myPseudo ? `<button class="moi-calib" id="calibBtn" onclick="resetCompassCalibration()">🧭 Recalibrer le compas</button>` : ''}
     ${myPseudo ? `<button class="moi-logout" id="logoutBtn">Se déconnecter</button>` : ''}
   `;
   // addEventListener garanti même si le bouton est injecté dynamiquement
