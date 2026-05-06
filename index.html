@@ -756,7 +756,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.11.0';
+const GAME_VERSION = 'v3.11.1';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -1317,6 +1317,7 @@ function setGameMode(mode) {
   lastArrowLng = null;
   lastArrowHeading = null;
   _clearArrows();
+  renderMarkers();
   applyExploreMapLock();
   applyMapHeadingRotation();
   updateCompass();
@@ -1543,6 +1544,9 @@ function renderMarkers() {
 
   treasures.forEach(t => {
     const isMine  = t.found_by && t.found_by.split(',').includes(myPseudo);
+    // Only show treasures matching the active mode (or already found by this player)
+    if (t.type === 'fixed' && activeGameMode !== 'fixed' && !isMine) return;
+    if (t.type === 'unique' && activeGameMode !== 'unique' && !isMine) return;
     // Fixed beacons are hidden on the map unless already found by this player
     if (t.type === 'fixed' && !isMine) return;
     const isTaken = t.type === 'unique' && t.found_by && t.found_by.length > 0;
