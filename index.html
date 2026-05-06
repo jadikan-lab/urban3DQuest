@@ -771,7 +771,9 @@ let fixedTotal   = 5;   // total fixed beacons, overridden by config key 'fixedT
 let modeMap      = true;  // show map tab
 let modeCompass  = true;  // show compass tab
 let activeTab    = 'explore';
-let deviceHeading = null; // degrees clockwise from north (from device sensor)
+let deviceHeading = null; // effective heading used by UI (degrees clockwise from north)
+let sensorHeading = null; // heading from device orientation events
+let headingSource = 'none'; // compass | gps-course | none
 let compassInterval = null;
 let compassRenderQueued = false;
 let compassLastRenderAt = 0;
@@ -791,6 +793,10 @@ let gameStart    = null;  // Date or null — reference timestamp for score calc
 let gameCode     = '';    // empty = open access
 let playerLat    = null, playerLng = null;
 let playerAccuracy = null; // GPS accuracy in meters
+let gpsCourseHeading = null;
+let gpsCourseSpeed = 0;
+let gpsCourseLastAt = 0;
+let gpsCourseLastPoint = null;
 let gpsHistory   = []; // last N positions for smoothing
 let nearestFixed = null;
 let lbInterval   = null;
@@ -1606,6 +1612,31 @@ function _onGeoSuccess(pos) {
   playerLng = gpsHistory.reduce((s, p, i) => s + p.lng * weights[i], 0) / totalW;
   playerAccuracy = pos.coords.accuracy;
 
+  const now = Date.now();
+  const rawHeading = pos && pos.coords ? pos.coords.heading : null;
+  const rawSpeed = pos && pos.coords ? pos.coords.speed : null;
+  let computedCourse = null;
+  let computedSpeed = Number.isFinite(rawSpeed) && rawSpeed >= 0 ? rawSpeed : 0;
+
+  if (Number.isFinite(rawHeading) && rawHeading >= 0) {
+    computedCourse = _normHeading(rawHeading);
+  } else if (gpsCourseLastPoint) {
+    const dtSec = Math.max(0.001, (now - gpsCourseLastPoint.at) / 1000);
+    const distM = haversine(gpsCourseLastPoint.lat, gpsCourseLastPoint.lng, playerLat, playerLng);
+    if (!Number.isFinite(rawSpeed) || rawSpeed < 0) computedSpeed = distM / dtSec;
+    if (dtSec >= 0.8 && distM >= 2.0) {
+      computedCourse = bearingTo(gpsCourseLastPoint.lat, gpsCourseLastPoint.lng, playerLat, playerLng);
+    }
+  }
+
+  gpsCourseSpeed = Number.isFinite(computedSpeed) ? computedSpeed : 0;
+  if (Number.isFinite(computedCourse)) {
+    gpsCourseHeading = computedCourse;
+    gpsCourseLastAt = now;
+  }
+  gpsCourseLastPoint = { lat: playerLat, lng: playerLng, at: now };
+  refreshEffectiveHeading();
+
   // Update GPS chip in header
   const chip = document.getElementById('gpsChip');
   const lbl  = document.getElementById('gpsLabel');
@@ -1973,10 +2004,40 @@ function _setHeading(nextHeading, source) {
     compassEventCount = 0;
     compassLastRateTick = now;
   }
-  const factor = source === 'webkit' ? 0.2 : 0.16;
-  deviceHeading = _smoothHeading(deviceHeading, normalized, factor);
+  sensorHeading = normalized;
+  refreshEffectiveHeading();
   applyMapHeadingRotation();
   scheduleCompassRender();
+}
+
+function _getScreenOrientationAngle() {
+  if (typeof screen !== 'undefined' && screen.orientation && Number.isFinite(screen.orientation.angle)) {
+    return _normHeading(screen.orientation.angle);
+  }
+  if (typeof window.orientation === 'number') {
+    return _normHeading(window.orientation);
+  }
+  return 0;
+}
+
+function _headingFromAlpha(alphaDeg) {
+  if (!Number.isFinite(alphaDeg)) return null;
+  const correctedAlpha = _normHeading(alphaDeg + _getScreenOrientationAngle());
+  return _normHeading(360 - correctedAlpha);
+}
+
+function refreshEffectiveHeading() {
+  const now = Date.now();
+  const gpsCourseFresh = Number.isFinite(gpsCourseHeading) && gpsCourseSpeed >= 1.5 && (now - gpsCourseLastAt) <= 4500;
+  const target = gpsCourseFresh ? gpsCourseHeading : sensorHeading;
+  if (!Number.isFinite(target)) {
+    deviceHeading = null;
+    headingSource = 'none';
+    return;
+  }
+  headingSource = gpsCourseFresh ? 'gps-course' : 'compass';
+  const factor = headingSource === 'gps-course' ? 0.28 : 0.18;
+  deviceHeading = _smoothHeading(deviceHeading, target, factor);
 }
 
 function applyMapHeadingRotation() {
@@ -2095,9 +2156,7 @@ function _attachOrientationListeners() {
   window.addEventListener('deviceorientationabsolute', e => {
     if (e.alpha !== null && e.alpha !== undefined) {
       hasAbsolute = true;
-      // alpha = rotation around Z axis, clockwise from north on Android
-      // Need to negate for clockwise compass heading
-      _setHeading((360 - e.alpha) % 360, 'absolute');
+      _setHeading(_headingFromAlpha(e.alpha), 'absolute');
     }
   }, true);
 
@@ -2111,9 +2170,19 @@ function _attachOrientationListeners() {
     }
     // Android fallback if absolute didn't fire
     if (!hasAbsolute && e.alpha !== null && e.alpha !== undefined) {
-      _setHeading((360 - e.alpha) % 360, 'alpha');
+      _setHeading(_headingFromAlpha(e.alpha), 'alpha');
     }
   }, true);
+
+  const onOrientationChanged = () => {
+    refreshEffectiveHeading();
+    applyMapHeadingRotation();
+    scheduleCompassRender(true);
+  };
+  window.addEventListener('orientationchange', onOrientationChanged, true);
+  if (typeof screen !== 'undefined' && screen.orientation && typeof screen.orientation.addEventListener === 'function') {
+    screen.orientation.addEventListener('change', onOrientationChanged, true);
+  }
 }
 
 
