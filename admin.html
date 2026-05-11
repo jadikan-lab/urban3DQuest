@@ -439,6 +439,7 @@ var SUPABASE_KEY=SUPABASE_ENV.key;
 var GAME_BASE_URL='https://jadikan-lab.github.io/urban3DQuest';
 var GAME_WEB_VERSION='21a5a4a'; // cache-busting for mobile scans
 function buildGameUrl(param,value){return GAME_BASE_URL+'/?'+param+'='+value+'&v='+GAME_WEB_VERSION;}
+function buildGameUrlPrint(param,value){return GAME_BASE_URL+'/?'+param+'='+value;}
 var ADMIN_UI_VERSION='v3.9.8';
 var db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 var currentLoc=null,currentType='fixed',visVisible=true,gameActive=true,modeMap=true,modeCompass=true,photoDataUrls=[],adminMap=null,mapLayers=[],questList=[],activeQuests=[],rewardMessages={},relocate=null;
@@ -883,14 +884,14 @@ async function generateFixedQRCodes(){
     // Nom court : label de la balise (ex: B1, B2…) — jamais en rouge car fixe = plusieurs joueurs
     var name=(t.label||('B'+(idx+1))).substring(0,20);
     var sid='fqrs_'+t.id.replace(/[^a-z0-9]/gi,'_');
-    var url=buildGameUrl('checkin',encodeURIComponent(t.id));
+    var url=buildGameUrlPrint('checkin',encodeURIComponent(t.id));
     var card=document.createElement('div');
     card.className='qr-card';
     card.style.border='2px solid #166534';
     card.innerHTML='<div class="qr-card-id" style="color:#4ade80">'+name+'</div>'
       +'<div style="background:#ffffff;padding:8px;border-radius:8px;display:inline-block"><div id="'+sid+'"></div></div>';
     grid.appendChild(card);
-    new QRCode(document.getElementById(sid),{text:url,width:180,height:180,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
+    new QRCode(document.getElementById(sid),{text:url,width:180,height:180,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
   });
   var total=res.data.length;
   var foundCount=res.data.filter(function(t){return t.found_by&&t.found_by.length>0;}).length;
@@ -920,10 +921,10 @@ async function downloadFixedQrZip(format){
     var OUT_SZ=400;var QR_SZ=352;var QUIET=24;var PAD=72;
     for(var idx=0;idx<data.length;idx++){
       var t=data[idx];
-      var url=buildGameUrl('checkin',encodeURIComponent(t.id));
+      var url=buildGameUrlPrint('checkin',encodeURIComponent(t.id));
       var name=(t.label||('B'+(idx+1)));  // nom court uniquement, ex: B1
       var exportLabel=(fmt==='svg')?'':name.substring(0,30);
-      var payload=buildQrAsset(url,exportLabel,QRCode.CorrectLevel.H,fmt,{outSize:OUT_SZ,qrSize:QR_SZ,quiet:QUIET,bottomPad:PAD});
+      var payload=buildQrAsset(url,exportLabel,QRCode.CorrectLevel.M,fmt,{outSize:OUT_SZ,qrSize:QR_SZ,quiet:QUIET,bottomPad:PAD});
       if(payload){
         var safeName=name.replace(/[^a-zA-Z0-9\-_]/g,'_').substring(0,40);
         var ext=(fmt==='svg')?'svg':'png';
