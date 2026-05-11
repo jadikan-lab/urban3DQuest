@@ -329,6 +329,12 @@
     <button class="btn" id="zipFixedSvgBtn" style="background:#0f172a;border:1px solid #475569" onclick="downloadFixedQrZip('svg')" disabled>⬇ Télécharger ZIP SVG (Fusion 360)</button>
     <p style="font-size:0.72rem;color:#94a3b8;margin-top:6px">Conseil: SVG est vectoriel (idéal Fusion 360 / impression 3D), PNG est pratique pour impression rapide.</p>
     <p id="fixedQrInfo" style="font-size:0.75rem;color:#475569;margin-top:8px;display:none"></p>
+    <div id="fixedZipProgress" style="display:none;margin-top:8px">
+      <div style="height:8px;background:#0b1220;border:1px solid #334155;border-radius:999px;overflow:hidden">
+        <div id="fixedZipProgressBar" style="height:100%;width:0%;background:linear-gradient(90deg,#22c55e,#4ade80)"></div>
+      </div>
+      <div id="fixedZipProgressText" style="font-size:0.72rem;color:#94a3b8;margin-top:4px">Préparation…</div>
+    </div>
     <div id="fixedQrGrid" class="qr-grid" style="margin-top:12px"></div>
   </div>
   <!-- ── Section QR génériques (tags mobiles) ── -->
@@ -833,6 +839,7 @@ function buildQrAsset(url,label,level,format,opts){
 async function generateFixedQRCodes(){
   var grid=document.getElementById('fixedQrGrid');
   var info=document.getElementById('fixedQrInfo');
+  var pw=document.getElementById('fixedZipProgress');if(pw)pw.style.display='none';
   document.getElementById('zipFixedPngBtn').disabled=true;
   document.getElementById('zipFixedSvgBtn').disabled=true;
   grid.innerHTML='<p style="color:#475569;font-size:0.8rem">Chargement…</p>';
@@ -870,25 +877,48 @@ async function downloadFixedQrZip(format){
   var btn=document.getElementById(fmt==='svg'?'zipFixedSvgBtn':'zipFixedPngBtn');
   var data=window._fixedQrData||[];
   if(!data.length){alert('Générez d\'abord les QR balises fixes.');return;}
+  var progressWrap=document.getElementById('fixedZipProgress');
+  var progressBar=document.getElementById('fixedZipProgressBar');
+  var progressText=document.getElementById('fixedZipProgressText');
+  function setProgress(pct,msg){
+    var v=Math.max(0,Math.min(100,Math.round(pct)));
+    if(progressBar)progressBar.style.width=v+'%';
+    if(progressText)progressText.textContent=msg||('Progression '+v+'%');
+  }
+  if(progressWrap)progressWrap.style.display='block';
+  setProgress(0,'Préparation du ZIP '+fmt.toUpperCase()+'…');
   btn.disabled=true;btn.textContent='⏳ Création du ZIP '+fmt.toUpperCase()+'…';
-  var zip=new JSZip();
-  var OUT_SZ=400;var QR_SZ=352;var QUIET=24;var PAD=72;
-  data.forEach(function(t,idx){
-    var url=buildGameUrl('checkin',encodeURIComponent(t.id));
-    var name=(t.label||('B'+(idx+1)));  // nom court uniquement, ex: B1
-    var exportLabel=(fmt==='svg')?'':name.substring(0,30);
-    var payload=buildQrAsset(url,exportLabel,QRCode.CorrectLevel.L,fmt,{outSize:OUT_SZ,qrSize:QR_SZ,quiet:QUIET,bottomPad:PAD});
-    if(payload){
-      var safeName=name.replace(/[^a-zA-Z0-9\-_]/g,'_').substring(0,40);
-      var ext=(fmt==='svg')?'svg':'png';
-      zip.file('balise_'+safeName+'.'+ext,payload,fmt==='svg'?{}:{base64:true});
+  try{
+    var zip=new JSZip();
+    var OUT_SZ=400;var QR_SZ=352;var QUIET=24;var PAD=72;
+    for(var idx=0;idx<data.length;idx++){
+      var t=data[idx];
+      var url=buildGameUrl('checkin',encodeURIComponent(t.id));
+      var name=(t.label||('B'+(idx+1)));  // nom court uniquement, ex: B1
+      var exportLabel=(fmt==='svg')?'':name.substring(0,30);
+      var payload=buildQrAsset(url,exportLabel,QRCode.CorrectLevel.L,fmt,{outSize:OUT_SZ,qrSize:QR_SZ,quiet:QUIET,bottomPad:PAD});
+      if(payload){
+        var safeName=name.replace(/[^a-zA-Z0-9\-_]/g,'_').substring(0,40);
+        var ext=(fmt==='svg')?'svg':'png';
+        zip.file('balise_'+safeName+'.'+ext,payload,fmt==='svg'?{}:{base64:true});
+      }
+      setProgress(((idx+1)/data.length)*88,'Génération fichiers '+(idx+1)+'/'+data.length+'…');
+      if((idx%4)===0)await new Promise(function(resolve){requestAnimationFrame(resolve);});
     }
-  });
-  var zipOpts=(fmt==='svg')?{type:'blob',compression:'STORE'}:{type:'blob',compression:'DEFLATE',compressionOptions:{level:6}};
-  var blob=await zip.generateAsync(zipOpts);
-  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='balises_fixes_qrcodes_'+fmt+'.zip';
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
-  btn.disabled=false;btn.textContent=fmt==='svg'?'⬇ Télécharger ZIP SVG (Fusion 360)':'⬇ Télécharger ZIP PNG (400px)';
+    var zipOpts=(fmt==='svg')?{type:'blob',compression:'STORE'}:{type:'blob',compression:'DEFLATE',compressionOptions:{level:6}};
+    var blob=await zip.generateAsync(zipOpts,function(meta){
+      var pct=88+(meta.percent||0)*0.12;
+      setProgress(pct,'Assemblage ZIP '+Math.round(meta.percent||0)+'%…');
+    });
+    setProgress(100,'ZIP prêt, téléchargement…');
+    var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='balises_fixes_qrcodes_'+fmt+'.zip';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+  }catch(e){
+    setProgress(0,'Erreur ZIP: '+(e&&e.message?e.message:e));
+    alert('Erreur pendant la création du ZIP: '+(e&&e.message?e.message:e));
+  }finally{
+    btn.disabled=false;btn.textContent=fmt==='svg'?'⬇ Télécharger ZIP SVG (Fusion 360)':'⬇ Télécharger ZIP PNG (400px)';
+  }
 }
 function generateQRCodes(){
   var prefix=(document.getElementById('qrPrefix').value||'QR').toUpperCase().replace(/[^A-Z0-9]/g,'');
