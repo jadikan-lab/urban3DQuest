@@ -1036,7 +1036,7 @@ async function downloadFixedStlZip(){
       var name=(t.label||('B'+(idx+1)));
       var modules=getQrModulesForUrl(url,QRCode.CorrectLevel.M);
       validateQrModuleMatrix(modules);
-      var stl=buildQrStlFromModules(modules,name,{quietModules:5,targetSizeMm:70,baseHeightMm:1.8,reliefHeightMm:1.2});
+      var stl=buildQrStlFromModules(modules,name,{quietModules:5,targetSizeMm:70,baseHeightMm:0.6,reliefHeightMm:0.6});
       var safeName=name.replace(/[^a-zA-Z0-9\-_]/g,'_').substring(0,40);
       zip.file('balise_'+safeName+'.stl',stl);
       setProgress(((idx+1)/data.length)*88,'Génération STL '+(idx+1)+'/'+data.length+'…');
