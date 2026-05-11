@@ -693,6 +693,71 @@ function detectQrModuleSize(ctx,w,h){
   }
   return Math.max(1,minRun||1);
 }
+function edgeKey(a,b){return(a<b)?(a+'|'+b):(b+'|'+a);}
+function pointKey(x,y){return x+','+y;}
+function parsePoint(k){var p=k.split(',');return{x:parseInt(p[0],10),y:parseInt(p[1],10)};}
+function buildQrBoundaryLoops(matrix,rows,cols){
+  var edges={};
+  function toggleEdge(ax,ay,bx,by){
+    var a=pointKey(ax,ay),b=pointKey(bx,by),k=edgeKey(a,b);
+    if(edges[k])delete edges[k];
+    else edges[k]={a:a,b:b};
+  }
+  for(var r=0;r<rows;r++){
+    for(var c=0;c<cols;c++){
+      if(!matrix[r][c])continue;
+      toggleEdge(c,r,c+1,r);
+      toggleEdge(c+1,r,c+1,r+1);
+      toggleEdge(c+1,r+1,c,r+1);
+      toggleEdge(c,r+1,c,r);
+    }
+  }
+  var adj={};
+  Object.keys(edges).forEach(function(k){
+    var e=edges[k];
+    if(!adj[e.a])adj[e.a]=[];
+    if(!adj[e.b])adj[e.b]=[];
+    adj[e.a].push(e.b);
+    adj[e.b].push(e.a);
+  });
+  var used={};
+  var loops=[];
+  function simplifyLoop(points){
+    if(points.length<4)return points;
+    var out=[];
+    for(var i=0;i<points.length;i++){
+      var prev=points[(i-1+points.length)%points.length];
+      var cur=points[i];
+      var next=points[(i+1)%points.length];
+      var colinear=(prev.x===cur.x&&cur.x===next.x)||(prev.y===cur.y&&cur.y===next.y);
+      if(!colinear)out.push(cur);
+    }
+    return out;
+  }
+  Object.keys(edges).forEach(function(k0){
+    if(used[k0])return;
+    var e0=edges[k0];
+    var start=e0.a;
+    var prev=null;
+    var cur=start;
+    var next=e0.b;
+    var loop=[parsePoint(start)];
+    while(true){
+      var k=edgeKey(cur,next);
+      used[k]=true;
+      cur=next;
+      if(cur===start)break;
+      loop.push(parsePoint(cur));
+      var nbs=adj[cur]||[];
+      if(nbs.length<1)break;
+      if(nbs.length===1)next=nbs[0];
+      else next=(nbs[0]===prev)?nbs[1]:nbs[0];
+      prev=loop.length>1?pointKey(loop[loop.length-2].x,loop[loop.length-2].y):start;
+    }
+    if(loop.length>=4)loops.push(simplifyLoop(loop));
+  });
+  return loops;
+}
 function qrCanvasToSvg(qrCanvas,label,opts){
   var o=opts||{};
   var w=qrCanvas.width||352;
@@ -714,15 +779,18 @@ function qrCanvasToSvg(qrCanvas,label,opts){
       matrix[r][c]=(img[si]<128&&img[si+1]<128&&img[si+2]<128&&img[si+3]>0);
     }
   }
+  var loops=buildQrBoundaryLoops(matrix,rows,cols);
   var out=[];
   out.push('<?xml version="1.0" encoding="UTF-8"?>');
   out.push('<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+totalH+'" viewBox="0 0 '+w+' '+totalH+'">');
   out.push('<rect x="0" y="0" width="'+w+'" height="'+totalH+'" fill="#ffffff"/>');
-  for(var rr=0;rr<rows;rr++){
-    for(var cc=0;cc<cols;cc++){
-      if(!matrix[rr][cc])continue;
-      out.push('<rect x="'+(cc*moduleSize)+'" y="'+(rr*moduleSize)+'" width="'+moduleSize+'" height="'+moduleSize+'" fill="#000000"/>');
-    }
+  for(var li=0;li<loops.length;li++){
+    var lp=loops[li];
+    if(!lp.length)continue;
+    var d='M '+(lp[0].x*moduleSize)+' '+(lp[0].y*moduleSize);
+    for(var pi=1;pi<lp.length;pi++)d+=' L '+(lp[pi].x*moduleSize)+' '+(lp[pi].y*moduleSize);
+    d+=' Z';
+    out.push('<path d="'+d+'" fill="#000000"/>');
   }
   if(label&&pad>0){
     out.push('<text x="'+(w/2)+'" y="'+(w+Math.round(pad*0.64))+'" text-anchor="middle" font-family="Arial,sans-serif" font-size="'+Math.max(16,Math.round(pad*0.38))+'" font-weight="700" fill="#000000">'+escXml(label)+'</text>');
