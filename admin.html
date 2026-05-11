@@ -674,7 +674,6 @@ async function resetGame(){if(!confirm('ATTENTION : Remettre la partie à zéro 
 async function loadStats(){var r1=await db.from('treasures').select('id,type,found_by');var r2=await db.from('players').select('pseudo,found_count,score');var t=r1.data||[];var p=r2.data||[];var totalFixed=t.filter(function(x){return x.type==='fixed';}).length;var totalUnique=t.filter(function(x){return x.type==='unique';}).length;var foundFixed=t.filter(function(x){return x.type==='fixed'&&x.found_by&&x.found_by.length>0;}).length;var foundUnique=t.filter(function(x){return x.type==='unique'&&x.found_by&&x.found_by.length>0;}).length;var topPlayer=p.length?p.slice().sort(function(a,b){return b.found_count-a.found_count||(a.score-b.score);})[0]:null;document.getElementById('statsDiv').innerHTML='<div class="stat-row"><span>Trésors fixes</span><span>'+foundFixed+' / '+totalFixed+' trouvés</span></div><div class="stat-row"><span>Trésors uniques</span><span>'+foundUnique+' / '+totalUnique+' trouvés</span></div><div class="stat-row"><span>Joueurs inscrits</span><span>'+p.length+'</span></div>'+(topPlayer?'<div class="stat-row"><span>🥇 Meilleur joueur</span><span>'+topPlayer.pseudo+' ('+topPlayer.found_count+' trouvés)</span></div>':'')+'<button class="btn" style="background:#1e293b;border:1px solid #334155;margin-top:12px;font-size:0.82rem;padding:10px" onclick="exportCSV()">⬇ Exporter events.csv</button>';}
 async function exportCSV(){var r=await db.from('events').select('created_at,pseudo,treasure_id,treasure_type,duration_sec').order('created_at',{ascending:true});if(!r.data||!r.data.length){alert('Aucun événement enregistré.');return;}var header='date,pseudo,tresor_id,type,duree_sec\n';var rows=r.data.map(function(e){return[csvCell(new Date(e.created_at).toLocaleString('fr-FR')),csvCell(e.pseudo||''),csvCell(e.treasure_id||''),csvCell(e.treasure_type||''),csvCell(e.duration_sec||0)].join(',');}).join('\n');var blob=new Blob(['\ufeff'+header+rows],{type:'text/csv;charset=utf-8'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='urban3dquest_events.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);}
 function escXml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&apos;');}
-function gcdInt(a,b){a=Math.abs(a||0);b=Math.abs(b||0);while(b){var t=b;b=a%b;a=t;}return a||1;}
 function detectQrModuleSize(ctx,w,h){
   var img=ctx.getImageData(0,0,w,h).data;
   var minRun=0;
@@ -698,88 +697,42 @@ function detectQrModuleSize(ctx,w,h){
   }
   return Math.max(1,minRun||1);
 }
-function edgeKey(a,b){return(a<b)?(a+'|'+b):(b+'|'+a);}
-function pointKey(x,y){return x+','+y;}
-function parsePoint(k){var p=k.split(',');return{x:parseInt(p[0],10),y:parseInt(p[1],10)};}
-function buildQrBoundaryLoops(matrix,rows,cols){
-  var edges={};
-  function toggleEdge(ax,ay,bx,by){
-    var a=pointKey(ax,ay),b=pointKey(bx,by),k=edgeKey(a,b);
-    if(edges[k])delete edges[k];
-    else edges[k]={a:a,b:b};
+function buildMergedRectangles(matrix,rows,cols){
+  var active={};
+  var rects=[];
+  function runKey(x,w){return x+':'+w;}
+  function flushInactive(nextActiveKeys){
+    Object.keys(active).forEach(function(k){
+      if(!nextActiveKeys[k]){
+        rects.push(active[k]);
+        delete active[k];
+      }
+    });
   }
   for(var r=0;r<rows;r++){
-    for(var c=0;c<cols;c++){
-      if(!matrix[r][c])continue;
-      toggleEdge(c,r,c+1,r);
-      toggleEdge(c+1,r,c+1,r+1);
-      toggleEdge(c+1,r+1,c,r+1);
-      toggleEdge(c,r+1,c,r);
+    var runs=[];
+    var c=0;
+    while(c<cols){
+      if(!matrix[r][c]){c++;continue;}
+      var x0=c;
+      c++;
+      while(c<cols&&matrix[r][c])c++;
+      runs.push({x:x0,w:c-x0});
     }
-  }
-  var adj={};
-  Object.keys(edges).forEach(function(k){
-    var e=edges[k];
-    if(!adj[e.a])adj[e.a]=[];
-    if(!adj[e.b])adj[e.b]=[];
-    adj[e.a].push(e.b);
-    adj[e.b].push(e.a);
-  });
-  var used={};
-  var loops=[];
-  function simplifyLoop(points){
-    if(points.length<4)return points;
-    var out=[];
-    for(var i=0;i<points.length;i++){
-      var prev=points[(i-1+points.length)%points.length];
-      var cur=points[i];
-      var next=points[(i+1)%points.length];
-      var colinear=(prev.x===cur.x&&cur.x===next.x)||(prev.y===cur.y&&cur.y===next.y);
-      if(!colinear)out.push(cur);
-    }
-    return out;
-  }
-  Object.keys(edges).forEach(function(k0){
-    if(used[k0])return;
-    var e0=edges[k0];
-    var start=e0.a;
-    var prev=null;
-    var cur=start;
-    var next=e0.b;
-    var loop=[parsePoint(start)];
-    var maxSteps=Object.keys(edges).length+8;
-    var steps=0;
-    while(true){
-      var k=edgeKey(cur,next);
-      if(used[k])break;
-      used[k]=true;
-      var oldCur=cur;
-      cur=next;
-      if(cur===start)break;
-      loop.push(parsePoint(cur));
-      var nbs=adj[cur]||[];
-      if(nbs.length<1)break;
-      var candidates=[];
-      for(var ni=0;ni<nbs.length;ni++){
-        var nb=nbs[ni];
-        if(nb===oldCur)continue;
-        if(!used[edgeKey(cur,nb)])candidates.push(nb);
+    var nextKeys={};
+    runs.forEach(function(run){
+      var k=runKey(run.x,run.w);
+      nextKeys[k]=true;
+      if(active[k]&&active[k].y+active[k].h===r){
+        active[k].h+=1;
+      }else{
+        active[k]={x:run.x,y:r,w:run.w,h:1};
       }
-      if(!candidates.length){
-        for(ni=0;ni<nbs.length;ni++){
-          nb=nbs[ni];
-          if(!used[edgeKey(cur,nb)]){candidates.push(nb);break;}
-        }
-      }
-      if(!candidates.length)break;
-      prev=oldCur;
-      next=candidates[0];
-      steps++;
-      if(steps>maxSteps)break;
-    }
-    if(loop.length>=4)loops.push(simplifyLoop(loop));
-  });
-  return loops;
+    });
+    flushInactive(nextKeys);
+  }
+  Object.keys(active).forEach(function(k){rects.push(active[k]);});
+  return rects;
 }
 function qrCanvasToSvg(qrCanvas,label,opts){
   var o=opts||{};
@@ -802,18 +755,14 @@ function qrCanvasToSvg(qrCanvas,label,opts){
       matrix[r][c]=(img[si]<128&&img[si+1]<128&&img[si+2]<128&&img[si+3]>0);
     }
   }
-  var loops=buildQrBoundaryLoops(matrix,rows,cols);
+  var rects=buildMergedRectangles(matrix,rows,cols);
   var out=[];
   out.push('<?xml version="1.0" encoding="UTF-8"?>');
   out.push('<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+totalH+'" viewBox="0 0 '+w+' '+totalH+'">');
   out.push('<rect x="0" y="0" width="'+w+'" height="'+totalH+'" fill="#ffffff"/>');
-  for(var li=0;li<loops.length;li++){
-    var lp=loops[li];
-    if(!lp.length)continue;
-    var d='M '+(lp[0].x*moduleSize)+' '+(lp[0].y*moduleSize);
-    for(var pi=1;pi<lp.length;pi++)d+=' L '+(lp[pi].x*moduleSize)+' '+(lp[pi].y*moduleSize);
-    d+=' Z';
-    out.push('<path d="'+d+'" fill="#000000"/>');
+  for(var ri=0;ri<rects.length;ri++){
+    var rc=rects[ri];
+    out.push('<rect x="'+(rc.x*moduleSize)+'" y="'+(rc.y*moduleSize)+'" width="'+(rc.w*moduleSize)+'" height="'+(rc.h*moduleSize)+'" fill="#000000"/>');
   }
   if(label&&pad>0){
     out.push('<text x="'+(w/2)+'" y="'+(w+Math.round(pad*0.64))+'" text-anchor="middle" font-family="Arial,sans-serif" font-size="'+Math.max(16,Math.round(pad*0.38))+'" font-weight="700" fill="#000000">'+escXml(label)+'</text>');
