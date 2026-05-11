@@ -734,6 +734,35 @@ function buildMergedRectangles(matrix,rows,cols){
   Object.keys(active).forEach(function(k){rects.push(active[k]);});
   return rects;
 }
+function qrModulesToSvg(modules,label,opts){
+  var o=opts||{};
+  var n=modules.length||0;
+  if(!n)return '';
+  var moduleSize=o.moduleSize||10;
+  var quiet=o.quietModules||4;
+  var padPx=o.bottomPad||0;
+  var dim=n+(2*quiet);
+  var w=dim*moduleSize;
+  var totalH=w+padPx;
+  var matrix=[];
+  for(var r=0;r<n;r++){
+    matrix[r]=[];
+    for(var c=0;c<n;c++)matrix[r][c]=!!modules[r][c];
+  }
+  var rects=buildMergedRectangles(matrix,n,n);
+  var out=[];
+  out.push('<?xml version="1.0" encoding="UTF-8"?>');
+  out.push('<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+totalH+'" viewBox="0 0 '+w+' '+totalH+'">');
+  out.push('<rect x="0" y="0" width="'+w+'" height="'+totalH+'" fill="#ffffff"/>');
+  for(var ri=0;ri<rects.length;ri++){
+    var rc=rects[ri];
+    out.push('<rect x="'+((rc.x+quiet)*moduleSize)+'" y="'+((rc.y+quiet)*moduleSize)+'" width="'+(rc.w*moduleSize)+'" height="'+(rc.h*moduleSize)+'" fill="#000000"/>');
+  }
+  if(label&&padPx>0){
+    out.push('<text x="'+(w/2)+'" y="'+(w+Math.round(padPx*0.64))+'" text-anchor="middle" font-family="Arial,sans-serif" font-size="'+Math.max(16,Math.round(padPx*0.38))+'" font-weight="700" fill="#000000">'+escXml(label)+'</text>');
+  }
+  return out.join('')+'</svg>';
+}
 function qrCanvasToSvg(qrCanvas,label,opts){
   var o=opts||{};
   var w=qrCanvas.width||352;
@@ -780,12 +809,17 @@ function buildQrAsset(url,label,level,format,opts){
   document.body.appendChild(tmp);
   var wrap=document.createElement('div');
   tmp.appendChild(wrap);
-  new QRCode(wrap,{text:url,width:qrSize,height:qrSize,colorDark:'#000000',colorLight:'#ffffff',correctLevel:level||QRCode.CorrectLevel.L});
+  var qrObj=new QRCode(wrap,{text:url,width:qrSize,height:qrSize,colorDark:'#000000',colorLight:'#ffffff',correctLevel:level||QRCode.CorrectLevel.L});
   var qrCanvas=wrap.querySelector('canvas');
   var payload=null;
   if(qrCanvas){
     if(format==='svg'){
-      payload=qrCanvasToSvg(qrCanvas,label,{bottomPad:pad,quiet:quiet});
+      var modules=qrObj&&qrObj._oQRCode&&qrObj._oQRCode.modules;
+      if(modules&&modules.length){
+        payload=qrModulesToSvg(modules,label,{moduleSize:10,quietModules:4,bottomPad:pad});
+      }else{
+        payload=qrCanvasToSvg(qrCanvas,label,{bottomPad:pad,quiet:quiet});
+      }
     }else{
       var canvas=document.createElement('canvas');
       canvas.width=outSize;canvas.height=outSize+pad;
