@@ -747,17 +747,35 @@ function buildQrBoundaryLoops(matrix,rows,cols){
     var cur=start;
     var next=e0.b;
     var loop=[parsePoint(start)];
+    var maxSteps=Object.keys(edges).length+8;
+    var steps=0;
     while(true){
       var k=edgeKey(cur,next);
+      if(used[k])break;
       used[k]=true;
+      var oldCur=cur;
       cur=next;
       if(cur===start)break;
       loop.push(parsePoint(cur));
       var nbs=adj[cur]||[];
       if(nbs.length<1)break;
-      if(nbs.length===1)next=nbs[0];
-      else next=(nbs[0]===prev)?nbs[1]:nbs[0];
-      prev=loop.length>1?pointKey(loop[loop.length-2].x,loop[loop.length-2].y):start;
+      var candidates=[];
+      for(var ni=0;ni<nbs.length;ni++){
+        var nb=nbs[ni];
+        if(nb===oldCur)continue;
+        if(!used[edgeKey(cur,nb)])candidates.push(nb);
+      }
+      if(!candidates.length){
+        for(ni=0;ni<nbs.length;ni++){
+          nb=nbs[ni];
+          if(!used[edgeKey(cur,nb)]){candidates.push(nb);break;}
+        }
+      }
+      if(!candidates.length)break;
+      prev=oldCur;
+      next=candidates[0];
+      steps++;
+      if(steps>maxSteps)break;
     }
     if(loop.length>=4)loops.push(simplifyLoop(loop));
   });
