@@ -325,7 +325,9 @@
       <option value="">Toutes les quêtes</option>
     </select>
     <button class="btn" onclick="generateFixedQRCodes()" style="background:#166534;border:1px solid #4ade80">⚡ Générer les QR balises fixes</button>
-    <button class="btn" id="zipFixedBtn" style="background:#1e293b;border:1px solid #334155;display:none" onclick="downloadFixedQrZip()">⬇ Télécharger ZIP (PNG 400px)</button>
+    <button class="btn" id="zipFixedPngBtn" style="background:#1e293b;border:1px solid #334155" onclick="downloadFixedQrZip('png')" disabled>⬇ Télécharger ZIP PNG (400px)</button>
+    <button class="btn" id="zipFixedSvgBtn" style="background:#0f172a;border:1px solid #475569" onclick="downloadFixedQrZip('svg')" disabled>⬇ Télécharger ZIP SVG (Fusion 360)</button>
+    <p style="font-size:0.72rem;color:#94a3b8;margin-top:6px">Conseil: SVG est vectoriel (idéal Fusion 360 / impression 3D), PNG est pratique pour impression rapide.</p>
     <p id="fixedQrInfo" style="font-size:0.75rem;color:#475569;margin-top:8px;display:none"></p>
     <div id="fixedQrGrid" class="qr-grid" style="margin-top:12px"></div>
   </div>
@@ -357,7 +359,9 @@
     <input type="text" id="qrNewObjet" placeholder="ex: statuette bleue, carte postale…" style="width:100%;box-sizing:border-box">
   </div>
   <button class="btn" onclick="generateQRCodes()">⚡ Générer</button>
-  <button class="btn" id="zipBtn" style="background:#1e293b;border:1px solid #334155;display:none" onclick="downloadQrZip()">⬇ Télécharger ZIP (PNG 400px · Photoshop)</button>
+  <button class="btn" id="zipPngBtn" style="background:#1e293b;border:1px solid #334155" onclick="downloadQrZip('png')" disabled>⬇ Télécharger ZIP PNG (400px · Photoshop)</button>
+  <button class="btn" id="zipSvgBtn" style="background:#0f172a;border:1px solid #475569" onclick="downloadQrZip('svg')" disabled>⬇ Télécharger ZIP SVG (Fusion 360)</button>
+  <p style="font-size:0.72rem;color:#94a3b8;margin-top:6px">Bon format: SVG pour découpe/CAO, PNG pour affichage écran et impression bureautique.</p>
   <p id="qrInfo" style="font-size:0.75rem;color:#475569;margin-bottom:12px;display:none"></p>
   <div id="qrGrid" class="qr-grid"></div>
   </div>
@@ -664,9 +668,81 @@ async function saveConfig(){var st=document.getElementById('stCfg');var center=g
 async function resetGame(){if(!confirm('ATTENTION : Remettre la partie à zéro ?\n\n• Tous les trésors seront démarqués (found_by remis à vide)\n• Tous les joueurs et événements seront supprimés\n\nCette action est irréversible.'))return;if(!confirm('Confirmation finale : vraiment réinitialiser ?'))return;var st=document.getElementById('stCfg');st.className='status';st.textContent='Réinitialisation...';st.style.display='block';try{await db.from('treasures').update({found_by:'',found_at:null}).neq('id','__none__');await db.from('events').delete().neq('id',0);await db.from('players').delete().neq('pseudo','__none__');showStatus(st,'ok','Partie réinitialisée ✓ — trésors remis à zéro, joueurs et events supprimés');}catch(e){showStatus(st,'err','Erreur : '+e.message);}}
 async function loadStats(){var r1=await db.from('treasures').select('id,type,found_by');var r2=await db.from('players').select('pseudo,found_count,score');var t=r1.data||[];var p=r2.data||[];var totalFixed=t.filter(function(x){return x.type==='fixed';}).length;var totalUnique=t.filter(function(x){return x.type==='unique';}).length;var foundFixed=t.filter(function(x){return x.type==='fixed'&&x.found_by&&x.found_by.length>0;}).length;var foundUnique=t.filter(function(x){return x.type==='unique'&&x.found_by&&x.found_by.length>0;}).length;var topPlayer=p.length?p.slice().sort(function(a,b){return b.found_count-a.found_count||(a.score-b.score);})[0]:null;document.getElementById('statsDiv').innerHTML='<div class="stat-row"><span>Trésors fixes</span><span>'+foundFixed+' / '+totalFixed+' trouvés</span></div><div class="stat-row"><span>Trésors uniques</span><span>'+foundUnique+' / '+totalUnique+' trouvés</span></div><div class="stat-row"><span>Joueurs inscrits</span><span>'+p.length+'</span></div>'+(topPlayer?'<div class="stat-row"><span>🥇 Meilleur joueur</span><span>'+topPlayer.pseudo+' ('+topPlayer.found_count+' trouvés)</span></div>':'')+'<button class="btn" style="background:#1e293b;border:1px solid #334155;margin-top:12px;font-size:0.82rem;padding:10px" onclick="exportCSV()">⬇ Exporter events.csv</button>';}
 async function exportCSV(){var r=await db.from('events').select('created_at,pseudo,treasure_id,treasure_type,duration_sec').order('created_at',{ascending:true});if(!r.data||!r.data.length){alert('Aucun événement enregistré.');return;}var header='date,pseudo,tresor_id,type,duree_sec\n';var rows=r.data.map(function(e){return[csvCell(new Date(e.created_at).toLocaleString('fr-FR')),csvCell(e.pseudo||''),csvCell(e.treasure_id||''),csvCell(e.treasure_type||''),csvCell(e.duration_sec||0)].join(',');}).join('\n');var blob=new Blob(['\ufeff'+header+rows],{type:'text/csv;charset=utf-8'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='urban3dquest_events.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);}
+function escXml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&apos;');}
+function qrCanvasToSvg(qrCanvas,label,opts){
+  var o=opts||{};
+  var w=qrCanvas.width||352;
+  var h=qrCanvas.height||352;
+  var pad=o.bottomPad||0;
+  var totalH=w+pad;
+  var quiet=o.quiet||0;
+  var ctx=qrCanvas.getContext('2d');
+  var img=ctx.getImageData(0,0,w,h).data;
+  var out=[];
+  out.push('<?xml version="1.0" encoding="UTF-8"?>');
+  out.push('<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+totalH+'" viewBox="0 0 '+w+' '+totalH+'">');
+  out.push('<rect x="0" y="0" width="'+w+'" height="'+totalH+'" fill="#ffffff"/>');
+  for(var y=0;y<h;y++){
+    var x=0;
+    while(x<w){
+      var i=(y*w+x)*4;
+      var dark=(img[i]<128&&img[i+1]<128&&img[i+2]<128&&img[i+3]>0);
+      if(!dark){x++;continue;}
+      var x0=x;
+      x++;
+      while(x<w){
+        i=(y*w+x)*4;
+        dark=(img[i]<128&&img[i+1]<128&&img[i+2]<128&&img[i+3]>0);
+        if(!dark)break;
+        x++;
+      }
+      out.push('<rect x="'+x0+'" y="'+y+'" width="'+(x-x0)+'" height="1" fill="#000000"/>');
+    }
+  }
+  if(label&&pad>0){
+    out.push('<text x="'+(w/2)+'" y="'+(w+Math.round(pad*0.64))+'" text-anchor="middle" font-family="Arial,sans-serif" font-size="'+Math.max(16,Math.round(pad*0.38))+'" font-weight="700" fill="#000000">'+escXml(label)+'</text>');
+  }
+  return out.join('')+'</svg>';
+}
+function buildQrAsset(url,label,level,format,opts){
+  var o=opts||{};
+  var outSize=o.outSize||400;
+  var qrSize=o.qrSize||352;
+  var quiet=o.quiet||24;
+  var pad=o.bottomPad||0;
+  var tmp=document.createElement('div');
+  tmp.style.cssText='position:fixed;left:-9999px;top:0;visibility:hidden';
+  document.body.appendChild(tmp);
+  var wrap=document.createElement('div');
+  tmp.appendChild(wrap);
+  new QRCode(wrap,{text:url,width:qrSize,height:qrSize,colorDark:'#000000',colorLight:'#ffffff',correctLevel:level||QRCode.CorrectLevel.L});
+  var qrCanvas=wrap.querySelector('canvas');
+  var payload=null;
+  if(qrCanvas){
+    if(format==='svg'){
+      payload=qrCanvasToSvg(qrCanvas,label,{bottomPad:pad,quiet:quiet});
+    }else{
+      var canvas=document.createElement('canvas');
+      canvas.width=outSize;canvas.height=outSize+pad;
+      var ctx=canvas.getContext('2d');
+      ctx.fillStyle='#ffffff';ctx.fillRect(0,0,outSize,outSize+pad);
+      ctx.drawImage(qrCanvas,quiet,quiet);
+      if(label&&pad>0){
+        ctx.fillStyle='#000000';ctx.font='bold '+Math.max(20,Math.round(pad*0.4))+'px sans-serif';ctx.textAlign='center';
+        ctx.fillText(label.substring(0,40),outSize/2,outSize+Math.round(pad*0.64));
+      }
+      payload=canvas.toDataURL('image/png').split(',')[1];
+    }
+  }
+  tmp.removeChild(wrap);
+  document.body.removeChild(tmp);
+  return payload;
+}
 async function generateFixedQRCodes(){
   var grid=document.getElementById('fixedQrGrid');
   var info=document.getElementById('fixedQrInfo');
+  document.getElementById('zipFixedPngBtn').disabled=true;
+  document.getElementById('zipFixedSvgBtn').disabled=true;
   grid.innerHTML='<p style="color:#475569;font-size:0.8rem">Chargement…</p>';
   info.style.display='none';
   var questFilter=document.getElementById('filterQuestQr')?document.getElementById('filterQuestQr').value:'';
@@ -694,44 +770,31 @@ async function generateFixedQRCodes(){
   var foundCount=res.data.filter(function(t){return t.found_by&&t.found_by.length>0;}).length;
   info.innerHTML=total+' balises — <span style="color:#4ade80">'+(total-foundCount)+' à poser</span>'+(foundCount?', <span style="color:#f97316">'+foundCount+' déjà trouvées 🎯</span>':'');
   info.style.display='block';
-  document.getElementById('zipFixedBtn').style.display='block';
+  document.getElementById('zipFixedPngBtn').disabled=false;
+  document.getElementById('zipFixedSvgBtn').disabled=false;
 }
-async function downloadFixedQrZip(){
-  var btn=document.getElementById('zipFixedBtn');
+async function downloadFixedQrZip(format){
+  var fmt=(format==='svg')?'svg':'png';
+  var btn=document.getElementById(fmt==='svg'?'zipFixedSvgBtn':'zipFixedPngBtn');
   var data=window._fixedQrData||[];
   if(!data.length){alert('Générez d\'abord les QR balises fixes.');return;}
-  btn.disabled=true;btn.textContent='⏳ Création du ZIP…';
+  btn.disabled=true;btn.textContent='⏳ Création du ZIP '+fmt.toUpperCase()+'…';
   var zip=new JSZip();
-  var tmp=document.createElement('div');
-  tmp.style.cssText='position:fixed;left:-9999px;top:0;visibility:hidden';
-  document.body.appendChild(tmp);
   var OUT_SZ=400;var QR_SZ=352;var QUIET=24;var PAD=72;
   data.forEach(function(t,idx){
     var url=buildGameUrl('checkin',encodeURIComponent(t.id));
     var name=(t.label||('B'+(idx+1)));  // nom court uniquement, ex: B1
-    var wrap=document.createElement('div');tmp.appendChild(wrap);
-    new QRCode(wrap,{text:url,width:QR_SZ,height:QR_SZ,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.L});
-    var qrCanvas=wrap.querySelector('canvas');
-    if(qrCanvas){
-      var canvas=document.createElement('canvas');
-      canvas.width=OUT_SZ;canvas.height=OUT_SZ+PAD;
-      var ctx=canvas.getContext('2d');
-      ctx.fillStyle='#ffffff';ctx.fillRect(0,0,OUT_SZ,OUT_SZ+PAD);
-      ctx.drawImage(qrCanvas,QUIET,QUIET);
-      ctx.fillStyle='#000000';
-      // Juste le nom court centré, bien lisible
-      ctx.font='bold 28px sans-serif';ctx.textAlign='center';
-      ctx.fillText(name.substring(0,30),OUT_SZ/2,OUT_SZ+46);
+    var payload=buildQrAsset(url,name.substring(0,30),QRCode.CorrectLevel.L,fmt,{outSize:OUT_SZ,qrSize:QR_SZ,quiet:QUIET,bottomPad:PAD});
+    if(payload){
       var safeName=name.replace(/[^a-zA-Z0-9\-_]/g,'_').substring(0,40);
-      zip.file('balise_'+safeName+'.png',canvas.toDataURL('image/png').split(',')[1],{base64:true});
+      var ext=(fmt==='svg')?'svg':'png';
+      zip.file('balise_'+safeName+'.'+ext,payload,fmt==='svg'?{}:{base64:true});
     }
-    tmp.removeChild(wrap);
   });
-  document.body.removeChild(tmp);
   var blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
-  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='balises_fixes_qrcodes.zip';
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='balises_fixes_qrcodes_'+fmt+'.zip';
   document.body.appendChild(a);a.click();document.body.removeChild(a);
-  btn.disabled=false;btn.textContent='⬇ Télécharger ZIP (PNG 400px)';
+  btn.disabled=false;btn.textContent=fmt==='svg'?'⬇ Télécharger ZIP SVG (Fusion 360)':'⬇ Télécharger ZIP PNG (400px)';
 }
 function generateQRCodes(){
   var prefix=(document.getElementById('qrPrefix').value||'QR').toUpperCase().replace(/[^A-Z0-9]/g,'');
@@ -773,7 +836,8 @@ function generateQRCodes(){
   var info=document.getElementById('qrInfo');
   info.textContent=count+' codes générés — '+prefix+'-'+String(start).padStart(3,'0')+' → '+prefix+'-'+String(start+count-1).padStart(3,'0')+(quest?' · quête '+quest:'')+(objet?' · '+objet:'')+' · Télécharge le ZIP';
   info.style.display='block';
-  document.getElementById('zipBtn').style.display='block';
+  document.getElementById('zipPngBtn').disabled=false;
+  document.getElementById('zipSvgBtn').disabled=false;
   localStorage.setItem('u3dq_qr_generated', JSON.stringify(generatedIds));
   localStorage.setItem('u3dq_qr_meta', JSON.stringify(meta));
 }
@@ -799,8 +863,8 @@ function renderEnvQRCodes(){
   new QRCode(prodEl,{text:buildGameUrl('env','prod'),width:120,height:120,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
 }
 async function restoreQrGrid(){
-  renderEnvQRCodes();var ids=JSON.parse(localStorage.getItem('u3dq_qr_generated')||'[]');var meta=JSON.parse(localStorage.getItem('u3dq_qr_meta')||'{}');var grid=document.getElementById('qrGrid');grid.innerHTML='';if(!ids.length){document.getElementById('qrInfo').style.display='none';document.getElementById('zipBtn').style.display='none';return;}var res=await db.from('treasures').select('id,found_by');var tMap={};(res.data||[]).forEach(function(t){tMap[t.id]=t.found_by;});ids.forEach(function(id){var sid='qrs_r_'+id.replace(/[^a-z0-9]/gi,'_');var placed=id in tMap;var found=placed&&tMap[id]&&tMap[id].length>0;var borderColor=found?'#f97316':placed?'#4ade80':'transparent';var labelColor=found?'#f97316':placed?'#4ade80':'#93c5fd';var badge=found?' 🎯':placed?' ✓':'';var m=meta[id]||{};var qBadge=m.quest?'<span style="background:#1c3351;color:#7dd3fc;font-size:0.6rem;font-weight:600;padding:1px 5px;border-radius:6px;margin-left:3px">'+m.quest+'</span>':'';var oBadge=m.objet?'<div style="font-size:0.62rem;color:#94a3b8;margin-top:2px">&#128230; '+m.objet+'</div>':'';var card=document.createElement('div');card.className='qr-card';card.id='qrc_'+id.replace(/[^a-z0-9]/gi,'_');card.style.opacity=found?'0.35':placed?'0.55':'1';card.style.border='2px solid '+borderColor;card.style.borderRadius='10px';card.style.position='relative';card.innerHTML='<div class="qr-card-id" style="color:'+labelColor+'">'+id+badge+qBadge+'</div>'+oBadge+'<div style="background:#ffffff;padding:8px;border-radius:8px;display:inline-block"><div id="'+sid+'"></div></div>'+'<button onclick="editQrMeta(\''+id+'\')" style="margin-top:4px;width:100%;padding:3px;background:#0f172a;border:1px solid #334155;border-radius:6px;color:#94a3b8;font-size:0.65rem;cursor:pointer">&#9999;&#65039; Modifier</button>';grid.appendChild(card);var url=buildGameUrl('found',id);new QRCode(document.getElementById(sid),{text:url,width:150,height:150,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.L});});var total=ids.length;var placedCount=ids.filter(function(id){return id in tMap;}).length;var foundCount=ids.filter(function(id){return tMap[id]&&tMap[id].length>0;}).length;var info=document.getElementById('qrInfo');info.innerHTML=total+' codes — <span style="color:#4ade80">'+placedCount+' posés ✓</span>, <span style="color:#f97316">'+foundCount+' trouvés 🎯</span>, '+(total-placedCount)+' disponibles';info.style.display='block';document.getElementById('zipBtn').style.display='block';}
-async function downloadQrZip(){var btn=document.getElementById('zipBtn');var ids=JSON.parse(localStorage.getItem('u3dq_qr_generated')||'[]');if(!ids.length){alert('Générez d\'abord les QR codes.');return;}btn.disabled=true;btn.textContent='⏳ Création du ZIP ('+ids.length+' fichiers)…';var res=await db.from('treasures').select('id,label');var labelMap={};(res.data||[]).forEach(function(t){labelMap[t.id]=t.label||'';});var zip=new JSZip();var tmp=document.createElement('div');tmp.style.cssText='position:fixed;left:-9999px;top:0;visibility:hidden';document.body.appendChild(tmp);var OUT_SZ=400;var QR_SZ=352;var QUIET=24;var PAD=56;ids.forEach(function(id){var url=buildGameUrl('found',id);var wrap=document.createElement('div');tmp.appendChild(wrap);new QRCode(wrap,{text:url,width:QR_SZ,height:QR_SZ,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.L});var qrCanvas=wrap.querySelector('canvas');if(qrCanvas){var canvas=document.createElement('canvas');canvas.width=OUT_SZ;canvas.height=OUT_SZ+PAD;var ctx=canvas.getContext('2d');ctx.fillStyle='#ffffff';ctx.fillRect(0,0,OUT_SZ,OUT_SZ+PAD);ctx.drawImage(qrCanvas,QUIET,QUIET);ctx.fillStyle='#000000';ctx.font='bold 20px monospace';ctx.textAlign='center';ctx.fillText(id,OUT_SZ/2,OUT_SZ+22);var lbl=labelMap[id];if(lbl){ctx.font='15px sans-serif';ctx.fillStyle='#444444';ctx.fillText(lbl.substring(0,40),OUT_SZ/2,OUT_SZ+44);}zip.file(id+'.png',canvas.toDataURL('image/png').split(',')[1],{base64:true});}tmp.removeChild(wrap);});document.body.removeChild(tmp);var blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='urban3dquest_qrcodes.zip';document.body.appendChild(a);a.click();document.body.removeChild(a);btn.disabled=false;btn.textContent='⬇ Télécharger ZIP (PNG 400px + ID · Photoshop)';}
+  renderEnvQRCodes();var ids=JSON.parse(localStorage.getItem('u3dq_qr_generated')||'[]');var meta=JSON.parse(localStorage.getItem('u3dq_qr_meta')||'{}');var grid=document.getElementById('qrGrid');grid.innerHTML='';if(!ids.length){document.getElementById('qrInfo').style.display='none';document.getElementById('zipPngBtn').disabled=true;document.getElementById('zipSvgBtn').disabled=true;return;}var res=await db.from('treasures').select('id,found_by');var tMap={};(res.data||[]).forEach(function(t){tMap[t.id]=t.found_by;});ids.forEach(function(id){var sid='qrs_r_'+id.replace(/[^a-z0-9]/gi,'_');var placed=id in tMap;var found=placed&&tMap[id]&&tMap[id].length>0;var borderColor=found?'#f97316':placed?'#4ade80':'transparent';var labelColor=found?'#f97316':placed?'#4ade80':'#93c5fd';var badge=found?' 🎯':placed?' ✓':'';var m=meta[id]||{};var qBadge=m.quest?'<span style="background:#1c3351;color:#7dd3fc;font-size:0.6rem;font-weight:600;padding:1px 5px;border-radius:6px;margin-left:3px">'+m.quest+'</span>':'';var oBadge=m.objet?'<div style="font-size:0.62rem;color:#94a3b8;margin-top:2px">&#128230; '+m.objet+'</div>':'';var card=document.createElement('div');card.className='qr-card';card.id='qrc_'+id.replace(/[^a-z0-9]/gi,'_');card.style.opacity=found?'0.35':placed?'0.55':'1';card.style.border='2px solid '+borderColor;card.style.borderRadius='10px';card.style.position='relative';card.innerHTML='<div class="qr-card-id" style="color:'+labelColor+'">'+id+badge+qBadge+'</div>'+oBadge+'<div style="background:#ffffff;padding:8px;border-radius:8px;display:inline-block"><div id="'+sid+'"></div></div>'+'<button onclick="editQrMeta(\''+id+'\')" style="margin-top:4px;width:100%;padding:3px;background:#0f172a;border:1px solid #334155;border-radius:6px;color:#94a3b8;font-size:0.65rem;cursor:pointer">&#9999;&#65039; Modifier</button>';grid.appendChild(card);var url=buildGameUrl('found',id);new QRCode(document.getElementById(sid),{text:url,width:150,height:150,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.L});});var total=ids.length;var placedCount=ids.filter(function(id){return id in tMap;}).length;var foundCount=ids.filter(function(id){return tMap[id]&&tMap[id].length>0;}).length;var info=document.getElementById('qrInfo');info.innerHTML=total+' codes — <span style="color:#4ade80">'+placedCount+' posés ✓</span>, <span style="color:#f97316">'+foundCount+' trouvés 🎯</span>, '+(total-placedCount)+' disponibles';info.style.display='block';document.getElementById('zipPngBtn').disabled=false;document.getElementById('zipSvgBtn').disabled=false;}
+async function downloadQrZip(format){var fmt=(format==='svg')?'svg':'png';var btn=document.getElementById(fmt==='svg'?'zipSvgBtn':'zipPngBtn');var ids=JSON.parse(localStorage.getItem('u3dq_qr_generated')||'[]');if(!ids.length){alert('Générez d\'abord les QR codes.');return;}btn.disabled=true;btn.textContent='⏳ Création du ZIP '+fmt.toUpperCase()+' ('+ids.length+' fichiers)…';var res=await db.from('treasures').select('id,label');var labelMap={};(res.data||[]).forEach(function(t){labelMap[t.id]=t.label||'';});var zip=new JSZip();var OUT_SZ=400;var QR_SZ=352;var QUIET=24;var PAD=56;ids.forEach(function(id){var url=buildGameUrl('found',id);var lbl=labelMap[id]||'';var payload=buildQrAsset(url,lbl?id+' · '+lbl.substring(0,28):id,QRCode.CorrectLevel.L,fmt,{outSize:OUT_SZ,qrSize:QR_SZ,quiet:QUIET,bottomPad:PAD});if(payload){var ext=(fmt==='svg')?'svg':'png';zip.file(id+'.'+ext,payload,fmt==='svg'?{}:{base64:true});}});var blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='urban3dquest_qrcodes_'+fmt+'.zip';document.body.appendChild(a);a.click();document.body.removeChild(a);btn.disabled=false;btn.textContent=fmt==='svg'?'⬇ Télécharger ZIP SVG (Fusion 360)':'⬇ Télécharger ZIP PNG (400px · Photoshop)';}
 async function loadQrLov(){var generated=JSON.parse(localStorage.getItem('u3dq_qr_generated')||'[]');var sel=document.getElementById('fQrSelect');var info=document.getElementById('fQrInfo');sel.innerHTML='<option value="">— Aucun QR (ID auto) —</option>';var manOpt=document.createElement('option');manOpt.value='__manual__';manOpt.textContent='✏️ Saisir manuellement';sel.appendChild(manOpt);if(!generated.length){info.textContent='Aucun QR généré — allez dans l\'onglet QR pour en créer';info.style.color='#fb923c';return;}var res=await db.from('treasures').select('id');var used=new Set((res.data||[]).map(function(t){return t.id;}));var available=generated.filter(function(id){return!used.has(id);});var metaLov=JSON.parse(localStorage.getItem('u3dq_qr_meta')||'{}');available.forEach(function(id,idx){var opt=document.createElement('option');opt.value=id;var m=metaLov[id]||{};var suffix=(m.quest?' ['+m.quest+']':'')+(m.objet?' — '+m.objet:'');opt.textContent=(idx===0?'⬆ PROCHAIN : ':'')+id+suffix;sel.appendChild(opt);});var total=generated.length;info.textContent=available.length+' QR disponibles sur '+total+' générés'+(available.length===0?' — tous déjà posés':'');info.style.color=available.length===0?'#fb923c':'#475569';if(available.length>0){sel.value=available[0];document.getElementById('fQrNum').style.display='none';}}
 function onQrSelectChange(){var v=document.getElementById('fQrSelect').value;var inp=document.getElementById('fQrNum');if(v==='__manual__'){inp.style.display='block';inp.focus();}else{inp.style.display='none';inp.value=v;}}
 var _questTargetId=null;
