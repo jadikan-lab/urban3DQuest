@@ -64,14 +64,15 @@
     .brand-tag a:active{opacity:.8}
     .pseudo-chip{background:rgba(0,229,255,0.12);color:var(--cyan);padding:2px 7px;border-radius:12px;font-size:0.72rem;font-weight:600;font-family:var(--mono)}
     /* ── GPS chip — point de statut ── */
-    #gpsChip{display:flex;align-items:center;gap:4px;padding:2px 7px;border-radius:12px;font-size:0.70rem;font-weight:700;background:var(--surface);border:1px solid var(--line-2);color:var(--ink-2);cursor:default;transition:all 0.4s;font-family:var(--mono)}
-    #gpsDot{width:6px;height:6px;border-radius:50%;background:var(--ink-3);flex-shrink:0;transition:background 0.4s}
+    #gpsChip{display:flex;align-items:center;gap:5px;padding:2px 7px;border-radius:12px;font-size:0.70rem;font-weight:700;background:var(--surface);border:1px solid var(--line-2);color:var(--ink-2);cursor:default;transition:all 0.4s;font-family:var(--mono)}
+    #gpsDot{width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:inherit;transition:color 0.4s,filter 0.4s}
+    #gpsDot svg{width:14px;height:14px;display:block;stroke:currentColor;fill:none}
     #gpsChip.gps-ok{border-color:#16a34a;color:#4ade80;background:rgba(22,163,74,.12)}
-    #gpsChip.gps-ok #gpsDot{background:#4ade80;box-shadow:0 0 6px #22c55e}
+    #gpsChip.gps-ok #gpsDot{color:#4ade80;filter:drop-shadow(0 0 5px rgba(34,197,94,.55))}
     #gpsChip.gps-mid{border-color:#d97706;color:#fbbf24;background:rgba(217,119,6,.1)}
-    #gpsChip.gps-mid #gpsDot{background:#fbbf24}
+    #gpsChip.gps-mid #gpsDot{color:#fbbf24}
     #gpsChip.gps-bad{border-color:#dc2626;color:#f87171;background:rgba(220,38,38,.15);animation:pulse 0.8s infinite}
-    #gpsChip.gps-bad #gpsDot{background:#f87171}
+    #gpsChip.gps-bad #gpsDot{color:#f87171}
     #tutorialMiniBtn{display:none;align-items:center;justify-content:center;min-height:28px;padding:3px 8px;border-radius:10px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink-2);font-size:0.72rem;font-weight:800;font-family:var(--mono);cursor:pointer;white-space:nowrap}
     #tutorialMiniBtn:active{opacity:.8}
     /* ── Navigation ── */
@@ -142,8 +143,9 @@
     @keyframes foundFlashAnim{0%{opacity:.85}100%{opacity:0}}
     /* ── Leaderboard tabs ── */
     #lbTabs{display:flex;gap:0;margin-bottom:10px;border:1px solid var(--line-2);border-radius:12px;overflow:hidden;background:var(--bg)}
-    .lb-tab{flex:1;padding:10px 8px;border:none;background:none;font-size:0.78rem;font-weight:800;color:var(--ink-2);cursor:pointer;font-family:var(--mono);transition:background .15s,color .15s}
+    .lb-tab{flex:1;padding:10px 8px;border:none;background:none;font-size:0.78rem;font-weight:800;color:var(--ink-2);cursor:pointer;font-family:var(--mono);transition:background .15s,color .15s;display:flex;align-items:center;justify-content:center;gap:7px}
     .lb-tab.active{background:var(--surface);color:var(--ink);border-bottom:2px solid var(--magenta)}
+    .lb-tab svg{width:16px;height:16px;flex-shrink:0}
     /* ── Tutorial photo ── */
     #qtExamplePhoto{width:100%;border-radius:10px;object-fit:cover;max-height:110px;margin-bottom:10px;display:none;border:1px solid var(--line-2)}
     /* ── Tutorial compass iOS highlight ── */
@@ -234,15 +236,24 @@
     .lb-name{font-weight:800;font-size:1rem;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .lb-me .lb-name::after{content:' ← moi';font-weight:600;font-family:var(--mono);font-size:0.7rem;color:var(--magenta)}
     .lb-score{font-size:0.84rem;color:var(--ink-2);margin-top:2px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-    .lb-score strong{color:var(--ink);font-size:0.88rem}
+    .lb-score strong{color:var(--ink);font-size:0.88rem;display:inline-flex;align-items:center;gap:5px}
     .lb-pbar{height:6px;background:var(--bg);border-radius:4px;overflow:hidden;border:1px solid var(--line);margin-top:6px}
     .lb-pfill{height:100%;border-radius:4px;transition:width 0.5s ease}
-    .lb-badge{display:inline-flex;align-items:center;gap:3px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);border-radius:8px;color:var(--cyan);font-size:0.74rem;padding:3px 8px}
+    .lb-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);border-radius:8px;color:var(--cyan);font-size:0.74rem;padding:3px 8px}
     .lb-badge-done{background:rgba(74,222,128,0.12);border-color:#16a34a;color:#4ade80}
-    .lb-time{font-size:0.78rem;color:#4ade80;font-weight:700}
+    .lb-time{font-size:0.78rem;color:#4ade80;font-weight:700;display:inline-flex;align-items:center;gap:5px}
     .lb-sep{height:1px;background:var(--line);margin:4px 0 10px}
     .lb-you-sep{text-align:center;font-size:0.7rem;color:var(--ink-3);padding:4px 0 2px}
     .lb-refresh{font-size:0.7rem;color:var(--ink-3);text-align:center;padding:10px;margin-top:2px}
+    .lb-divider{font-size:0.75rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:.1em;text-align:center;padding:6px 0 8px;font-family:var(--mono);display:flex;align-items:center;justify-content:center;gap:8px}
+    .ui-icon{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;color:currentColor;flex-shrink:0}
+    .ui-icon svg{width:14px;height:14px;display:block;stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round}
+    .ui-icon.lg svg{width:42px;height:42px;stroke-width:1.75}
+    .ui-icon.teal{color:var(--cyan)}
+    .ui-icon.flash{color:var(--magenta)}
+    .ui-icon.success{color:#4ade80}
+    .ui-icon.warn{color:#fbbf24}
+    .ui-icon.danger{color:#f87171}
     /* ── Ma carte ── */
     .my-card{background:linear-gradient(135deg,rgba(255,61,138,.15),var(--surface));border:2px solid var(--magenta);border-radius:16px;padding:16px 18px;margin-bottom:14px;position:relative}
     .my-card-rank{position:absolute;top:12px;right:14px;font-size:1.5rem}
@@ -254,7 +265,6 @@
     .my-card-bar{height:8px;background:var(--bg);border-radius:4px;overflow:hidden;border:1px solid rgba(255,61,138,.3)}
     .my-card-fill{height:100%;background:linear-gradient(90deg,#3b82f6,#6366f1);border-radius:4px;transition:width .6s ease}
     .my-card-done{height:100%;background:linear-gradient(90deg,#22c55e,#16a34a);border-radius:4px}
-    .lb-divider{font-size:0.75rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:.1em;text-align:center;padding:6px 0 8px;font-family:var(--mono)}
     /* ── Modal trésor trouvé ── */
     #foundModal{display:none;position:fixed;inset:0;background:rgba(3,6,16,.97);z-index:2500;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
     #foundModal.open{display:flex}
@@ -274,7 +284,7 @@
     .found-box h2{font-size:1.2rem;font-weight:800;margin-bottom:6px;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.03em}
     .found-box p{font-size:0.88rem;color:var(--ink-2);margin-bottom:16px;line-height:1.6}
     .found-box .duration{font-size:1.7rem;font-weight:800;color:#4ade80;margin-bottom:6px;font-family:var(--mono)}
-    .found-emoji{font-size:2.8rem;margin-bottom:10px;display:block;animation:bounceIn 0.5s cubic-bezier(.34,1.56,.64,1) 0.2s both}
+    .found-emoji{margin-bottom:10px;display:flex;align-items:center;justify-content:center;min-height:48px;animation:bounceIn 0.5s cubic-bezier(.34,1.56,.64,1) 0.2s both;color:var(--magenta)}
     /* ── Pause screen ── */
     #pauseScreen{display:none;position:fixed;inset:0;background:rgba(5,6,16,.97);z-index:800;align-items:center;justify-content:center;text-align:center;flex-direction:column;gap:16px}
     #pauseScreen.open{display:flex;animation:fadeInFast 0.3s ease}
@@ -311,7 +321,8 @@
     .gsh-dot{width:5px;height:5px;border-radius:50%;background:#0ea5e9;box-shadow:0 0 0 0 rgba(14,165,233,.55);animation:gshPulse 1.4s ease-out infinite}
     @keyframes gshSpin{to{transform:rotate(360deg)}}
     @keyframes gshPulse{0%{box-shadow:0 0 0 0 rgba(14,165,233,.5)}70%{box-shadow:0 0 0 7px rgba(14,165,233,0)}100%{box-shadow:0 0 0 0 rgba(14,165,233,0)}}
-    #gpsKickBtn{display:none;position:absolute;top:10px;left:10px;z-index:1000;padding:11px 14px;background:rgba(217,119,6,.96);border:1px solid #f59e0b;border-radius:12px;color:#fff7ed;font-size:0.78rem;font-weight:800;cursor:pointer;min-height:48px}
+    #gpsKickBtn{display:none;position:absolute;top:10px;left:10px;z-index:1000;padding:11px 14px;background:rgba(217,119,6,.96);border:1px solid #f59e0b;border-radius:12px;color:#fff7ed;font-size:0.78rem;font-weight:800;cursor:pointer;min-height:48px;align-items:center;gap:8px}
+    #gpsKickBtn svg{width:16px;height:16px;stroke:currentColor;fill:none;flex-shrink:0}
     #locateMeBtn{min-height:48px!important;min-width:48px!important;padding:10px!important;transition:transform .1s}
     #locateMeBtn:active{transform:scale(0.9)}
     /* ── QR Scanner overlay ── */
@@ -525,7 +536,7 @@
 <header>
   <h1>🏙 Urban3DQuest</h1>
   <span id="gpsChip" title="Précision GPS">
-    <span id="gpsDot"></span>
+    <span id="gpsDot"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="5.5" stroke-width="1.8"/><circle cx="10" cy="10" r="1.8" fill="currentColor" stroke="none"/><line x1="10" y1="1" x2="10" y2="4" stroke-width="1.8"/><line x1="10" y1="16" x2="10" y2="19" stroke-width="1.8"/><line x1="1" y1="10" x2="4" y2="10" stroke-width="1.8"/><line x1="16" y1="10" x2="19" y2="10" stroke-width="1.8"/></svg></span>
     <span id="gpsLabel">GPS…</span>
   </span>
   <button id="tutorialMiniBtn" onclick="openQuickTutorial()" aria-label="Ouvrir le tutoriel">Aide</button>
@@ -534,19 +545,19 @@
 </header>
 <nav role="tablist" aria-label="Navigation principale">
   <button aria-label="Mode Quête" role="tab" aria-selected="true" id="navSerie" class="active" onclick="setGameMode('fixed');showTab('explore',this)">
-    <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2C7.686 2 5 4.8 5 8.2c0 4.8 6 11.8 6 11.8s6-7 6-11.8C17 4.8 14.314 2 11 2z"/><circle cx="11" cy="8" r="2.2"/></svg></span>
+    <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a2 2 0 0 1 2-2h1.2L6.8 5h8.4L16.8 7H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9z"/><circle cx="11" cy="13" r="3"/></svg></span>
     <span class="nav-label">Quête</span>
   </button>
   <button aria-label="Mode Flash" role="tab" aria-selected="false" id="navDeclic" onclick="setGameMode('unique');showTab('explore',this)">
-    <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="14,2 7,12 11,12 8,20 15,10 11,10"/></svg></span>
+    <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 6 13h6l-3 7 9-11h-6z"/></svg></span>
     <span class="nav-label">Flash</span>
   </button>
   <button aria-label="Compte" role="tab" aria-selected="false" id="navCompte" onclick="showTab('moi',this)">
-    <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="7" r="4"/><path d="M2 20c0-4.418 4.03-8 9-8s9 3.582 9 8"/></svg></span>
+    <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="7.5" r="3.5"/><path d="M2 20c0-4 3.58-7.5 8-7.5s8 3.5 8 7.5"/><circle cx="17.5" cy="4" r="2.2" fill="currentColor" stroke="none"/></svg></span>
     <span class="nav-label">Compte</span>
   </button>
   <button aria-label="Classement" role="tab" aria-selected="false" id="navScores" onclick="showTab('scores',this)">
-    <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="12" width="5" height="8" rx="1"/><rect x="8.5" y="7" width="5" height="13" rx="1"/><rect x="15" y="3" width="5" height="17" rx="1"/></svg></span>
+    <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h8v7c0 2.76-1.79 5-4 5s-4-2.24-4-5V3z"/><path d="M7 6H4a2 2 0 0 0 0 4h3"/><path d="M15 6h3a2 2 0 0 1 0 4h-3"/><line x1="11" y1="15" x2="11" y2="18"/><path d="M7.5 18.5h7"/></svg></span>
     <span class="nav-label">Scores</span>
   </button>
 </nav>
@@ -608,7 +619,7 @@
       <span class="gsh-icon" aria-hidden="true"><span class="gsh-dot"></span></span>
       <span>Calage GPS en cours…</span>
     </div>
-    <button id="gpsKickBtn" onclick="requestGpsKick()">📍 Activer GPS</button>
+    <button id="gpsKickBtn" onclick="requestGpsKick()"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="5.5" stroke-width="1.8"/><circle cx="10" cy="10" r="1.8" fill="currentColor" stroke="none"/><line x1="10" y1="1" x2="10" y2="4" stroke-width="1.8"/><line x1="10" y1="16" x2="10" y2="19" stroke-width="1.8"/><line x1="1" y1="10" x2="4" y2="10" stroke-width="1.8"/><line x1="16" y1="10" x2="19" y2="10" stroke-width="1.8"/></svg><span>Activer GPS</span></button>
     <button id="compassPermBtn" onclick="requestCompassPermission()" style="display:none;position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1000;padding:8px 16px;background:linear-gradient(135deg,#3b82f6,#6366f1);border:none;border-radius:12px;color:#fff;font-size:0.82rem;font-weight:700;cursor:pointer;backdrop-filter:blur(6px)">🧭 Activer le compas (iOS)</button>
     <button id="compassDebugBtn" onclick="toggleCompassDebug()" style="display:none;position:absolute;top:10px;right:10px;z-index:1000;padding:7px 10px;background:rgba(15,23,42,.9);border:1px solid #334155;border-radius:10px;color:#93c5fd;font-size:0.72rem;font-weight:700;cursor:pointer">DBG</button>
     <div id="compassDebug" style="display:none;position:absolute;top:10px;left:10px;z-index:1000;font-size:0.68rem;color:var(--ink-2);line-height:1.6;padding:8px 12px;background:rgba(255,255,255,.92);border-radius:8px;max-width:220px;border:1px solid var(--line-2)"></div>
@@ -639,8 +650,8 @@
 <!-- ── Leaderboard ───────────────────────────────────── -->
 <div id="panelScores" class="panel">
   <div id="lbTabs">
-    <button class="lb-tab active" id="lbTabQuete" onclick="switchLbTab('quete')">📌 Quête</button>
-    <button class="lb-tab" id="lbTabFlash" onclick="switchLbTab('flash')">⚡ Flash</button>
+    <button class="lb-tab active" id="lbTabQuete" onclick="switchLbTab('quete')"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 9a2 2 0 0 1 2-2h1.2L6.8 5h8.4L16.8 7H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9z"/><circle cx="11" cy="13" r="3"/></svg><span>Quête</span></button>
+    <button class="lb-tab" id="lbTabFlash" onclick="switchLbTab('flash')"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 6 13h6l-3 7 9-11h-6z"/></svg><span>Flash</span></button>
   </div>
   <div id="myCard"></div>
   <hr class="lp-line" style="margin:0 0 4px">
@@ -680,27 +691,22 @@
 <!-- ── Capture FAB (balises fixes GPS) ──────────────── -->
 <button id="captureFab" onclick="captureFixed()" aria-label="Déclencher l'obturateur">
   <svg viewBox="0 0 74 74" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none" aria-hidden="true">
-    <g transform="translate(37,37)" fill="rgba(15,23,42,0.58)" stroke="rgba(15,23,42,0.88)" stroke-width="0.6" stroke-linejoin="round">
-      <path d="M8,0 A8,8 0 0,1 0,8 L0,32 A32,32 0 0,0 32,0 Z"/>
-      <path d="M4,6.93 A8,8 0 0,1 -6.93,4 L-27.71,16 A32,32 0 0,0 16,27.71 Z"/>
-      <path d="M-4,6.93 A8,8 0 0,1 -6.93,-4 L-27.71,-16 A32,32 0 0,0 -16,27.71 Z"/>
-      <path d="M-8,0 A8,8 0 0,1 0,-8 L0,-32 A32,32 0 0,0 -32,0 Z"/>
-      <path d="M-4,-6.93 A8,8 0 0,1 6.93,-4 L27.71,-16 A32,32 0 0,0 -16,-27.71 Z"/>
-      <path d="M4,-6.93 A8,8 0 0,1 6.93,4 L27.71,16 A32,32 0 0,0 16,-27.71 Z"/>
-    </g>
-    <circle cx="37" cy="37" r="7.5" fill="rgba(200,215,235,0.55)" stroke="rgba(15,23,42,0.7)" stroke-width="1.5"/>
-    <circle cx="37" cy="37" r="3" fill="rgba(15,23,42,0.45)"/>
+    <path d="M18 26V18h8" stroke="rgba(15,23,42,0.82)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M18 48v8h8" stroke="rgba(15,23,42,0.82)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M56 26V18h-8" stroke="rgba(15,23,42,0.82)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M56 48v8h-8" stroke="rgba(15,23,42,0.82)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="37" cy="37" r="8" fill="rgba(15,23,42,0.62)"/>
   </svg>
 </button>
 
 <!-- ── Flash Capture FAB (trésors uniques < 10m) ─────── -->
 <button id="flashFab" onclick="captureUnique()" aria-label="Scanner le trésor Flash">
   <svg viewBox="0 0 74 74" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none" aria-hidden="true">
-    <rect x="18" y="26" width="38" height="28" rx="6" stroke="rgba(220,30,90,0.9)" stroke-width="2.5" fill="rgba(255,61,138,0.08)"/>
-    <circle cx="37" cy="40" r="8" stroke="rgba(220,30,90,0.85)" stroke-width="2.2" fill="rgba(255,61,138,0.12)"/>
-    <circle cx="37" cy="40" r="3.5" fill="rgba(200,30,80,0.7)"/>
-    <rect x="27" y="20" width="10" height="7" rx="2.5" stroke="rgba(220,30,90,0.8)" stroke-width="2" fill="none"/>
-    <path d="M46 32 L52 22 L50 30 L55 29 L49 40" stroke="rgba(255,61,138,0.9)" stroke-width="2" stroke-linejoin="round" fill="none"/>
+    <path d="M18 26V18h8" stroke="rgba(220,30,90,0.92)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M18 48v8h8" stroke="rgba(220,30,90,0.92)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M56 26V18h-8" stroke="rgba(220,30,90,0.92)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M56 48v8h-8" stroke="rgba(220,30,90,0.92)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="37" cy="37" r="8" fill="rgba(220,30,90,0.78)"/>
   </svg>
 </button>
 
@@ -735,7 +741,7 @@
     <div id="foundFlashOverlay"></div>
     <img id="foundPhoto" style="width:100%;max-height:160px;object-fit:cover;border-radius:10px;margin-bottom:10px;display:none" alt="photo du trésor">
     <div id="foundPhotoStrip" style="display:none;margin-bottom:10px"></div>
-    <div class="found-emoji" id="foundEmoji">📷</div>
+    <div class="found-emoji" id="foundEmoji"><span class="ui-icon lg teal" aria-hidden="true"><svg viewBox="0 0 22 22"><path d="M2 9a2 2 0 0 1 2-2h1.2L6.8 5h8.4L16.8 7H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9z"/><circle cx="11" cy="13" r="3"/></svg></span></div>
     <div class="found-label" id="foundLabel">RÉVÉLATION</div>
     <h2 id="foundTitle">Polaroid révélé !</h2>
     <div class="duration" id="foundDuration"></div>
@@ -840,7 +846,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.12.1';
+const GAME_VERSION = 'v3.13.0';
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -1318,7 +1324,7 @@ function _doCheckin() {
 let _lastCheckinId = null; // pour le bouton Réessayer
 
 function _checkinError(msg, retryId) {
-  document.getElementById('foundEmoji').textContent = '📍';
+  setFoundIcon('gps', 'warn');
   document.getElementById('foundTitle').textContent = 'Polaroid trouvé !';
   document.getElementById('foundDuration').textContent = '';
   document.getElementById('foundDesc').textContent = msg;
@@ -1466,7 +1472,6 @@ function tutorialEnableCompass() {
 function maybeOpenQuickTutorial() {
   updateTutorialEntryPoints();
   if (tutorialSeen) return;
-  // On iOS: highlight compass button + show note
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
   const hasCompassAPI = typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function';
   if (isIOS && hasCompassAPI) {
@@ -1478,7 +1483,6 @@ function maybeOpenQuickTutorial() {
   setTimeout(() => openQuickTutorial(), 500);
 }
 
-// ── Treasures ────────────────────────────────────────
 async function loadTreasures() {
   // Snapshot available flash treasures before refresh (for "just taken nearby" detection)
   const _prevAvailableFlash = new Set(
@@ -1796,7 +1800,7 @@ function _onGeoError(err) {
     3: 'GPS trop lent — reste a l\'air libre puis relance GPS'
   };
   const bar = document.getElementById('radarBar');
-  bar.textContent = '📍 ' + (msgs[err.code] || 'Erreur GPS');
+  bar.textContent = msgs[err.code] || 'Erreur GPS';
   bar.className = '';
   const chip = document.getElementById('gpsChip');
   const lbl  = document.getElementById('gpsLabel');
@@ -1819,7 +1823,7 @@ function requestGpsKick() {
   if (!navigator.geolocation) return;
   const bar = document.getElementById('radarBar');
   if (bar) {
-    bar.textContent = '📍 Relance GPS…';
+    bar.textContent = 'Relance GPS…';
     bar.className = '';
   }
   const gpsKickBtn = document.getElementById('gpsKickBtn');
@@ -1836,7 +1840,7 @@ function requestGpsKick() {
 
 function startGeoWatch(forceRestart, preferredHighAccuracy) {
   if (!navigator.geolocation) {
-    document.getElementById('radarBar').textContent = '📍 GPS non disponible sur cet appareil';
+    document.getElementById('radarBar').textContent = 'GPS non disponible sur cet appareil';
     updateGpsLoadingPanel();
     return;
   }
@@ -1872,7 +1876,7 @@ function startGeoWatch(forceRestart, preferredHighAccuracy) {
     const bar = document.getElementById('radarBar');
     const gpsKickBtn = document.getElementById('gpsKickBtn');
     if (bar && isIOSDevice()) {
-      bar.textContent = '📍 GPS lent sur iOS — touche le badge GPS pour relancer';
+      bar.textContent = 'GPS lent sur iOS — touche le badge GPS pour relancer';
       bar.className = '';
       if (gpsKickBtn) gpsKickBtn.style.display = 'block';
     }
@@ -3026,8 +3030,16 @@ async function _doProcessFind(treasureId) {
     return;
   }
 
-  // Log event
-  await db.from('events').insert({ pseudo: myPseudo, treasure_id: t.id, treasure_type: t.type, duration_sec: durationSec });
+  // Log event (server now owns score/found_count aggregation)
+  const { error: eventError } = await db.from('events').insert({ pseudo: myPseudo, treasure_id: t.id, treasure_type: t.type, duration_sec: durationSec });
+  if (eventError) {
+    if (eventError.code === '23505') {
+      showFoundResult('already', t);
+      return;
+    }
+    _checkinError('Révélation enregistrée partiellement. Réessaie dans quelques secondes.');
+    return;
+  }
 
   let durationSecHunt = null;
   if (t.type === 'fixed') {
@@ -3041,13 +3053,12 @@ async function _doProcessFind(treasureId) {
     }
   }
 
-  // Update player score — on incrémente local seulement après confirmation DB
-  const updScore      = myScore + durationSec;
-  const updFoundCount = myFoundCount + 1;
-  const { error: scoreError } = await db.from('players').update({ score: updScore, found_count: updFoundCount }).eq('pseudo', myPseudo);
-  if (!scoreError) {
-    myScore      = updScore;
-    myFoundCount = updFoundCount;
+  // Score/found_count are server-managed from events (trigger-side).
+  // Reload local counters from players after event commit.
+  const { data: pFresh } = await db.from('players').select('score,found_count').eq('pseudo', myPseudo).single();
+  if (pFresh) {
+    myScore = pFresh.score || 0;
+    myFoundCount = pFresh.found_count || 0;
   }
 
   // Refresh local treasures
@@ -3107,72 +3118,71 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
       ).length;
       const foundNow = fixedTotal - remaining;
       if (foundNow === 1) {
-        emoji.textContent = '📷';
+        setFoundIcon('camera', 'teal');
         label.textContent = 'PREMIÈRE RÉVÉLATION';
         title.textContent = 'La chasse commence !';
         desc.textContent = `Le chrono est lancé. Trouve les ${fixedTotal - 1} autres polaroids le plus vite possible.`;
         dur.textContent = '';
       } else if (remaining === 0) {
-        emoji.textContent = '📷';
+        setFoundIcon('camera', 'teal');
         label.textContent = 'POLAROID RÉVÉLÉ';
         title.textContent = 'Polaroid révélé !';
-        dur.textContent = durationSec != null ? '⏱ ' + formatDuration(durationSec) + ' depuis le début' : '';
-        // All fixed found — fetch reward message from config
-        desc.textContent = '🏆 Incroyable ! Ta quete est complete !';
+        dur.textContent = durationSec != null ? formatDuration(durationSec) + ' depuis le début' : '';
+        desc.textContent = 'Incroyable ! Ta quete est complete !';
         db.from('config').select('key,value').then(({ data: cfgData }) => {
           if (!cfgData) return;
           const cfg = Object.fromEntries(cfgData.map(r => [r.key, r.value]));
           const msg = activeQuests.map(q => cfg['rewardMessage_'+q]).find(m => m) || cfg['rewardMessage'] || '';
-          if (msg) desc.innerHTML = `🏆 Ta quete est complete !<br><br>📍 <strong>${escHtml(msg)}</strong>`;
+          if (msg) desc.innerHTML = `Ta quete est complete !<br><br><strong>${escHtml(msg)}</strong>`;
         });
       } else if (remaining === 1) {
-        emoji.textContent = '🔥';
+        setFoundIcon('check', 'success');
         label.textContent = 'PRESQUE !';
         title.textContent = 'Plus qu\'un !';
         desc.textContent = 'Un seul polaroid te sépare de la fin. Tout se joue maintenant.';
-        dur.textContent = durationSecHunt != null ? '⏱ ' + formatDuration(durationSecHunt) : '';
+        dur.textContent = durationSecHunt != null ? formatDuration(durationSecHunt) : '';
       } else if (remaining === 2) {
-        emoji.textContent = '⚡';
+        setFoundIcon('flash', 'flash');
         label.textContent = 'EN FEU';
         title.textContent = 'Il n\'en reste plus que deux.';
         desc.textContent = 'Tu y es presque. Ne lâche rien.';
-        dur.textContent = durationSecHunt != null ? '⏱ ' + formatDuration(durationSecHunt) : '';
+        dur.textContent = durationSecHunt != null ? formatDuration(durationSecHunt) : '';
       } else if (remaining === 3) {
-        emoji.textContent = '🎯';
+        setFoundIcon('gps', 'teal');
         label.textContent = 'BON RYTHME';
         title.textContent = 'Encore trois à trouver.';
         desc.textContent = 'La fin approche. Reste concentré.';
-        dur.textContent = durationSecHunt != null ? '⏱ ' + formatDuration(durationSecHunt) : '';
+        dur.textContent = durationSecHunt != null ? formatDuration(durationSecHunt) : '';
       } else {
         const midMessages = [
-          { emoji: '📷', label: 'RÉVÉLÉ', title: 'Polaroid révélé.', desc: `Continue, il t'en reste ${remaining}.` },
-          { emoji: '🗺️', label: 'EN ROUTE', title: 'Belle trouvaille.', desc: `${remaining} polaroids t'attendent encore.` },
-          { emoji: '👁️', label: 'TROUVÉ', title: 'Tu as l\'œil.', desc: `Plus que ${remaining} dans ce quartier.` },
-          { emoji: '📍', label: 'MARQUÉ', title: 'Dans la boîte.', desc: `${remaining} restants. Ne ralentis pas.` },
-          { emoji: '🏃', label: 'EN CHASSE', title: 'La quête avance.', desc: `${remaining} polaroids à révéler.` }
+          { icon: 'camera', className: 'teal', label: 'RÉVÉLÉ', title: 'Polaroid révélé.', desc: `Continue, il t'en reste ${remaining}.` },
+          { icon: 'gps', className: 'teal', label: 'EN ROUTE', title: 'Belle trouvaille.', desc: `${remaining} polaroids t'attendent encore.` },
+          { icon: 'check', className: 'success', label: 'TROUVÉ', title: 'Tu as l\'œil.', desc: `Plus que ${remaining} dans ce quartier.` },
+          { icon: 'gps', className: 'warn', label: 'MARQUÉ', title: 'Dans la boîte.', desc: `${remaining} restants. Ne ralentis pas.` },
+          { icon: 'flash', className: 'flash', label: 'EN CHASSE', title: 'La quête avance.', desc: `${remaining} polaroids à révéler.` }
         ];
         const msg = midMessages[foundNow % midMessages.length];
-        emoji.textContent = msg.emoji;
+        setFoundIcon(msg.icon, msg.className);
         label.textContent = msg.label;
         title.textContent = msg.title;
         desc.textContent = msg.desc;
-        dur.textContent = durationSecHunt != null ? '⏱ ' + formatDuration(durationSecHunt) : '';
+        dur.textContent = durationSecHunt != null ? formatDuration(durationSecHunt) : '';
       }
     } else {
-      emoji.textContent = '⚡';
+      setFoundIcon('flash', 'flash');
       label.textContent = 'FLASH !';
       title.textContent = `Flash ! Tu es le seul à l'avoir.`;
       dur.textContent   = formatDuration(durationSec);
       desc.textContent  = '';
     }
   } else if (status === 'already') {
-    emoji.textContent = '🔄';
+    setFoundIcon('refresh', 'warn');
     label.textContent = 'DÉJÀ RÉVÉLÉ';
     title.textContent = 'Tu as déjà révélé ce polaroid.';
     dur.textContent   = '';
     desc.textContent  = '';
   } else {
-    emoji.textContent = '🔒';
+    setFoundIcon('lock', 'danger');
     label.textContent = 'TROP TARD';
     title.textContent = 'Trop tard !';
     dur.textContent   = '';
@@ -3199,6 +3209,39 @@ function openPhotoViewer(url) {
 function closePhotoViewer() {
   document.getElementById('photoViewer').classList.remove('open');
   document.getElementById('photoViewerImg').src = '';
+}
+
+function uiIconSvg(name) {
+  switch (name) {
+    case 'camera':
+      return '<svg viewBox="0 0 22 22"><path d="M2 9a2 2 0 0 1 2-2h1.2L6.8 5h8.4L16.8 7H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9z"/><circle cx="11" cy="13" r="3"/></svg>';
+    case 'flash':
+      return '<svg viewBox="0 0 22 22"><path d="M13 2 6 13h6l-3 7 9-11h-6z"/></svg>';
+    case 'trophy':
+      return '<svg viewBox="0 0 22 22"><path d="M7 3h8v7c0 2.76-1.79 5-4 5s-4-2.24-4-5V3z"/><path d="M7 6H4a2 2 0 0 0 0 4h3"/><path d="M15 6h3a2 2 0 0 1 0 4h-3"/><line x1="11" y1="15" x2="11" y2="18"/><path d="M7.5 18.5h7"/></svg>';
+    case 'clock':
+      return '<svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="8"/><path d="M11 6.5v5l3 2"/></svg>';
+    case 'check':
+      return '<svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="8"/><path d="M7.5 11.2 10 13.7 14.7 9"/></svg>';
+    case 'gps':
+      return '<svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="5.5" stroke-width="1.8"/><circle cx="10" cy="10" r="1.8" fill="currentColor" stroke="none"/><line x1="10" y1="1" x2="10" y2="4" stroke-width="1.8"/><line x1="10" y1="16" x2="10" y2="19" stroke-width="1.8"/><line x1="1" y1="10" x2="4" y2="10" stroke-width="1.8"/><line x1="16" y1="10" x2="19" y2="10" stroke-width="1.8"/></svg>';
+    case 'refresh':
+      return '<svg viewBox="0 0 22 22"><path d="M18 6v5h-5"/><path d="M4.7 15.2A7 7 0 1 0 6 5.8L3 8.8"/></svg>';
+    case 'lock':
+      return '<svg viewBox="0 0 22 22"><rect x="5" y="10" width="12" height="9" rx="2"/><path d="M8 10V7.8a3 3 0 1 1 6 0V10"/></svg>';
+    default:
+      return '';
+  }
+}
+
+function uiIcon(name, className) {
+  return `<span class="ui-icon ${className || ''}" aria-hidden="true">${uiIconSvg(name)}</span>`;
+}
+
+function setFoundIcon(name, className) {
+  const emoji = document.getElementById('foundEmoji');
+  if (!emoji) return;
+  emoji.innerHTML = uiIcon(name, `lg ${className || ''}`);
 }
 
 function formatDuration(sec) {
@@ -3304,16 +3347,16 @@ async function loadLeaderboard() {
     const pct = totalFixed > 0 ? Math.round((myData.fixedCount / totalFixed) * 100) : 0;
     const rankLabel = myRankNum <= 3 ? medals[myRankNum-1] : `#${myRankNum}`;
     const fillClass = myData.allFixed ? 'my-card-done' : 'my-card-fill';
-    const timeTxt = myData.allFixed && myData.fixedDuration !== null ? `⏱ ${formatDuration(myData.fixedDuration)}` : '';
-    const uniqTxt = myData.uniqueEvents.length ? `· ${myData.uniqueEvents.length} 🎁 trouvé${myData.uniqueEvents.length>1?'s':''}` : '';
-    const doneTxt = myData.allFixed ? '<span style="color:#4ade80;font-size:0.78rem;font-weight:700">✓ Toutes les balises fixes !</span>' : '';
-    const rewardTxt = myData.allFixed && rewardMsg ? `<div style="margin-top:8px;font-size:0.75rem;color:#4ade80;padding:6px 10px;background:#0d2218;border-radius:8px;border:1px solid #16a34a">📍 ${safeRewardMsg}</div>` : '';
+    const timeTxt = myData.allFixed && myData.fixedDuration !== null ? `<span style="display:inline-flex;align-items:center;gap:5px">${uiIcon('clock', 'success')}${formatDuration(myData.fixedDuration)}</span>` : '';
+    const uniqTxt = myData.uniqueEvents.length ? `<span style="display:inline-flex;align-items:center;gap:5px">${uiIcon('flash', 'flash')}${myData.uniqueEvents.length} flash${myData.uniqueEvents.length>1?'s':''}</span>` : '';
+    const doneTxt = myData.allFixed ? `<span style="color:#4ade80;font-size:0.78rem;font-weight:700;display:inline-flex;align-items:center;gap:5px">${uiIcon('check', 'success')}Toutes les balises fixes</span>` : '';
+    const rewardTxt = myData.allFixed && rewardMsg ? `<div style="margin-top:8px;font-size:0.75rem;color:#4ade80;padding:6px 10px;background:#0d2218;border-radius:8px;border:1px solid #16a34a;display:flex;align-items:center;gap:6px">${uiIcon('gps', 'success')}${safeRewardMsg}</div>` : '';
     myCardEl.innerHTML = `<div class="my-card">
       <div class="my-card-rank">${rankLabel}</div>
       <div class="my-card-pseudo">${escHtml(myPseudo)}</div>
       <div class="my-card-sub">Ma progression</div>
       <div class="my-card-stats">
-        <strong>${myData.fixedCount}${totalFixed?'/'+totalFixed:''} 📌</strong>
+        <strong>${uiIcon('camera', 'teal')}${myData.fixedCount}${totalFixed?'/'+totalFixed:''}</strong>
         ${timeTxt ? `<span>${timeTxt}</span>` : ''}
         ${uniqTxt ? `<span>${uniqTxt}</span>` : ''}
         ${doneTxt}
@@ -3331,9 +3374,9 @@ async function loadLeaderboard() {
 
   let html = '';
   if (!rows.length) {
-    html = '<p style="color:#475569;text-align:center;padding:50px 20px">🏜 Pas encore de scores<br><span style="font-size:0.8rem">Sois le premier à trouver un trésor !</span></p>';
+    html = '<p style="color:#475569;text-align:center;padding:50px 20px">Pas encore de scores<br><span style="font-size:0.8rem">Sois le premier à trouver un trésor !</span></p>';
   } else {
-    html += `<div class="lb-divider">🏆 Classement · ${rows.length} joueur${rows.length > 1 ? 's' : ''}</div>`;
+    html += `<div class="lb-divider">${uiIcon('trophy', 'warn')}<span>Classement · ${rows.length} joueur${rows.length > 1 ? 's' : ''}</span></div>`;
 
     // Find my rank
     const myRank = rows.findIndex(p => p.pseudo === myPseudo);
@@ -3354,22 +3397,22 @@ async function loadLeaderboard() {
 
       // Time badge (only if all fixed done)
       const timeBadge = p.allFixed && p.fixedDuration !== null
-        ? `<span class="lb-time">⏱ ${formatDuration(p.fixedDuration)}</span>`
+        ? `<span class="lb-time">${uiIcon('clock', 'success')}<span>${formatDuration(p.fixedDuration)}</span></span>`
         : '';
 
       // Unique badge
       const uniqBadge = p.uniqueEvents.length
-        ? `<span class="lb-badge">🎁 ×${p.uniqueEvents.length}</span>`
+        ? `<span class="lb-badge">${uiIcon('flash', 'flash')}<span>×${p.uniqueEvents.length}</span></span>`
         : '';
 
       // All done badge
       const doneBadge = p.allFixed
-        ? `<span class="lb-badge lb-badge-done">✓ Quete complete</span>`
+        ? `<span class="lb-badge lb-badge-done">${uiIcon('check', 'success')}<span>Quête complète</span></span>`
         : '';
 
       // Reward message (only for the player themselves if all done)
       const rewardLine = p.allFixed && rewardMsg
-        ? `<div style="margin-top:5px;font-size:0.75rem;color:#4ade80;padding:5px 8px;background:#0d2218;border-radius:6px;border:1px solid #16a34a">📍 ${safeRewardMsg}</div>`
+        ? `<div style="margin-top:5px;font-size:0.75rem;color:#4ade80;padding:5px 8px;background:#0d2218;border-radius:6px;border:1px solid #16a34a;display:flex;align-items:center;gap:6px">${uiIcon('gps', 'success')}${safeRewardMsg}</div>`
         : '';
 
       html += `<div class="lb-row${isMe ? ' lb-me' : ''}${extraClass ? ' '+extraClass : ''}">
@@ -3378,7 +3421,7 @@ async function loadLeaderboard() {
         <div class="lb-body">
           <div class="lb-name">${escHtml(p.pseudo)}</div>
           <div class="lb-score">
-            <strong>${p.fixedCount}${totalFixed ? '/'+totalFixed : ''} 📌</strong>
+            <strong>${uiIcon('camera', 'teal')}${p.fixedCount}${totalFixed ? '/'+totalFixed : ''}</strong>
             ${timeBadge}${uniqBadge}${doneBadge}
           </div>
           ${totalFixed > 0 ? `<div class="lb-pbar"><div class="lb-pfill" style="width:${pct}%;background:${barColor}"></div></div>` : ''}
@@ -3397,9 +3440,9 @@ async function loadLeaderboard() {
 
   let flashHtml = '';
   if (!flashRows.length) {
-    flashHtml = '<p style="color:#475569;text-align:center;padding:50px 20px">⚡ Aucun score Flash pour le moment</p>';
+    flashHtml = '<p style="color:#475569;text-align:center;padding:50px 20px">Aucun score Flash pour le moment</p>';
   } else {
-    flashHtml += `<div class="lb-divider">⚡ Classement Flash · ${flashRows.length} joueur${flashRows.length > 1 ? 's' : ''}</div>`;
+    flashHtml += `<div class="lb-divider">${uiIcon('flash', 'flash')}<span>Classement Flash · ${flashRows.length} joueur${flashRows.length > 1 ? 's' : ''}</span></div>`;
     flashRows.forEach((p, i) => {
       const rankIcon = i < 3 ? medals[i] : `<span style="font-size:0.85rem;color:#475569;font-weight:700">${i+1}</span>`;
       const isMe = p.pseudo === myPseudo;
@@ -3408,7 +3451,7 @@ async function loadLeaderboard() {
         <div class="lb-avatar" style="background:${pseudoGradient(p.pseudo)}">${escHtml(p.pseudo[0].toUpperCase())}</div>
         <div class="lb-body">
           <div class="lb-name">${escHtml(p.pseudo)}</div>
-          <div class="lb-score"><strong>⚡ ${p.flashCount} flash${p.flashCount > 1 ? 's' : ''}</strong></div>
+          <div class="lb-score"><strong>${uiIcon('flash', 'flash')}${p.flashCount} flash${p.flashCount > 1 ? 's' : ''}</strong></div>
         </div>
       </div>`;
     });
