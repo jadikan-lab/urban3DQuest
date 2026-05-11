@@ -669,26 +669,17 @@ async function resetGame(){if(!confirm('ATTENTION : Remettre la partie à zéro 
 async function loadStats(){var r1=await db.from('treasures').select('id,type,found_by');var r2=await db.from('players').select('pseudo,found_count,score');var t=r1.data||[];var p=r2.data||[];var totalFixed=t.filter(function(x){return x.type==='fixed';}).length;var totalUnique=t.filter(function(x){return x.type==='unique';}).length;var foundFixed=t.filter(function(x){return x.type==='fixed'&&x.found_by&&x.found_by.length>0;}).length;var foundUnique=t.filter(function(x){return x.type==='unique'&&x.found_by&&x.found_by.length>0;}).length;var topPlayer=p.length?p.slice().sort(function(a,b){return b.found_count-a.found_count||(a.score-b.score);})[0]:null;document.getElementById('statsDiv').innerHTML='<div class="stat-row"><span>Trésors fixes</span><span>'+foundFixed+' / '+totalFixed+' trouvés</span></div><div class="stat-row"><span>Trésors uniques</span><span>'+foundUnique+' / '+totalUnique+' trouvés</span></div><div class="stat-row"><span>Joueurs inscrits</span><span>'+p.length+'</span></div>'+(topPlayer?'<div class="stat-row"><span>🥇 Meilleur joueur</span><span>'+topPlayer.pseudo+' ('+topPlayer.found_count+' trouvés)</span></div>':'')+'<button class="btn" style="background:#1e293b;border:1px solid #334155;margin-top:12px;font-size:0.82rem;padding:10px" onclick="exportCSV()">⬇ Exporter events.csv</button>';}
 async function exportCSV(){var r=await db.from('events').select('created_at,pseudo,treasure_id,treasure_type,duration_sec').order('created_at',{ascending:true});if(!r.data||!r.data.length){alert('Aucun événement enregistré.');return;}var header='date,pseudo,tresor_id,type,duree_sec\n';var rows=r.data.map(function(e){return[csvCell(new Date(e.created_at).toLocaleString('fr-FR')),csvCell(e.pseudo||''),csvCell(e.treasure_id||''),csvCell(e.treasure_type||''),csvCell(e.duration_sec||0)].join(',');}).join('\n');var blob=new Blob(['\ufeff'+header+rows],{type:'text/csv;charset=utf-8'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='urban3dquest_events.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);}
 function escXml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&apos;');}
-function qrCanvasToSvg(qrCanvas,label,opts){
-  var o=opts||{};
-  var w=qrCanvas.width||352;
-  var h=qrCanvas.height||352;
-  var pad=o.bottomPad||0;
-  var totalH=w+pad;
-  var quiet=o.quiet||0;
-  var ctx=qrCanvas.getContext('2d');
+function gcdInt(a,b){a=Math.abs(a||0);b=Math.abs(b||0);while(b){var t=b;b=a%b;a=t;}return a||1;}
+function detectQrModuleSize(ctx,w,h){
   var img=ctx.getImageData(0,0,w,h).data;
-  var out=[];
-  out.push('<?xml version="1.0" encoding="UTF-8"?>');
-  out.push('<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+totalH+'" viewBox="0 0 '+w+' '+totalH+'">');
-  out.push('<rect x="0" y="0" width="'+w+'" height="'+totalH+'" fill="#ffffff"/>');
+  var minRun=0;
   for(var y=0;y<h;y++){
     var x=0;
     while(x<w){
       var i=(y*w+x)*4;
       var dark=(img[i]<128&&img[i+1]<128&&img[i+2]<128&&img[i+3]>0);
       if(!dark){x++;continue;}
-      var x0=x;
+      var start=x;
       x++;
       while(x<w){
         i=(y*w+x)*4;
@@ -696,7 +687,41 @@ function qrCanvasToSvg(qrCanvas,label,opts){
         if(!dark)break;
         x++;
       }
-      out.push('<rect x="'+x0+'" y="'+y+'" width="'+(x-x0)+'" height="1" fill="#000000"/>');
+      var run=x-start;
+      minRun=minRun?Math.min(minRun,run):run;
+    }
+  }
+  return Math.max(1,minRun||1);
+}
+function qrCanvasToSvg(qrCanvas,label,opts){
+  var o=opts||{};
+  var w=qrCanvas.width||352;
+  var h=qrCanvas.height||352;
+  var pad=o.bottomPad||0;
+  var totalH=w+pad;
+  var ctx=qrCanvas.getContext('2d');
+  var img=ctx.getImageData(0,0,w,h).data;
+  var moduleSize=detectQrModuleSize(ctx,w,h);
+  var cols=Math.floor(w/moduleSize);
+  var rows=Math.floor(h/moduleSize);
+  var matrix=[];
+  for(var r=0;r<rows;r++){
+    matrix[r]=[];
+    for(var c=0;c<cols;c++){
+      var sx=Math.min(w-1,c*moduleSize+Math.floor(moduleSize/2));
+      var sy=Math.min(h-1,r*moduleSize+Math.floor(moduleSize/2));
+      var si=(sy*w+sx)*4;
+      matrix[r][c]=(img[si]<128&&img[si+1]<128&&img[si+2]<128&&img[si+3]>0);
+    }
+  }
+  var out=[];
+  out.push('<?xml version="1.0" encoding="UTF-8"?>');
+  out.push('<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+totalH+'" viewBox="0 0 '+w+' '+totalH+'">');
+  out.push('<rect x="0" y="0" width="'+w+'" height="'+totalH+'" fill="#ffffff"/>');
+  for(var rr=0;rr<rows;rr++){
+    for(var cc=0;cc<cols;cc++){
+      if(!matrix[rr][cc])continue;
+      out.push('<rect x="'+(cc*moduleSize)+'" y="'+(rr*moduleSize)+'" width="'+moduleSize+'" height="'+moduleSize+'" fill="#000000"/>');
     }
   }
   if(label&&pad>0){
