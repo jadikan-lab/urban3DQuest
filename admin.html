@@ -327,6 +327,7 @@
     <button class="btn" onclick="generateFixedQRCodes()" style="background:#166534;border:1px solid #4ade80">⚡ Générer les QR balises fixes</button>
     <button class="btn" id="zipFixedPngBtn" style="background:#1e293b;border:1px solid #334155" onclick="downloadFixedQrZip('png')" disabled>⬇ Télécharger ZIP PNG (400px)</button>
     <button class="btn" id="zipFixedSvgBtn" style="background:#0f172a;border:1px solid #475569" onclick="downloadFixedQrZip('svg')" disabled>⬇ Télécharger ZIP SVG (Fusion 360)</button>
+    <button class="btn" id="zipFixedStlBtn" style="background:#172554;border:1px solid #1d4ed8" onclick="downloadFixedStlZip()" disabled>⬇ Télécharger ZIP STL (impression 3D)</button>
     <p style="font-size:0.72rem;color:#94a3b8;margin-top:6px">Conseil: SVG est vectoriel (idéal Fusion 360 / impression 3D), PNG est pratique pour impression rapide.</p>
     <p id="fixedQrInfo" style="font-size:0.75rem;color:#475569;margin-top:8px;display:none"></p>
     <div id="fixedZipProgress" style="display:none;margin-top:8px">
@@ -735,6 +736,68 @@ function buildMergedRectangles(matrix,rows,cols){
   Object.keys(active).forEach(function(k){rects.push(active[k]);});
   return rects;
 }
+function stlFacet(p1,p2,p3){
+  var ux=p2[0]-p1[0],uy=p2[1]-p1[1],uz=p2[2]-p1[2];
+  var vx=p3[0]-p1[0],vy=p3[1]-p1[1],vz=p3[2]-p1[2];
+  var nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;
+  var len=Math.sqrt(nx*nx+ny*ny+nz*nz)||1;
+  nx/=len;ny/=len;nz/=len;
+  return 'facet normal '+nx.toFixed(6)+' '+ny.toFixed(6)+' '+nz.toFixed(6)+'\n'
+    +'  outer loop\n'
+    +'    vertex '+p1[0].toFixed(5)+' '+p1[1].toFixed(5)+' '+p1[2].toFixed(5)+'\n'
+    +'    vertex '+p2[0].toFixed(5)+' '+p2[1].toFixed(5)+' '+p2[2].toFixed(5)+'\n'
+    +'    vertex '+p3[0].toFixed(5)+' '+p3[1].toFixed(5)+' '+p3[2].toFixed(5)+'\n'
+    +'  endloop\n'
+    +'endfacet\n';
+}
+function stlAddCuboid(facets,x0,y0,z0,x1,y1,z1){
+  var p000=[x0,y0,z0],p100=[x1,y0,z0],p110=[x1,y1,z0],p010=[x0,y1,z0];
+  var p001=[x0,y0,z1],p101=[x1,y0,z1],p111=[x1,y1,z1],p011=[x0,y1,z1];
+  facets.push(stlFacet(p000,p100,p110),stlFacet(p000,p110,p010));
+  facets.push(stlFacet(p001,p111,p101),stlFacet(p001,p011,p111));
+  facets.push(stlFacet(p000,p001,p101),stlFacet(p000,p101,p100));
+  facets.push(stlFacet(p100,p101,p111),stlFacet(p100,p111,p110));
+  facets.push(stlFacet(p110,p111,p011),stlFacet(p110,p011,p010));
+  facets.push(stlFacet(p010,p011,p001),stlFacet(p010,p001,p000));
+}
+function buildQrStlFromModules(modules,name,opts){
+  var o=opts||{};
+  var n=modules.length||0;
+  if(!n)throw new Error('QR modules vides');
+  var quiet=o.quietModules||5;
+  var targetMm=o.targetSizeMm||70;
+  var baseH=o.baseHeightMm||1.8;
+  var reliefH=o.reliefHeightMm||1.2;
+  var moduleMm=targetMm/(n+2*quiet);
+  var matrix=[];
+  for(var r=0;r<n;r++){
+    matrix[r]=[];
+    for(var c=0;c<n;c++)matrix[r][c]=!!modules[r][c];
+  }
+  var rects=buildMergedRectangles(matrix,n,n);
+  var facets=[];
+  stlAddCuboid(facets,0,0,0,targetMm,targetMm,baseH);
+  for(var i=0;i<rects.length;i++){
+    var rc=rects[i];
+    var x0=(rc.x+quiet)*moduleMm;
+    var y0=(rc.y+quiet)*moduleMm;
+    var x1=(rc.x+rc.w+quiet)*moduleMm;
+    var y1=(rc.y+rc.h+quiet)*moduleMm;
+    stlAddCuboid(facets,x0,y0,baseH,x1,y1,baseH+reliefH);
+  }
+  var safe=(name||'qr').replace(/[^a-zA-Z0-9\-_]/g,'_');
+  return 'solid '+safe+'\n'+facets.join('')+'endsolid '+safe+'\n';
+}
+function getQrModulesForUrl(url,level){
+  var wrap=document.createElement('div');
+  wrap.style.cssText='position:fixed;left:-9999px;top:0;visibility:hidden';
+  document.body.appendChild(wrap);
+  var qrObj=new QRCode(wrap,{text:url,width:352,height:352,colorDark:'#000000',colorLight:'#ffffff',correctLevel:level||QRCode.CorrectLevel.M});
+  var modules=qrObj&&qrObj._oQRCode&&qrObj._oQRCode.modules;
+  document.body.removeChild(wrap);
+  if(!modules||!modules.length)throw new Error('Impossible de lire la matrice QR');
+  return modules;
+}
 function validateQrModuleMatrix(modules){
   if(!modules||!modules.length)throw new Error('Matrice QR absente');
   var n=modules.length;
@@ -870,6 +933,7 @@ async function generateFixedQRCodes(){
   var pw=document.getElementById('fixedZipProgress');if(pw)pw.style.display='none';
   document.getElementById('zipFixedPngBtn').disabled=true;
   document.getElementById('zipFixedSvgBtn').disabled=true;
+  document.getElementById('zipFixedStlBtn').disabled=true;
   grid.innerHTML='<p style="color:#475569;font-size:0.8rem">Chargement…</p>';
   info.style.display='none';
   var questFilter=document.getElementById('filterQuestQr')?document.getElementById('filterQuestQr').value:'';
@@ -899,6 +963,7 @@ async function generateFixedQRCodes(){
   info.style.display='block';
   document.getElementById('zipFixedPngBtn').disabled=false;
   document.getElementById('zipFixedSvgBtn').disabled=false;
+  document.getElementById('zipFixedStlBtn').disabled=false;
 }
 async function downloadFixedQrZip(format){
   var fmt=(format==='svg')?'svg':'png';
@@ -946,6 +1011,48 @@ async function downloadFixedQrZip(format){
     alert('Erreur pendant la création du ZIP: '+(e&&e.message?e.message:e));
   }finally{
     btn.disabled=false;btn.textContent=fmt==='svg'?'⬇ Télécharger ZIP SVG (Fusion 360)':'⬇ Télécharger ZIP PNG (400px)';
+  }
+}
+async function downloadFixedStlZip(){
+  var btn=document.getElementById('zipFixedStlBtn');
+  var data=window._fixedQrData||[];
+  if(!data.length){alert('Générez d\'abord les QR balises fixes.');return;}
+  var progressWrap=document.getElementById('fixedZipProgress');
+  var progressBar=document.getElementById('fixedZipProgressBar');
+  var progressText=document.getElementById('fixedZipProgressText');
+  function setProgress(pct,msg){
+    var v=Math.max(0,Math.min(100,Math.round(pct)));
+    if(progressBar)progressBar.style.width=v+'%';
+    if(progressText)progressText.textContent=msg||('Progression '+v+'%');
+  }
+  if(progressWrap)progressWrap.style.display='block';
+  setProgress(0,'Préparation du ZIP STL…');
+  btn.disabled=true;btn.textContent='⏳ Création du ZIP STL…';
+  try{
+    var zip=new JSZip();
+    for(var idx=0;idx<data.length;idx++){
+      var t=data[idx];
+      var url=buildGameUrlPrint('checkin',encodeURIComponent(t.id));
+      var name=(t.label||('B'+(idx+1)));
+      var modules=getQrModulesForUrl(url,QRCode.CorrectLevel.M);
+      validateQrModuleMatrix(modules);
+      var stl=buildQrStlFromModules(modules,name,{quietModules:5,targetSizeMm:70,baseHeightMm:1.8,reliefHeightMm:1.2});
+      var safeName=name.replace(/[^a-zA-Z0-9\-_]/g,'_').substring(0,40);
+      zip.file('balise_'+safeName+'.stl',stl);
+      setProgress(((idx+1)/data.length)*88,'Génération STL '+(idx+1)+'/'+data.length+'…');
+      if((idx%3)===0)await new Promise(function(resolve){requestAnimationFrame(resolve);});
+    }
+    var blob=await zip.generateAsync({type:'blob',compression:'STORE'},function(meta){
+      setProgress(88+(meta.percent||0)*0.12,'Assemblage ZIP '+Math.round(meta.percent||0)+'%…');
+    });
+    setProgress(100,'ZIP STL prêt, téléchargement…');
+    var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='balises_fixes_stl_70mm.zip';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+  }catch(e){
+    setProgress(0,'Erreur STL: '+(e&&e.message?e.message:e));
+    alert('Erreur pendant la création du ZIP STL: '+(e&&e.message?e.message:e));
+  }finally{
+    btn.disabled=false;btn.textContent='⬇ Télécharger ZIP STL (impression 3D)';
   }
 }
 function generateQRCodes(){
