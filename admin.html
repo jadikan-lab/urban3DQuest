@@ -734,6 +734,31 @@ function buildMergedRectangles(matrix,rows,cols){
   Object.keys(active).forEach(function(k){rects.push(active[k]);});
   return rects;
 }
+function validateQrModuleMatrix(modules){
+  if(!modules||!modules.length)throw new Error('Matrice QR absente');
+  var n=modules.length;
+  if(n<21||n%2===0)throw new Error('Taille matrice QR invalide: '+n);
+  for(var r=0;r<n;r++){
+    if(!modules[r]||modules[r].length!==n)throw new Error('Matrice QR non carrée');
+  }
+  function isDark(r,c){return !!modules[r][c];}
+  function checkFinder(r0,c0){
+    for(var r=0;r<7;r++){
+      for(var c=0;c<7;c++){
+        var rr=r0+r,cc=c0+c;
+        var border=(r===0||r===6||c===0||c===6);
+        var center=(r>=2&&r<=4&&c>=2&&c<=4);
+        var expected=border||center;
+        if(isDark(rr,cc)!==expected)return false;
+      }
+    }
+    return true;
+  }
+  if(!checkFinder(0,0)||!checkFinder(0,n-7)||!checkFinder(n-7,0)){
+    throw new Error('Finder patterns QR invalides');
+  }
+  return true;
+}
 function qrModulesToSvg(modules,label,opts){
   var o=opts||{};
   var n=modules.length||0;
@@ -816,7 +841,8 @@ function buildQrAsset(url,label,level,format,opts){
     if(format==='svg'){
       var modules=qrObj&&qrObj._oQRCode&&qrObj._oQRCode.modules;
       if(modules&&modules.length){
-        payload=qrModulesToSvg(modules,label,{moduleSize:10,quietModules:4,bottomPad:pad});
+        validateQrModuleMatrix(modules);
+        payload=qrModulesToSvg(modules,label,{moduleSize:10,quietModules:5,bottomPad:pad});
       }else{
         payload=qrCanvasToSvg(qrCanvas,label,{bottomPad:pad,quiet:quiet});
       }
@@ -864,7 +890,7 @@ async function generateFixedQRCodes(){
     card.innerHTML='<div class="qr-card-id" style="color:#4ade80">'+name+'</div>'
       +'<div style="background:#ffffff;padding:8px;border-radius:8px;display:inline-block"><div id="'+sid+'"></div></div>';
     grid.appendChild(card);
-    new QRCode(document.getElementById(sid),{text:url,width:180,height:180,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.L});
+    new QRCode(document.getElementById(sid),{text:url,width:180,height:180,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
   });
   var total=res.data.length;
   var foundCount=res.data.filter(function(t){return t.found_by&&t.found_by.length>0;}).length;
@@ -897,7 +923,7 @@ async function downloadFixedQrZip(format){
       var url=buildGameUrl('checkin',encodeURIComponent(t.id));
       var name=(t.label||('B'+(idx+1)));  // nom court uniquement, ex: B1
       var exportLabel=(fmt==='svg')?'':name.substring(0,30);
-      var payload=buildQrAsset(url,exportLabel,QRCode.CorrectLevel.L,fmt,{outSize:OUT_SZ,qrSize:QR_SZ,quiet:QUIET,bottomPad:PAD});
+      var payload=buildQrAsset(url,exportLabel,QRCode.CorrectLevel.H,fmt,{outSize:OUT_SZ,qrSize:QR_SZ,quiet:QUIET,bottomPad:PAD});
       if(payload){
         var safeName=name.replace(/[^a-zA-Z0-9\-_]/g,'_').substring(0,40);
         var ext=(fmt==='svg')?'svg':'png';
