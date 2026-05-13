@@ -7,7 +7,10 @@ document.addEventListener('visibilitychange', () => {
   } else {
     setTimeout(() => startGeoWatch(true), 300);
     if (myPseudo || activeTab === 'scores') startLbPolling();
-    if (activeTab === 'explore') startCompassInterval();
+    if (activeTab === 'explore') {
+      startCompassInterval();
+      scheduleCompassRender(true);
+    }
     updateRadar();
     updateGpsLoadingPanel();
   }
@@ -37,6 +40,7 @@ function showTab(name, btn) {
     applyExploreMapLock();
     applyMapHeadingRotation();
     updateCompassCorner();
+    scheduleCompassRender(true);
   } else if (name === 'scores') {
     stopCompassInterval();
     document.getElementById('captureFab').style.display = 'none';

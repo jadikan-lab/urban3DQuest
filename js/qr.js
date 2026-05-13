@@ -24,7 +24,7 @@ function openQRScanner(beaconId) {
   if (targetEl) {
     const t = beaconId ? treasures.find(x => x.id === beaconId) : null;
     if (t) {
-      targetEl.querySelector('.qrt-name').textContent = t.name;
+      targetEl.querySelector('.qrt-name').textContent = tLabel(t);
       const questSpan = targetEl.querySelector('.qrt-quest');
       questSpan.textContent = t.quest ? t.quest : '';
       questSpan.style.display = t.quest ? 'block' : 'none';

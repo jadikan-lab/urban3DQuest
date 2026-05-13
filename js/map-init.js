@@ -11,14 +11,30 @@ function isAndroidDevice() {
 function updateGpsSettleHint() {
   const el = document.getElementById('gpsSettleHint');
   if (!el) return;
-  const shouldShow = isAndroidDevice() && activeTab === 'explore' && activeGameMode === 'fixed' && playerLat === null;
+  const shouldShow = isAndroidDevice() && activeTab === 'explore' && playerLat === null;
   el.classList.toggle('active', shouldShow);
 }
 
 function updateGpsLoadingPanel() {
   const panel = document.getElementById('gpsLoadingPanel');
   if (!panel) return;
-  const shouldShow = activeTab === 'explore' && activeGameMode === 'fixed' && playerLat === null;
+  const shouldShow = activeTab === 'explore' && playerLat === null;
+  const titleEl = panel.querySelector('.gps-loading-title');
+  const copyEl = panel.querySelector('.gps-loading-copy');
+  const noteEl = panel.querySelector('.gps-loading-note');
+
+  if (titleEl && copyEl && noteEl) {
+    if (activeGameMode === 'unique') {
+      titleEl.textContent = 'Connexion GPS';
+      copyEl.textContent = 'Localisation en cours pour détecter les flashs autour de toi.';
+      noteEl.textContent = 'Tu peux changer d\'onglet pendant ce temps.';
+    } else {
+      titleEl.textContent = 'Connexion GPS';
+      copyEl.textContent = 'La carte se calibre avant de démarrer la boussole. Attends la première position GPS.';
+      noteEl.textContent = 'Les autres panneaux restent accessibles.';
+    }
+  }
+
   panel.classList.toggle('active', shouldShow);
   panel.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
   updateGpsSettleHint();

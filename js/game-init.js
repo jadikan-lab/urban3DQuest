@@ -43,6 +43,8 @@ async function initGame(pendingFoundId) {
   } else {
     startCompassInterval();
   }
+  // Always draw at least one compass/radar frame after map init.
+  scheduleCompassRender(true);
 
   // Start orientation sensor (Android = no permission; iOS = button shown)
   startOrientationWatch();
@@ -255,6 +257,7 @@ function setGameMode(mode) {
   renderMarkers();
   applyExploreMapLock();
   applyMapHeadingRotation();
+  scheduleCompassRender(true);
   updateCompass();
   updateGpsLoadingPanel();
 }

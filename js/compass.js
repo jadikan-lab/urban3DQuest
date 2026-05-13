@@ -49,25 +49,30 @@ function refreshEffectiveHeading() {
   const correctedSensorHeading = Number.isFinite(sensorHeading)
     ? _normHeading(sensorHeading + headingAutoOffset)
     : null;
+  const hasCompassHeading = Number.isFinite(correctedSensorHeading);
 
   // Auto-calibration: when moving with acceptable GPS accuracy, align compass axis to GPS course.
-  if (gpsCourseFresh && Number.isFinite(correctedSensorHeading) && Number.isFinite(playerAccuracy) && playerAccuracy <= 30) {
+  // Keep this bounded so short GPS jitters do not drift magnetic north.
+  if (gpsCourseFresh && hasCompassHeading && Number.isFinite(playerAccuracy) && playerAccuracy <= 30) {
     const err = ((gpsCourseHeading - correctedSensorHeading + 540) % 360) - 180;
-    const gain = Math.abs(err) > 45 ? 0.18 : 0.07;
-    headingAutoOffset = _normHeading(headingAutoOffset + err * gain);
+    const boundedErr = Math.max(-35, Math.min(35, err));
+    const gain = Math.abs(boundedErr) > 18 ? 0.06 : 0.025;
+    headingAutoOffset = _normHeading(headingAutoOffset + boundedErr * gain);
     headingOffsetSampleCount += 1;
     if (headingOffsetSampleCount % 6 === 0) {
       localStorage.setItem('u3dq_heading_offset', String(Math.round(headingAutoOffset * 10) / 10));
     }
   }
 
-  const target = gpsCourseFresh ? gpsCourseHeading : correctedSensorHeading;
+  // North reference must come from compass when available.
+  // GPS course is only a fallback on devices where compass data is missing.
+  const target = hasCompassHeading ? correctedSensorHeading : (gpsCourseFresh ? gpsCourseHeading : null);
   if (!Number.isFinite(target)) {
     deviceHeading = null;
     headingSource = 'none';
     return;
   }
-  headingSource = gpsCourseFresh ? 'gps-course' : 'compass';
+  headingSource = hasCompassHeading ? 'compass' : 'gps-course';
   const factor = headingSource === 'gps-course' ? 0.38 : 0.26;
   deviceHeading = _smoothHeading(deviceHeading, target, factor);
 }
