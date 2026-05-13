@@ -1,7 +1,9 @@
 // ── Leaderboard, tabs, panels ───────────────────────
 async function loadLeaderboard() {
   const el = document.getElementById('lbList');
-  el.innerHTML = `<p style="color:var(--ink-3);text-align:center;padding:30px">⏳ Chargement…</p>`;
+  if (!el.dataset.loaded) {
+    el.innerHTML = `<p style="color:var(--ink-3);text-align:center;padding:30px">⏳ Chargement…</p>`;
+  }
   let evRes, cfgRes;
   try {
     [evRes, cfgRes] = await Promise.all([
@@ -157,7 +159,10 @@ async function loadLeaderboard() {
     });
   }
 
-  document.getElementById('lbList').innerHTML = html;
+  if (document.getElementById('lbList').innerHTML !== html) {
+    document.getElementById('lbList').innerHTML = html;
+  }
+  document.getElementById('lbList').dataset.loaded = '1';
   // Flash-only leaderboard
   const flashRows = Object.entries(players)
     .map(([pseudo, d]) => ({ pseudo, flashCount: d.uniqueEvents.length }))
@@ -182,8 +187,11 @@ async function loadLeaderboard() {
       </div>`;
     });
   }
-  document.getElementById('lbFlashList').innerHTML = flashHtml;
-  switchLbTab(activeLbTab);
+  if (document.getElementById('lbFlashList').innerHTML !== flashHtml) {
+    document.getElementById('lbFlashList').innerHTML = flashHtml;
+  }
+  document.getElementById('lbFlashList').dataset.loaded = '1';
+  switchLbTab(_lbActiveTab);
   document.getElementById('lbRefresh').textContent = '↻ ' + new Date().toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
   } catch(renderErr) {
     el.innerHTML = `<p style="color:#f87171;text-align:center;padding:40px">⚠️ Erreur rendu : ${escHtml(renderErr.message)}</p>`;
