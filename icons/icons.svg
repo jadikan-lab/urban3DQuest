@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <defs>
+
+    <!-- camera / mode Quête -->
+    <symbol id="icon-camera" viewBox="0 0 22 22">
+      <path fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" d="M2 9a2 2 0 0 1 2-2h1.2L6.8 5h8.4L16.8 7H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9z"/>
+      <circle fill="none" stroke="currentColor" stroke-width="1.65" cx="11" cy="13" r="3"/>
+    </symbol>
+
+    <!-- flash / mode Flash -->
+    <symbol id="icon-flash" viewBox="0 0 22 22">
+      <path fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" d="M13 2 6 13h6l-3 7 9-11h-6z"/>
+    </symbol>
+
+    <!-- profile / compte -->
+    <symbol id="icon-profile" viewBox="0 0 22 22">
+      <circle fill="none" stroke="currentColor" stroke-width="1.65" cx="10" cy="7.5" r="3.5"/>
+      <path fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" d="M2 20c0-4 3.58-7.5 8-7.5s8 3.5 8 7.5"/>
+      <circle fill="currentColor" stroke="none" cx="17.5" cy="4" r="2.2"/>
+    </symbol>
+
+    <!-- trophy / scores -->
+    <symbol id="icon-trophy" viewBox="0 0 22 22">
+      <path fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" d="M7 3h8v7c0 2.76-1.79 5-4 5s-4-2.24-4-5V3z"/>
+      <path fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" d="M7 6H4a2 2 0 0 0 0 4h3"/>
+      <path fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" d="M15 6h3a2 2 0 0 1 0 4h-3"/>
+      <line stroke="currentColor" stroke-width="1.65" stroke-linecap="round" x1="11" y1="15" x2="11" y2="18"/>
+      <path fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" d="M7.5 18.5h7"/>
+    </symbol>
+
+    <!-- gps / crosshair -->
+    <symbol id="icon-gps" viewBox="0 0 20 20">
+      <circle fill="none" stroke="currentColor" stroke-width="1.8" cx="10" cy="10" r="5.5"/>
+      <circle fill="currentColor" stroke="none" cx="10" cy="10" r="1.8"/>
+      <line stroke="currentColor" stroke-width="1.8" x1="10" y1="1" x2="10" y2="4"/>
+      <line stroke="currentColor" stroke-width="1.8" x1="10" y1="16" x2="10" y2="19"/>
+      <line stroke="currentColor" stroke-width="1.8" x1="1" y1="10" x2="4" y2="10"/>
+      <line stroke="currentColor" stroke-width="1.8" x1="16" y1="10" x2="19" y2="10"/>
+    </symbol>
+
+    <!-- locate / recenter map -->
+    <symbol id="icon-locate" viewBox="0 0 20 20">
+      <circle fill="none" stroke="currentColor" stroke-width="1.8" cx="10" cy="10" r="7"/>
+      <circle fill="currentColor" cx="10" cy="10" r="2.5"/>
+      <line stroke="currentColor" stroke-width="1.8" stroke-linecap="round" x1="10" y1="1" x2="10" y2="4.5"/>
+      <line stroke="currentColor" stroke-width="1.8" stroke-linecap="round" x1="10" y1="15.5" x2="10" y2="19"/>
+      <line stroke="currentColor" stroke-width="1.8" stroke-linecap="round" x1="1" y1="10" x2="4.5" y2="10"/>
+      <line stroke="currentColor" stroke-width="1.8" stroke-linecap="round" x1="15.5" y1="10" x2="19" y2="10"/>
+    </symbol>
+
+    <!-- clock / timer -->
+    <symbol id="icon-clock" viewBox="0 0 22 22">
+      <circle fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" cx="11" cy="11" r="8"/>
+      <path fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" d="M11 6.5v5l3 2"/>
+    </symbol>
+
+    <!-- check / validate -->
+    <symbol id="icon-check" viewBox="0 0 22 22">
+      <circle fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" cx="11" cy="11" r="8"/>
+      <path fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" d="M7.5 11.2 10 13.7 14.7 9"/>
+    </symbol>
+
+    <!-- refresh -->
+    <symbol id="icon-refresh" viewBox="0 0 22 22">
+      <path fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" d="M18 6v5h-5"/>
+      <path fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" d="M4.7 15.2A7 7 0 1 0 6 5.8L3 8.8"/>
+    </symbol>
+
+    <!-- lock -->
+    <symbol id="icon-lock" viewBox="0 0 22 22">
+      <rect fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" x="5" y="10" width="12" height="9" rx="2"/>
+      <path fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" d="M8 10V7.8a3 3 0 1 1 6 0V10"/>
+    </symbol>
+
+  </defs>
+</svg>
