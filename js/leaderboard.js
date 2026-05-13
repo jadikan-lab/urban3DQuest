@@ -183,7 +183,7 @@ async function loadLeaderboard() {
     });
   }
   document.getElementById('lbFlashList').innerHTML = flashHtml;
-  switchLbTab(activeLbTab);
+  switchLbTab(_lbActiveTab);
   document.getElementById('lbRefresh').textContent = '↻ ' + new Date().toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
   } catch(renderErr) {
     el.innerHTML = `<p style="color:#f87171;text-align:center;padding:40px">⚠️ Erreur rendu : ${escHtml(renderErr.message)}</p>`;
