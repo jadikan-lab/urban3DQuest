@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Zikon — Design Showroom</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700;9..40,800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #f4f1ec;
+      --surface: #ffffff;
+      --ink:     #1c1a17;
+      --muted:   #78726b;
+      --border:  rgba(28,26,23,0.10);
+      --teal:    #0d9488;
+      --ember:   #c84b15;
+      --radius:  16px;
+      --sans:    'DM Sans', 'Inter', system-ui, sans-serif;
+      --mono:    'DM Mono', ui-monospace, monospace;
+    }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      padding: 40px 20px 64px;
+    }
+
+    /* ── Site header ── */
+    .site-header {
+      max-width: 1120px;
+      margin: 0 auto 12px;
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .site-header h1 {
+      font-size: clamp(1.5rem, 4vw, 2.2rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+    .site-header p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .section-label {
+      max-width: 1120px;
+      margin: 40px auto 14px;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+    }
+
+    /* ── Proposal cards ── */
+    .proposals {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 14px;
+    }
+
+    .prop-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(28,26,23,0.06);
+      text-decoration: none;
+      color: var(--ink);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .prop-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 28px rgba(28,26,23,0.11);
+    }
+
+    .prop-preview { height: 190px; position: relative; overflow: hidden; }
+
+    .prop-meta {
+      padding: 16px;
+      border-top: 1px solid var(--border);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .prop-number {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+    .prop-name {
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .prop-desc {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .prop-swatches { display: flex; gap: 6px; margin-top: 2px; }
+    .swatch {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(28,26,23,0.1);
+      flex-shrink: 0;
+    }
+    .prop-badge {
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: rgba(13,148,136,0.1);
+      color: var(--teal);
+      border: 1px solid rgba(13,148,136,0.22);
+    }
+
+    /* ── Mini phone shell ── */
+    .mini-phone {
+      width: 84px;
+      height: 150px;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 8px 22px rgba(28,26,23,0.15);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    /* ── Preview 1: City Pulse ── */
+    .prev-cp {
+      background: linear-gradient(135deg, #d7ebe5 0%, #ffe8dc 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .prev-cp .mini-phone { background: #fff; border: 1px solid rgba(15,118,110,0.15); }
+    .prev-cp .ph { height: 28px; background: linear-gradient(120deg,#f7fcfa,#f8f3ef); border-bottom: 1px solid #dce6e2; display: flex; align-items: center; padding: 0 8px; gap: 4px; }
+    .prev-cp .pm {
+      height: 72px;
+      background: repeating-linear-gradient(0deg,#eef4f2 0 9px,#e8f0ed 9px 10px);
+      position: relative;
+    }
+    .prev-cp .pulse {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+      width: 22px; height: 22px; border-radius: 50%;
+      background: rgba(15,118,110,0.18); border: 1.5px solid #0f766e;
+    }
+    .prev-cp .fab-sm {
+      position: absolute; right: 8px; bottom: 8px;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: linear-gradient(135deg,#dd6f4f,#bf4e2f);
+      border: 1.5px solid white;
+    }
+    .prev-cp .pb { flex: 1; padding: 6px 8px; display: flex; flex-direction: column; gap: 4px; }
+    .prev-cp .bar { height: 5px; background: #e7f0ed; border-radius: 999px; overflow: hidden; }
+    .prev-cp .bar-fill { width: 68%; height: 100%; background: linear-gradient(90deg,#0f766e,#1fb58f); }
+    .prev-cp .row-sm { height: 7px; background: #fbfefd; border: 1px solid #dbe6e2; border-radius: 4px; }
+    .prev-cp .pn { display: flex; border-top: 1px solid #d7e1de; height: 22px; }
+    .prev-cp .pt { flex: 1; }
+    .prev-cp .pt.on { background: #ecf8f3; border-top: 2px solid #0f766e; }
+
+    /* ── Preview 2: Field Notebook ── */
+    .prev-fn {
+      background: linear-gradient(45deg,rgba(161,90,45,0.15),rgba(63,109,128,0.12)), #f7f1e7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .prev-fn .mini-phone { background: #fffaf2; border: 1px solid #d9cfbf; }
+    .prev-fn .ph { height: 24px; background: #fdf7ed; border-bottom: 1px dashed #c9bea8; }
+    .prev-fn .pm {
+      height: 72px;
+      background: repeating-linear-gradient(0deg,#f4ead9 0 11px,#efe3cf 11px 12px),
+                  repeating-linear-gradient(90deg,#f4ead9 0 11px,#efe3cf 11px 12px);
+      position: relative;
+    }
+    .prev-fn .pin { position: absolute; width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid #fff; }
+    .prev-fn .pb { flex: 1; padding: 6px 8px; display: flex; flex-direction: column; gap: 5px; }
+    .prev-fn .ln { height: 5px; background: #d9cfbf; border-radius: 2px; }
+    .prev-fn .pn { display: flex; border-top: 1px solid #d5cab5; height: 22px; background: #fdf8ef; }
+    .prev-fn .pt { flex: 1; }
+    .prev-fn .pt.on { background: #fff2dc; border-top: 2px solid #bfaa86; }
+
+    /* ── Preview 3: Ops Console ── */
+    .prev-oc {
+      background: linear-gradient(180deg,#f4f8fb,#e9eff4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .mini-pane {
+      background: white;
+      border: 1px solid #d0dce6;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(20,33,45,0.08);
+      overflow: hidden;
+    }
+    .pane-head { height: 22px; background: #f6fafc; border-bottom: 1px solid #d8e2eb; }
+    .big-pane { width: 104px; height: 148px; }
+    .sm-pane { width: 60px; height: 148px; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 3px; padding: 6px; }
+    .kpi-tile { background: #fbfdff; border: 1px solid #d6e1ea; border-radius: 5px; height: 22px; }
+    .log-rows { padding: 0 6px; display: flex; flex-direction: column; gap: 4px; }
+    .log-r { height: 8px; background: #e2eaf1; border-radius: 2px; }
+    .btn-rows { padding: 6px; display: flex; flex-direction: column; gap: 5px; }
+    .btn-r { height: 14px; border-radius: 5px; background: #f6fafe; border: 1px solid #cfdceb; }
+    .btn-r.p { background: linear-gradient(90deg,#1f5fca,#2d77de); border: none; }
+    .btn-r.s { background: linear-gradient(90deg,#0f8c66,#15a679); border: none; }
+
+    /* ── Preview 4: Urban Scout ── */
+    .prev-us {
+      background: linear-gradient(135deg,rgba(13,148,136,0.12),rgba(200,75,21,0.08)), #f4f1ec;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .prev-us .mini-phone { background: white; border: 1px solid rgba(28,26,23,0.1); }
+    .prev-us .ph { height: 24px; background: #f4f1ec; border-bottom: 1px solid rgba(28,26,23,0.08); display: flex; align-items: center; padding: 0 6px; gap: 3px; }
+    .prev-us .pnav { display: flex; border-bottom: 1px solid rgba(28,26,23,0.08); height: 22px; }
+    .prev-us .pnt { flex: 1; }
+    .prev-us .pnt.on { border-bottom: 2px solid #0d9488; background: rgba(13,148,136,0.06); }
+    .prev-us .pm { height: 60px; background: linear-gradient(180deg,#eef7f6,#f4f1ec); position: relative; }
+    .prev-us .mpin { position: absolute; width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid white; }
+    .prev-us .pb { flex: 1; padding: 6px 8px; display: flex; flex-direction: column; gap: 4px; }
+    .prev-us .prog { height: 5px; border-radius: 999px; background: rgba(13,148,136,0.12); overflow: hidden; }
+    .prev-us .prog-fill { width: 64%; height: 100%; background: #0d9488; }
+    .prev-us .pill { height: 7px; border-radius: 4px; background: rgba(28,26,23,0.07); }
+    .prev-us .fab-sm { align-self: flex-end; width: 20px; height: 20px; border-radius: 50%; background: #c84b15; box-shadow: 0 3px 8px rgba(200,75,21,0.35); }
+
+    /* ── Icon comparison ── */
+    .icon-grid {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 14px;
+    }
+
+    .icon-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 2px 8px rgba(28,26,23,0.05);
+    }
+
+    .ic-label {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    .ic-row { display: flex; align-items: center; gap: 12px; }
+
+    .ic-wrap {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .ic-wrap.current { background: #f0ede8; border: 1px solid rgba(28,26,23,0.1); color: #1c1a17; }
+    .ic-wrap.proposed { background: rgba(13,148,136,0.08); border: 1px solid rgba(13,148,136,0.2); color: #0d9488; }
+    .ic-wrap.proposed-e { background: rgba(200,75,21,0.08); border: 1px solid rgba(200,75,21,0.22); color: #c84b15; }
+
+    .ic-info { flex: 1; min-width: 0; }
+    .ic-name { font-size: 0.84rem; font-weight: 700; }
+    .ic-note { font-size: 0.75rem; color: var(--muted); line-height: 1.4; margin-top: 2px; }
+
+    .ic-div {
+      height: 1px;
+      background: var(--border);
+      margin: 10px 0;
+    }
+
+    .ic-arrow {
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--muted);
+      margin: 4px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <h1>Zikon · Showroom</h1>
+    <p>Directions visuelles &amp; icônes pour Urban 3D Quest</p>
+  </header>
+
+  <p class="section-label">Directions visuelles</p>
+
+  <div class="proposals">
+
+    <!-- 01 City Pulse -->
+    <a class="prop-card" href="./mock-city-pulse.html">
+      <div class="prop-preview prev-cp">
+        <div class="mini-phone">
+          <div class="ph">
+            <div style="width:30px;height:7px;background:#0f766e;border-radius:3px;opacity:.65"></div>
+            <div style="margin-left:auto;width:22px;height:10px;background:#ebf8f4;border:1px solid #b7d6cf;border-radius:99px"></div>
+          </div>
+          <div class="pm">
+            <div class="pulse"></div>
+            <div class="fab-sm"></div>
+          </div>
+          <div class="pb">
+            <div style="font-size:5px;color:#5f6f73;margin-bottom:2px">Quest · 7/11</div>
+            <div class="bar"><div class="bar-fill"></div></div>
+            <div class="row-sm"></div>
+            <div class="row-sm" style="width:80%"></div>
+          </div>
+          <div class="pn">
+            <div class="pt on"></div><div class="pt"></div><div class="pt"></div><div class="pt"></div>
+          </div>
+        </div>
+      </div>
+      <div class="prop-meta">
+        <span class="prop-number">Proposal 01</span>
+        <strong class="prop-name">City Pulse</strong>
+        <p class="prop-desc">Teal &amp; coral, Outfit + IBM Plex Mono. Aéré, lisible, proche des apps outdoor actuelles.</p>
+        <div class="prop-swatches">
+          <div class="swatch" style="background:#0f766e"></div>
+          <div class="swatch" style="background:#1fb58f"></div>
+          <div class="swatch" style="background:#dd6f4f"></div>
+          <div class="swatch" style="background:#eef3ef"></div>
+        </div>
+      </div>
+    </a>
+
+    <!-- 02 Field Notebook -->
+    <a class="prop-card" href="./mock-field-notebook.html">
+      <div class="prop-preview prev-fn">
+        <div class="mini-phone">
+          <div class="ph"></div>
+          <div class="pm">
+            <div class="pin" style="background:#3f6d80;left:22%;top:35%;transform:translate(-50%,-50%)"></div>
+            <div class="pin" style="background:#a15a2d;left:60%;top:22%;transform:translate(-50%,-50%)"></div>
+            <div class="pin" style="background:#4a6143;left:48%;top:61%;transform:translate(-50%,-50%)"></div>
+          </div>
+          <div class="pb">
+            <div class="ln" style="width:90%"></div>
+            <div class="ln" style="width:70%"></div>
+            <div class="ln" style="width:80%"></div>
+          </div>
+          <div class="pn">
+            <div class="pt on"></div><div class="pt"></div><div class="pt"></div><div class="pt"></div>
+          </div>
+        </div>
+      </div>
+      <div class="prop-meta">
+        <span class="prop-number">Proposal 02</span>
+        <strong class="prop-name">Field Notebook</strong>
+        <p class="prop-desc">Papier crème, Fraunces serif + Space Mono. Carnet de terrain, chaleureux mais moins "mobile game".</p>
+        <div class="prop-swatches">
+          <div class="swatch" style="background:#f7f1e7"></div>
+          <div class="swatch" style="background:#4a6143"></div>
+          <div class="swatch" style="background:#a15a2d"></div>
+          <div class="swatch" style="background:#3f6d80"></div>
+        </div>
+      </div>
+    </a>
+
+    <!-- 03 Ops Console -->
+    <a class="prop-card" href="./mock-ops-console.html">
+      <div class="prop-preview prev-oc">
+        <div class="mini-pane big-pane">
+          <div class="pane-head"></div>
+          <div class="kpi-grid">
+            <div class="kpi-tile"></div><div class="kpi-tile"></div><div class="kpi-tile"></div>
+          </div>
+          <div class="log-rows">
+            <div class="log-r"></div>
+            <div class="log-r" style="width:90%"></div>
+            <div class="log-r" style="width:78%"></div>
+          </div>
+        </div>
+        <div class="mini-pane sm-pane">
+          <div class="pane-head"></div>
+          <div class="btn-rows">
+            <div class="btn-r p"></div>
+            <div class="btn-r"></div>
+            <div class="btn-r"></div>
+            <div class="btn-r s"></div>
+          </div>
+        </div>
+      </div>
+      <div class="prop-meta">
+        <span class="prop-number">Proposal 03</span>
+        <strong class="prop-name">Ops Console</strong>
+        <p class="prop-desc">Bleu slate, Archivo + JetBrains Mono. Dashboard technique, très adapté à l'admin mais pas au joueur.</p>
+        <div class="prop-swatches">
+          <div class="swatch" style="background:#edf2f6"></div>
+          <div class="swatch" style="background:#1f5fca"></div>
+          <div class="swatch" style="background:#0f8c66"></div>
+          <div class="swatch" style="background:#be6a1d"></div>
+        </div>
+      </div>
+    </a>
+
+    <!-- 04 Urban Scout (new) -->
+    <a class="prop-card" href="./mock-urban-scout.html">
+      <div class="prop-preview prev-us">
+        <div class="mini-phone">
+          <div class="ph">
+            <div style="width:26px;height:6px;background:rgba(28,26,23,0.18);border-radius:2px"></div>
+            <div style="margin-left:auto;width:24px;height:10px;background:rgba(13,148,136,0.12);border:1px solid rgba(13,148,136,0.28);border-radius:99px"></div>
+          </div>
+          <div class="pnav">
+            <div class="pnt on"></div><div class="pnt"></div><div class="pnt"></div><div class="pnt"></div>
+          </div>
+          <div class="pm">
+            <div class="mpin" style="background:#0d9488;left:30%;top:40%;transform:translate(-50%,-50%)"></div>
+            <div class="mpin" style="background:#0d9488;left:62%;top:24%;transform:translate(-50%,-50%)"></div>
+            <div class="mpin" style="background:#c84b15;left:70%;top:65%;transform:translate(-50%,-50%)"></div>
+          </div>
+          <div class="pb">
+            <div style="font-size:5px;color:rgba(28,26,23,0.4);margin-bottom:1px">QUÊTE · 7/11</div>
+            <div class="prog"><div class="prog-fill"></div></div>
+            <div class="pill"></div>
+            <div class="pill" style="width:75%"></div>
+            <div class="fab-sm"></div>
+          </div>
+        </div>
+      </div>
+      <div class="prop-meta">
+        <span class="prop-number">Proposal 04</span>
+        <strong class="prop-name">Urban Scout</strong>
+        <p class="prop-desc">Béton chaud + teal (Quête) + ember (Flash). Outdoor-ready, DM Sans, icônes repensées.</p>
+        <div class="prop-swatches">
+          <div class="swatch" style="background:#f4f1ec"></div>
+          <div class="swatch" style="background:#0d9488"></div>
+          <div class="swatch" style="background:#c84b15"></div>
+          <div class="swatch" style="background:#1c1a17"></div>
+        </div>
+        <span class="prop-badge">✦ Nouveau</span>
+      </div>
+    </a>
+
+  </div>
+
+  <!-- ── Icon comparison ── -->
+  <p class="section-label">Analyse des icônes de navigation</p>
+
+  <div class="icon-grid">
+
+    <!-- Quête -->
+    <div class="icon-card">
+      <div class="ic-label">Navigation · Quête</div>
+      <div class="ic-row">
+        <div class="ic-wrap current">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 2C7.686 2 5 4.8 5 8.2c0 4.8 6 11.8 6 11.8s6-7 6-11.8C17 4.8 14.314 2 11 2z"/>
+            <circle cx="11" cy="8" r="2.2"/>
+          </svg>
+        </div>
+        <div class="ic-info">
+          <div class="ic-name">Pin — actuel</div>
+          <div class="ic-note">Générique, commun à toutes les apps carto</div>
+        </div>
+      </div>
+      <div class="ic-arrow">↓ proposition</div>
+      <div class="ic-row">
+        <div class="ic-wrap proposed">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 9a2 2 0 0 1 2-2h1.2L6.8 5h8.4L16.8 7H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9z"/>
+            <circle cx="11" cy="13" r="3"/>
+          </svg>
+        </div>
+        <div class="ic-info">
+          <div class="ic-name">Appareil photo</div>
+          <div class="ic-note">Référence directe au mécanisme de collecte de polaroids</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flash -->
+    <div class="icon-card">
+      <div class="ic-label">Navigation · Flash</div>
+      <div class="ic-row">
+        <div class="ic-wrap current">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="14,2 7,12 11,12 8,20 15,10 11,10"/>
+          </svg>
+        </div>
+        <div class="ic-info">
+          <div class="ic-name">Éclair — actuel</div>
+          <div class="ic-note">Efficace et reconnaissable. Forme légèrement déséquilibrée</div>
+        </div>
+      </div>
+      <div class="ic-arrow">↓ proposition</div>
+      <div class="ic-row">
+        <div class="ic-wrap proposed-e">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 2 6 13h6l-3 7 9-11h-6z"/>
+          </svg>
+        </div>
+        <div class="ic-info">
+          <div class="ic-name">Éclair affiné</div>
+          <div class="ic-note">Même concept, tracé plus équilibré, meilleure lisibilité à 16px</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Compte -->
+    <div class="icon-card">
+      <div class="ic-label">Navigation · Compte</div>
+      <div class="ic-row">
+        <div class="ic-wrap current">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="7" r="4"/>
+            <path d="M2 20c0-4.418 4.03-8 9-8s9 3.582 9 8"/>
+          </svg>
+        </div>
+        <div class="ic-info">
+          <div class="ic-name">Personne — actuel</div>
+          <div class="ic-note">Standard, sans identité propre au jeu</div>
+        </div>
+      </div>
+      <div class="ic-arrow">↓ proposition</div>
+      <div class="ic-row">
+        <div class="ic-wrap proposed">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="10" cy="7.5" r="3.5"/>
+            <path d="M2 20c0-4 3.58-7.5 8-7.5s8 3.5 8 7.5"/>
+            <circle cx="17.5" cy="4" r="2.2" fill="currentColor" stroke="none"/>
+          </svg>
+        </div>
+        <div class="ic-info">
+          <div class="ic-name">Joueur localisé</div>
+          <div class="ic-note">Dot teal = ta présence géolocalisée dans le jeu</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scores -->
+    <div class="icon-card">
+      <div class="ic-label">Navigation · Scores</div>
+      <div class="ic-row">
+        <div class="ic-wrap current">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="12" width="5" height="8" rx="1"/>
+            <rect x="8.5" y="7" width="5" height="13" rx="1"/>
+            <rect x="15" y="3" width="5" height="17" rx="1"/>
+          </svg>
+        </div>
+        <div class="ic-info">
+          <div class="ic-name">Barres — actuel</div>
+          <div class="ic-note">Évoque une app analytique plutôt qu'un classement de jeu</div>
+        </div>
+      </div>
+      <div class="ic-arrow">↓ proposition</div>
+      <div class="ic-row">
+        <div class="ic-wrap proposed">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 3h8v7c0 2.76-1.79 5-4 5s-4-2.24-4-5V3z"/>
+            <path d="M7 6H4a2 2 0 0 0 0 4h3"/>
+            <path d="M15 6h3a2 2 0 0 1 0 4h-3"/>
+            <line x1="11" y1="15" x2="11" y2="18"/>
+            <path d="M7.5 18.5h7"/>
+          </svg>
+        </div>
+        <div class="ic-info">
+          <div class="ic-name">Trophée</div>
+          <div class="ic-note">Évoque compétition et victoire — pertinent Quête et Flash</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAB Capture -->
+    <div class="icon-card">
+      <div class="ic-label">FAB · Capturer la balise</div>
+      <div class="ic-row">
+        <div class="ic-wrap current" style="width:50px;height:50px;border-radius:50%;">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6">
+            <circle cx="11" cy="11" r="9"/>
+            <circle cx="11" cy="11" r="3.5" fill="currentColor" stroke="none"/>
+          </svg>
+        </div>
+        <div class="ic-info">
+          <div class="ic-name">Cercle — actuel</div>
+          <div class="ic-note">Pas de lien visuel avec le scan QR ni la capture physique</div>
+        </div>
+      </div>
+      <div class="ic-arrow">↓ proposition</div>
+      <div class="ic-row">
+        <div class="ic-wrap proposed" style="width:50px;height:50px;border-radius:50%;">
+          <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9V4h5"/>
+            <path d="M3 17v5h5"/>
+            <path d="M23 9V4h-5"/>
+            <path d="M23 17v5h-5"/>
+            <circle cx="13" cy="13" r="2.8" fill="currentColor" stroke="none"/>
+          </svg>
+        </div>
+        <div class="ic-info">
+          <div class="ic-name">QR viseur</div>
+          <div class="ic-note">4 coins de scan + dot central = capture de balise, immédiatement lisible</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Radar bar -->
+    <div class="icon-card">
+      <div class="ic-label">Barre radar · Progression</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px;">
+        <div>
+          <div class="ic-note" style="margin-bottom:6px">Actuel : texte + couleur (3 états)</div>
+          <div style="height:34px;border-radius:999px;background:#fff;border:1px solid rgba(26,24,38,0.14);display:flex;align-items:center;padding:0 14px;font-size:0.82rem;font-weight:700;color:#1a1826;font-family:monospace">140m — Vieux Bassin</div>
+          <div style="height:34px;border-radius:999px;background:rgba(240,255,244,.97);border:1px solid #16a34a;display:flex;align-items:center;padding:0 14px;font-size:0.82rem;font-weight:700;color:#16a34a;font-family:monospace;margin-top:5px">Tu es très proche !</div>
+        </div>
+        <div class="ic-div"></div>
+        <div>
+          <div class="ic-note" style="margin-bottom:6px">Proposé : barre de progression + texte</div>
+          <div style="height:34px;border-radius:999px;background:#f0ede8;border:1px solid rgba(13,148,136,0.3);display:flex;align-items:center;padding:0 6px;gap:8px;overflow:hidden;">
+            <div style="height:22px;width:42%;border-radius:999px;background:linear-gradient(90deg,#0d9488,#14b8a6);flex-shrink:0;transition:width 0.4s"></div>
+            <span style="font-size:0.8rem;font-weight:700;color:#0d9488;font-family:monospace;white-space:nowrap">140m</span>
+          </div>
+          <div style="height:34px;border-radius:999px;background:#f0fdf4;border:1px solid #16a34a;display:flex;align-items:center;padding:0 6px;gap:8px;overflow:hidden;margin-top:5px;">
+            <div style="height:22px;width:92%;border-radius:999px;background:linear-gradient(90deg,#16a34a,#22c55e);flex-shrink:0"></div>
+            <span style="font-size:0.8rem;font-weight:700;color:#15803d;font-family:monospace;white-space:nowrap">8m</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

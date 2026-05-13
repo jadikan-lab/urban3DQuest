@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-  <title>Urban3DQuest v4</title>
+  <title>Urban3DQuest v3.14.1</title>
   <meta name="theme-color" content="#f4f1ec">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -44,6 +44,7 @@
     .ps-logo{font-size:0.72rem;font-family:var(--mono);font-weight:600;text-transform:uppercase;letter-spacing:0.14em;color:var(--magenta);margin-bottom:10px;opacity:0.85}
     .ps-title{font-size:1.5rem;font-weight:800;letter-spacing:.04em;font-family:var(--mono);text-transform:uppercase;background:linear-gradient(135deg,var(--magenta),var(--violet));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
     .ps-sub{font-size:0.75rem;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-3);margin-bottom:28px;line-height:1.8}
+    .ps-version{font-family:var(--mono);font-size:0.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);margin:-16px 0 18px}
     .ps-box input{width:100%;padding:14px;background:var(--bg);border:2px solid var(--line-2);border-radius:12px;color:var(--ink);font-size:1.1rem;text-align:center;margin-bottom:12px;letter-spacing:.05em;font-family:var(--display)}
     .ps-box input:focus{outline:none;border-color:var(--magenta);box-shadow:0 0 0 3px rgba(255,61,138,.18)}
     body.env-stg .ps-box{background:rgba(255,246,233,0.97);border:2px solid rgba(154,52,18,.22);box-shadow:0 -4px 40px rgba(154,52,18,.18)}
@@ -398,6 +399,7 @@
     .chip-magenta{background:rgba(255,61,138,0.1);border-color:rgba(255,61,138,0.35);color:var(--magenta)}
     .chip-cyan{background:rgba(0,229,255,0.1);border-color:rgba(0,229,255,0.35);color:var(--cyan)}
     .chip-amber{background:rgba(255,176,32,0.1);border-color:rgba(255,176,32,0.35);color:var(--amber)}
+    .header-status{display:flex;align-items:center;gap:4px;flex-wrap:wrap;flex-shrink:0}
 
     /* Label mono */
     .t-mono{font-family:var(--mono);font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-3)}
@@ -520,6 +522,7 @@
     <div class="ps-logo">Jadikan · Urban3DQuest</div>
     <div class="ps-title">Urban3DQuest</div>
     <p class="ps-sub">Entre ton pseudo et ton mot de passe</p>
+    <p class="ps-version" id="loginVersion">JOUEUR · v3.14.1 · PROD</p>
     <input type="text" id="pseudoInput" placeholder="TON PSEUDO" maxlength="20" autocomplete="username" autocapitalize="characters">
     <input type="password" id="passwordInput" placeholder="MOT DE PASSE" maxlength="64" autocomplete="current-password" style="margin-top:0;margin-bottom:12px">
     <div id="gameCodeWrap" style="display:none;margin-bottom:12px">
@@ -541,6 +544,10 @@
   </span>
   <button id="tutorialMiniBtn" onclick="openQuickTutorial()" aria-label="Ouvrir le tutoriel">Aide</button>
   <div class="brand-tag">Urban 3D Quest by <a href="https://www.instagram.com/jadikan/" target="_blank" rel="noopener noreferrer">Jadikan</a></div>
+  <div class="header-status" aria-label="Contexte de jeu">
+    <span class="chip chip-cyan">JOUEUR</span>
+    <span class="chip chip-amber" id="gameEnvChip">PROD</span>
+  </div>
   <span class="pseudo-chip" id="headerPseudo" onclick="onHeaderPseudoClick()" style="cursor:pointer"></span>
 </header>
 <nav role="tablist" aria-label="Navigation principale">
