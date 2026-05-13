@@ -9,6 +9,7 @@ async function sha256(str) {
 }
 
 async function logoutPlayer() {
+  if (!window.confirm('Se déconnecter de Urban3DQuest ?\nTon score est sauvegardé, tu pourras te reconnecter avec le même pseudo et mot de passe.')) return;
   const pseudo = myPseudo;
   if (pseudo) {
     await db.from('players').update({ session_token: null }).eq('pseudo', pseudo);

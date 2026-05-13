@@ -195,30 +195,44 @@ async function loadCarnet() {
   }
 }
 
+// ── Offline detection ────────────────────────────────
+function _setOfflineBanner(isOffline) {
+  const el = document.getElementById('offlineBanner');
+  if (el) el.classList.toggle('visible', isOffline);
+}
+window.addEventListener('online',  () => _setOfflineBanner(false));
+window.addEventListener('offline', () => _setOfflineBanner(true));
+
 // ── Periodic refresh (treasures + config) ────────────
 setInterval(async () => {
-  // Session guard: if another device logged in with same credentials, force re-login
-  if (myPseudo && myToken) {
-    const { data: sp } = await db.from('players').select('session_token').eq('pseudo', myPseudo).single();
-    if (!sp || sp.session_token !== myToken) {
-      localStorage.removeItem('u3dq_pseudo');
-      localStorage.removeItem('u3dq_token');
-      alert('⚠️ Ta session a été prise par un autre appareil. Reconnecte-toi.');
-      location.reload();
-      return;
+  if (!navigator.onLine) { _setOfflineBanner(true); return; }
+  _setOfflineBanner(false);
+  try {
+    // Session guard: if another device logged in with same credentials, force re-login
+    if (myPseudo && myToken) {
+      const { data: sp } = await db.from('players').select('session_token').eq('pseudo', myPseudo).single();
+      if (!sp || sp.session_token !== myToken) {
+        localStorage.removeItem('u3dq_pseudo');
+        localStorage.removeItem('u3dq_token');
+        alert('⚠️ Ta session a été prise par un autre appareil. Reconnecte-toi.');
+        location.reload();
+        return;
+      }
     }
+    const { data: cfg } = await db.from('config').select('*');
+    if (cfg) {
+      const c = Object.fromEntries(cfg.map(r => [r.key, r.value]));
+      if (c.gameActive === 'false') showPause();
+      else document.getElementById('pauseScreen').classList.remove('open');
+      if (c.proximityRadius) proximityR = Number(c.proximityRadius);
+    }
+    await loadTreasures();
+    renderMarkers();
+    updateRadar();
+    updateProgressBar();
+  } catch {
+    _setOfflineBanner(true);
   }
-  const { data: cfg } = await db.from('config').select('*');
-  if (cfg) {
-    const c = Object.fromEntries(cfg.map(r => [r.key, r.value]));
-    if (c.gameActive === 'false') showPause();
-    else document.getElementById('pauseScreen').classList.remove('open');
-    if (c.proximityRadius) proximityR = Number(c.proximityRadius);
-  }
-  await loadTreasures();
-  renderMarkers();
-  updateRadar();
-  updateProgressBar();
 }, 15000);
 
 // ── Nearest list ─────────────────────────────────────

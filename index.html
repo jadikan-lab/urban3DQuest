@@ -37,6 +37,8 @@
     body{font-family:var(--display);font-weight:500;background:var(--bg);color:var(--ink);height:100dvh;overflow:hidden;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top);-webkit-font-smoothing:antialiased}
     #envBanner{display:none;background:repeating-linear-gradient(135deg,#7c2d12 0 14px,#9a3412 14px 28px);color:#fff7ed;border-bottom:1px solid rgba(255,255,255,.18);padding:10px 14px;font-size:0.74rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;text-align:center;font-family:var(--mono);box-shadow:0 6px 20px rgba(154,52,18,.25)}
     body.env-stg #envBanner{display:block}
+    #offlineBanner{display:none;position:sticky;top:0;z-index:1999;background:#1e1b4b;color:#a5b4fc;border-bottom:1px solid #3730a3;padding:7px 14px;font-size:0.72rem;font-weight:700;text-align:center;font-family:var(--mono);letter-spacing:0.08em;text-transform:uppercase}
+    #offlineBanner.visible{display:block}
     #bgMap{position:fixed;inset:0;z-index:0}
     /* ── Pseudo screen ── */
     #pseudoScreen{position:fixed;inset:0;background:rgba(244,241,236,0.2);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);z-index:500;display:flex;align-items:flex-end;justify-content:center;padding:0}
@@ -536,6 +538,7 @@
 
 <!-- ── Header ────────────────────────────────────────── -->
 <div id="envBanner">Preprod STG · Base de test</div>
+<div id="offlineBanner" role="status" aria-live="polite">📵 Hors-ligne · Les données ne sont plus à jour</div>
 <header>
   <h1>🏙 Urban3DQuest</h1>
   <span id="gpsChip" title="Précision GPS">
@@ -652,7 +655,7 @@
     <div style="height:1px;background:var(--line);margin:12px 0"></div>
   </div>
   <div class="cn-header">
-    <span class="cn-header-title">Ma collection</span>
+    <span class="cn-header-title">Historique</span>
     <span class="cn-header-count" id="carnetCount"></span>
   </div>
   <div id="carnetList"></div>
