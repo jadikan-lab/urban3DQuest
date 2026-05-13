@@ -355,7 +355,6 @@ function updateRadar() {
     .sort((a, b) => a.d - b.d)[0];
 
   const dist = Math.round(nearestF.d);
-  const label = distLabel(dist);
 
   if (dist > proximityR * 5) {
     bar.textContent = `Un polaroid se cache dans ce quartier…${accStr}`;

@@ -173,7 +173,7 @@ async function requestCompassPermission() {
       btn.textContent = '⚠️ Compas refusé — flèches statiques';
       btn.classList.remove('compass-perm-pulse');
     }
-  } catch(e) {
+  } catch {
     localStorage.setItem('u3dq_compassAsked', '1');
     document.getElementById('compassPermBtn').textContent = '⚠️ Erreur compas';
   }

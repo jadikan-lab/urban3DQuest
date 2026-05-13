@@ -107,9 +107,6 @@ async function loadLeaderboard() {
   } else {
     html += `<div class="lb-divider">${uiIcon('trophy', 'warn')}<span>Classement · ${rows.length} joueur${rows.length > 1 ? 's' : ''}</span></div>`;
 
-    // Find my rank
-    const myRank = rows.findIndex(p => p.pseudo === myPseudo);
-
     rows.forEach((p, i) => {
       // If > 10 players: show top 10 + separator + my row
       const myRankInList = rows.findIndex(r => r.pseudo === myPseudo);

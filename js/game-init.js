@@ -16,7 +16,7 @@ async function initGame(pendingFoundId) {
     if (c.modeMap !== undefined)     modeMap     = c.modeMap !== 'false';
     if (c.modeCompass !== undefined) modeCompass = c.modeCompass !== 'false';
     if (c.gameActive === 'false') showPause();
-    if (c.activeQuests) { try { activeQuests = JSON.parse(c.activeQuests); } catch(e) { activeQuests = []; } }
+    if (c.activeQuests) { try { activeQuests = JSON.parse(c.activeQuests); } catch { activeQuests = []; } }
     else if (c.activeQuest) { activeQuests = c.activeQuest ? [c.activeQuest] : []; }
     if (c.mapCenter) {
       const parts = c.mapCenter.split(',').map(Number);

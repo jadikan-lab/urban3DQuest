@@ -115,7 +115,6 @@ async function _doProcessFind(treasureId) {
 
 function showFoundResult(status, t, durationSec, durationSecHunt) {
   const modal = document.getElementById('foundModal');
-  const emoji  = document.getElementById('foundEmoji');
   const label  = document.getElementById('foundLabel');
   const title  = document.getElementById('foundTitle');
   const dur    = document.getElementById('foundDuration');

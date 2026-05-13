@@ -124,7 +124,7 @@ async function startGame() {
   const input     = document.getElementById('pseudoInput');
   const passInput = document.getElementById('passwordInput');
   const err       = document.getElementById('pseudoErr');
-  const pseudo    = input.value.trim().toUpperCase().replace(/[^A-Z0-9_\-]/g, '');
+  const pseudo    = input.value.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '');
   const pass      = (passInput && passInput.style.display !== 'none') ? passInput.value : '';
   const isStg      = SUPABASE_ENV.name === 'stg';
 

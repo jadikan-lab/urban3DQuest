@@ -119,7 +119,7 @@ async function _startNativeScan(status, isStg, _qrLog) {
         await new Promise(r => setTimeout(r, 400));
         if (caps.focusMode && caps.focusMode.includes('continuous'))
           await track.applyConstraints({ focusMode: 'continuous' });
-      } catch(e) {}
+      } catch {}
     }, 4000);
 
     const detector = new BarcodeDetector({ formats: ['qr_code'] });
@@ -208,8 +208,8 @@ async function stopLiveQRScan() {
   if (nativeVideo) nativeVideo.remove();
   // Stop html5-qrcode path
   if (html5QrInst) {
-    try { await html5QrInst.stop(); } catch(e) {}
-    try { html5QrInst.clear(); } catch(e) {}
+    try { await html5QrInst.stop(); } catch {}
+    try { html5QrInst.clear(); } catch {}
     html5QrInst = null;
   }
   const reader = document.getElementById('qrReader');
@@ -229,7 +229,7 @@ async function toggleQRTorch() {
       await html5QrInst.applyVideoConstraints({ advanced: [{ torch: qrTorchOn }] });
     }
     document.getElementById('qrTorchBtn').textContent = qrTorchOn ? '💡 Lampe ON' : '💡 Lampe';
-  } catch(e) { qrTorchOn = false; }
+  } catch { qrTorchOn = false; }
 }
 
 function _resetQRInput() {
@@ -261,7 +261,7 @@ async function handleQRPhoto(input) {
     const decodedText = await scanner.scanFile(file, false);
     URL.revokeObjectURL(url);
     await _qrHandleResult(decodedText);
-  } catch(err) {
+  } catch {
     URL.revokeObjectURL(url);
     status.textContent = '❌ Polaroid non reconnu — réessaie en te rapprochant et en éclairant bien le polaroid';
     status.className = 'qr-err';

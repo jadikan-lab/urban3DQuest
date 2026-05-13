@@ -107,7 +107,7 @@ function applyExploreMapLock() {
   }
 }
 
-function getPhotoUrls(raw){if(!raw)return[];if(raw.charAt(0)==='['){try{return JSON.parse(raw).filter(Boolean);}catch(e){}}return[raw];}
+function getPhotoUrls(raw){if(!raw)return[];if(raw.charAt(0)==='['){try{return JSON.parse(raw).filter(Boolean);}catch{}}return[raw];}
 
 function escHtml(v){
   return String(v ?? '')
@@ -143,17 +143,6 @@ function renderMarkers() {
     const isTaken = t.type === 'unique' && t.found_by && t.found_by.length > 0;
     const color   = isMine ? '#4ade80' : isTaken ? '#475569' : (t.type === 'unique' ? '#c084fc' : '#60a5fa');
     const opacity = isTaken && !isMine ? 0.4 : 1;
-
-    const popup = isTaken && !isMine
-      ? `<b>${escHtml(tLabel(t))}</b><br>🔒 Flash déjà pris`
-      : (() => {
-          const urls = getPhotoUrls(t.photo_url);
-          const safeUrls = urls.map(safeImgUrl).filter(Boolean);
-          const ph = safeUrls.map(u =>
-            `<img src="${escHtml(u)}" onclick="openPhotoViewer('${jsSingleQuoted(u)}')" style="width:100%;max-height:180px;object-fit:cover;border-radius:8px;margin-bottom:6px;display:block;cursor:zoom-in">`
-          ).join('');
-          return `<div style="min-width:220px">${ph}<b style="font-size:0.95rem">${escHtml(tLabel(t))}</b><br><span style="font-size:0.82em;color:#888">${t.type === 'fixed' ? '📷 Quête' : '⚡ Flash'}</span>${t.hint ? `<br><span style="font-size:0.82em;color:#93c5fd">💡 ${escHtml(t.hint)}</span>` : ''}${safeUrls.length ? `<br><span style="font-size:0.75em;color:#64748b">👆 Tap photo pour agrandir</span>` : ''}</div>`;
-        })();
 
     // Unique treasures not yet found: fuzzy circle — center is randomly OFFSET from
     // the real location (deterministic per treasure ID), so zooming in never reveals

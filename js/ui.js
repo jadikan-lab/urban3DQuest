@@ -110,7 +110,7 @@ async function showQuestComplete(questName, totalSecs, beaconCount) {
         _qcData.total = completers.length;
       }
     }
-  } catch(e) {
+  } catch {
     document.getElementById('qcRank').textContent = '—';
   }
 }
