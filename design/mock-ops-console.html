@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ops Console - Zikon Mockup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #edf2f6;
+      --panel: #ffffff;
+      --ink: #0f1d2b;
+      --soft: #496070;
+      --line: #d0dce6;
+      --blue: #1f5fca;
+      --green: #0f8c66;
+      --orange: #be6a1d;
+      --red: #b93f3f;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Archivo", sans-serif;
+      background:
+        linear-gradient(180deg, #f4f8fb 0%, #e9eff4 100%);
+      color: var(--ink);
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .top {
+      max-width: 1200px;
+      margin: 0 auto 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    h1 { margin: 0; font-size: clamp(1.4rem, 3vw, 2rem); }
+
+    .back {
+      text-decoration: none;
+      color: #13478f;
+      border: 1px solid #b7cae0;
+      border-radius: 999px;
+      background: #eef4fb;
+      padding: 8px 12px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .layout {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 14px;
+    }
+
+    .pane {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(20, 33, 45, 0.07);
+      overflow: hidden;
+    }
+
+    .head {
+      padding: 12px 14px;
+      border-bottom: 1px solid #d8e2eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f6fafc;
+    }
+
+    .mono {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.72rem;
+      border: 1px solid #c7d4e2;
+      border-radius: 999px;
+      padding: 4px 8px;
+      color: #335471;
+      background: #eef5fb;
+    }
+
+    .body { padding: 14px; }
+
+    .kpi {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .tile {
+      border: 1px solid #d6e1ea;
+      border-radius: 10px;
+      padding: 10px;
+      background: #fbfdff;
+    }
+
+    .tile b { font-size: 1.1rem; }
+
+    .log {
+      border: 1px solid #d7e3ec;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .log .row {
+      display: grid;
+      grid-template-columns: 80px 1fr 90px;
+      gap: 8px;
+      padding: 8px 10px;
+      border-top: 1px solid #e2eaf1;
+      font-size: 0.82rem;
+      color: #314758;
+    }
+
+    .log .row:first-child { border-top: 0; }
+
+    .ok { color: var(--green); font-weight: 700; }
+    .warn { color: var(--orange); font-weight: 700; }
+    .err { color: var(--red); font-weight: 700; }
+
+    .actions {
+      display: grid;
+      gap: 8px;
+    }
+
+    .btn {
+      border: 1px solid #cfdceb;
+      background: #f6fafe;
+      color: #214e87;
+      border-radius: 10px;
+      padding: 10px 12px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 0.84rem;
+    }
+
+    .btn.primary {
+      background: linear-gradient(90deg, #1f5fca, #2d77de);
+      color: white;
+      border-color: #1a58be;
+    }
+
+    .btn.success {
+      background: linear-gradient(90deg, #0f8c66, #15a679);
+      color: white;
+      border-color: #0f8c66;
+    }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <h1>Proposal 3 - Ops Console</h1>
+    <a class="back" href="./proposals-zikon.html">Retour au showroom</a>
+  </div>
+
+  <section class="layout">
+    <article class="pane">
+      <header class="head"><strong>Live Operations</strong><span class="mono">refresh 10s</span></header>
+      <div class="body">
+        <div class="kpi">
+          <div class="tile"><div>Players</div><b>142</b></div>
+          <div class="tile"><div>Fixed found</div><b>68%</b></div>
+          <div class="tile"><div>Flash claimed</div><b>23</b></div>
+        </div>
+        <div class="log">
+          <div class="row"><span>14:02</span><span>QR batch STL complete</span><span class="ok">OK</span></div>
+          <div class="row"><span>14:03</span><span>GPS check-in delayed</span><span class="warn">WARN</span></div>
+          <div class="row"><span>14:05</span><span>Leaderboard sync passed</span><span class="ok">OK</span></div>
+          <div class="row"><span>14:06</span><span>Invalid event payload blocked</span><span class="err">BLOCK</span></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="pane">
+      <header class="head"><strong>Control Actions</strong><span class="mono">admin</span></header>
+      <div class="body actions">
+        <button class="btn primary">Generate fixed QR set</button>
+        <button class="btn">Download ZIP PNG</button>
+        <button class="btn">Download ZIP SVG</button>
+        <button class="btn success">Download ZIP STL</button>
+        <button class="btn">Toggle active quests</button>
+        <button class="btn">Save config and broadcast</button>
+      </div>
+    </article>
+  </section>
+</body>
+</html>

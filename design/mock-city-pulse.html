@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>City Pulse - Zikon Mockup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #eef3ef;
+      --card: #ffffff;
+      --ink: #132226;
+      --soft: #5f6f73;
+      --line: #d4dfdc;
+      --teal: #0f766e;
+      --mint: #1fb58f;
+      --coral: #dd6f4f;
+      --deep: #1f3d44;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Outfit", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 0% 0%, #d7ebe5 0, transparent 40%),
+        radial-gradient(circle at 100% 0%, #ffe8dc 0, transparent 42%),
+        var(--bg);
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .top {
+      max-width: 1200px;
+      margin: 0 auto 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .back {
+      text-decoration: none;
+      color: #18484d;
+      border: 1px solid #b9cbc7;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.8rem;
+      background: #f4fbf8;
+    }
+
+    h1 { margin: 0; font-size: clamp(1.4rem, 3vw, 2rem); }
+
+    .frame {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+    }
+
+    .phone, .admin {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: 0 12px 30px rgba(20, 42, 39, 0.08);
+      min-height: 540px;
+      position: relative;
+    }
+
+    .head {
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid #dce6e2;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(120deg, #f7fcfa, #f8f3ef);
+    }
+
+    .chip {
+      font-size: 0.72rem;
+      border-radius: 999px;
+      border: 1px solid #b7d6cf;
+      padding: 5px 9px;
+      color: #105f59;
+      font-weight: 700;
+      background: #ebf8f4;
+      font-family: "IBM Plex Mono", monospace;
+    }
+
+    .map {
+      height: 235px;
+      background:
+        linear-gradient(35deg, rgba(31, 181, 143, 0.12), transparent 45%),
+        linear-gradient(-25deg, rgba(221, 111, 79, 0.14), transparent 40%),
+        repeating-linear-gradient(0deg, #eef4f2 0 18px, #e8f0ed 18px 19px);
+      border-bottom: 1px solid #dce4e0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pulse {
+      position: absolute;
+      inset: auto auto 50px 50%;
+      transform: translateX(-50%);
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      border: 2px solid #0f766e;
+      background: rgba(15, 118, 110, 0.18);
+      animation: wave 1.8s ease-out infinite;
+    }
+
+    @keyframes wave {
+      from { box-shadow: 0 0 0 0 rgba(15, 118, 110, 0.35); }
+      to { box-shadow: 0 0 0 36px rgba(15, 118, 110, 0); }
+    }
+
+    .fab {
+      position: absolute;
+      right: 14px;
+      bottom: 14px;
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #dd6f4f, #bf4e2f);
+      border: 3px solid white;
+      box-shadow: 0 8px 20px rgba(185, 78, 51, 0.35);
+    }
+
+    .body { padding: 14px; }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 0.88rem;
+      color: var(--soft);
+    }
+
+    .bar {
+      height: 10px;
+      border-radius: 999px;
+      background: #e7f0ed;
+      border: 1px solid #d2e1dc;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .fill {
+      width: 68%;
+      height: 100%;
+      background: linear-gradient(90deg, #0f766e, #1fb58f);
+    }
+
+    .list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .item {
+      border: 1px solid #dbe6e2;
+      border-radius: 12px;
+      padding: 10px;
+      background: #fbfefd;
+      font-size: 0.84rem;
+      color: #365058;
+    }
+
+    .nav {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-top: 1px solid #d7e1de;
+      background: #f8fcfa;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding: 8px;
+      gap: 6px;
+      font-size: 0.72rem;
+      color: #2d5b5d;
+    }
+
+    .nav div {
+      text-align: center;
+      padding: 7px 4px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+    }
+
+    .nav .on {
+      background: #ecf8f3;
+      border-color: #bfe2d7;
+      font-weight: 700;
+    }
+
+    .admin .body { padding: 16px; }
+    .admin .item { background: #f7fbfa; }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <h1>Proposal 1 - City Pulse</h1>
+    <a class="back" href="./proposals-zikon.html">Retour au showroom</a>
+  </div>
+
+  <section class="frame">
+    <article class="phone">
+      <header class="head">
+        <strong>Explore</strong>
+        <span class="chip">GPS 8m</span>
+      </header>
+      <div class="map">
+        <div class="pulse"></div>
+        <div class="fab"></div>
+      </div>
+      <div class="body">
+        <div class="row"><span>Quest progress</span><strong>7 / 11</strong></div>
+        <div class="bar"><div class="fill"></div></div>
+        <div class="list">
+          <div class="item">Nearby clue unlocked - Rue des Arts</div>
+          <div class="item">Flash alert - 260m east</div>
+        </div>
+      </div>
+      <nav class="nav"><div class="on">Explore</div><div>Scores</div><div>Collection</div><div>More</div></nav>
+    </article>
+
+    <article class="phone">
+      <header class="head">
+        <strong>Scores</strong>
+        <span class="chip">Live 10s</span>
+      </header>
+      <div class="body">
+        <div class="item">#1 NORA - 10 fixed - 1h 24m</div>
+        <div class="item">#2 LIO - 9 fixed - 1h 30m</div>
+        <div class="item" style="border-color:#92cfc0;background:#ecfaf5"><strong>#3 TOI - 7 fixed - 59m</strong></div>
+        <div class="item">#4 MIKA - 6 fixed - 1h 18m</div>
+      </div>
+      <nav class="nav"><div>Explore</div><div class="on">Scores</div><div>Collection</div><div>More</div></nav>
+    </article>
+
+    <article class="admin">
+      <header class="head">
+        <strong>Admin QR</strong>
+        <span class="chip">Prod</span>
+      </header>
+      <div class="body">
+        <div class="item">Generate fixed QR batch</div>
+        <div class="item">Download ZIP PNG / SVG / STL</div>
+        <div class="item">Print-safe validation passed for 42 beacons</div>
+        <div class="item">Quest filters + active quests toggles</div>
+      </div>
+    </article>
+  </section>
+</body>
+</html>
