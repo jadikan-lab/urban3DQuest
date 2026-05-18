@@ -3747,13 +3747,13 @@ function updateNearestCard() {
     .filter(t => !isUniqueMode || !(t.found_by && t.found_by.length > 0))
     .map(t => ({ ...t, _dist: haversine(playerLat, playerLng, t.lat, t.lng) }))
     .sort((a, b) => a._dist - b._dist)
-    .slice(0, 4);
+    .slice(0, 3);
 
   if (!pool.length) { el.style.display = 'none'; return; }
 
   _nearestTreasure = pool[0];
   const count = pool.length;
-  const header = `${count} POLAROID${count > 1 ? 'S' : ''} LES PLUS PROCHES`;
+  const header = `${count} BALISE${count > 1 ? 'S' : ''} LES PLUS PROCHES`;
 
   el.style.display = 'flex';
   el.innerHTML = `<div class="nl-header">${header}</div>` +
