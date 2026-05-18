@@ -439,7 +439,9 @@ function toggleCompassArrows() {
 }
 
 function toggleCompassDebug() {
+  if (SUPABASE_ENV.name !== 'stg') return;
   const el = document.getElementById('compassDebug');
+  if (!el) return;
   const visible = el.style.display !== 'none';
   if (visible) {
     el.style.display = 'none';

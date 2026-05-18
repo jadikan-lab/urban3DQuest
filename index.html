@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Urban3DQuest v4</title>
+  <title>Urban 3D Quest v4</title>
   <meta name="theme-color" content="#f4f1ec">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -526,8 +526,8 @@
 <!-- ── Pseudo screen ────────────────────────────────── -->
 <div id="pseudoScreen">
   <div class="ps-box">
-    <div class="ps-logo">Jadikan · Urban3DQuest</div>
-    <div class="ps-title">Urban3DQuest</div>
+    <div class="ps-logo">Jadikan · Urban 3D Quest</div>
+    <div class="ps-title">Urban 3D Quest</div>
     <p class="ps-sub">Entre ton pseudo pour rejoindre la partie.</p>
     <input type="text" id="pseudoInput" placeholder="TON PSEUDO" maxlength="20" autocomplete="username" autocapitalize="characters">
     <input type="password" id="passwordInput" placeholder="MOT DE PASSE" maxlength="64" autocomplete="current-password" class="field-spaced">
@@ -542,7 +542,7 @@
 
 <!-- ── Header ────────────────────────────────────────── -->
 <header>
-  <h1>🏙 Urban3DQuest</h1>
+  <h1>🏙 Urban 3D Quest</h1>
   <span id="gpsChip" title="Précision GPS">
     <span id="gpsDot"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="5.5" stroke-width="1.8"/><circle cx="10" cy="10" r="1.8" fill="currentColor" stroke="none"/><line x1="10" y1="1" x2="10" y2="4" stroke-width="1.8"/><line x1="10" y1="16" x2="10" y2="19" stroke-width="1.8"/><line x1="1" y1="10" x2="4" y2="10" stroke-width="1.8"/><line x1="16" y1="10" x2="19" y2="10" stroke-width="1.8"/></svg></span>
     <span id="gpsLabel">GPS…</span>
@@ -844,7 +844,7 @@ const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
 const GAME_VERSION = 'v3.13.0';
-document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
+document.getElementById('gameVersion').textContent = 'Urban 3D Quest ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let myPseudo     = localStorage.getItem('u3dq_pseudo') || '';
@@ -968,6 +968,20 @@ async function logoutPlayer() {
 }
 
 function initEnvUI() {
+  if (SUPABASE_ENV.name !== 'stg') return;
+  document.body.classList.add('env-stg');
+  const dbgBtn = document.getElementById('compassDebugBtn');
+  if (dbgBtn) dbgBtn.style.display = 'block';
+  // STG: pas de mot de passe, repere explicite sur l'ecran de connexion.
+  const passInput = document.getElementById('passwordInput');
+  if (passInput) passInput.style.display = 'none';
+  const psSub = document.querySelector('.ps-sub');
+  if (psSub) psSub.textContent = 'STG · Entre ton pseudo pour tester';
+  const brandTag = document.querySelector('.brand-tag');
+  if (brandTag && !brandTag.dataset.stgTagged) {
+    brandTag.dataset.stgTagged = '1';
+    brandTag.append(' · STG');
+  }
 }
 
 initEnvUI();
@@ -2909,7 +2923,9 @@ function toggleCompassArrows() {
 }
 
 function toggleCompassDebug() {
+  if (SUPABASE_ENV.name !== 'stg') return;
   const el = document.getElementById('compassDebug');
+  if (!el) return;
   const visible = el.style.display !== 'none';
   if (visible) {
     el.style.display = 'none';
@@ -3593,9 +3609,9 @@ function shareQuestResult() {
   const { questName, totalSecs, beaconCount, rank, total } = _qcData;
   const timeStr = _fmtDuration(totalSecs);
   const rankStr = rank && total ? ` · ${rank} sur ${total} joueurs` : '';
-  const text = `🏆 J'ai terminé la quête "${questName}" sur Urban3DQuest !\n📷 ${beaconCount} polaroids révélés · ⏱ ${timeStr}${rankStr}\n\nViens jouer : ${location.origin + location.pathname}`;
+  const text = `🏆 J'ai terminé la quête "${questName}" sur Urban 3D Quest !\n📷 ${beaconCount} polaroids révélés · ⏱ ${timeStr}${rankStr}\n\nViens jouer : ${location.origin + location.pathname}`;
   if (navigator.share) {
-    navigator.share({ title: 'Urban3DQuest — Quête accomplie !', text }).catch(() => {});
+    navigator.share({ title: 'Urban 3D Quest — Quête accomplie !', text }).catch(() => {});
   } else {
     navigator.clipboard && navigator.clipboard.writeText(text).then(() => {
       const btn = document.getElementById('qcShareBtn');
