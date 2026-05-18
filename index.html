@@ -549,7 +549,7 @@
     <span id="gpsLabel">GPS…</span>
   </span>
   <button id="tutorialMiniBtn" onclick="openQuickTutorial()" aria-label="Ouvrir le tutoriel">Aide</button>
-  <div class="brand-tag">Urban 3D Quest by <a href="https://www.instagram.com/jadikan/" target="_blank" rel="noopener noreferrer">Jadikan</a></div>
+  <div class="brand-tag">Un jeu de <a href="https://www.instagram.com/jadikan/" target="_blank" rel="noopener noreferrer">Jadikan</a></div>
   <span class="pseudo-chip clickable" id="headerPseudo" onclick="onHeaderPseudoClick()"></span>
 </header>
 <nav role="tablist" aria-label="Navigation principale">
@@ -770,11 +770,11 @@
     <div class="qt-grid">
       <div class="qt-card">
         <strong>Mode Quête</strong>
-        <span>Balises fixes dans la ville.<br>Approche-toi, scanne, révèle.</span>
+        <span>Balises fixes dans la ville.<br>Approche-toi, scanne, révèle.<br>Objectif : toutes les trouver.</span>
       </div>
       <div class="qt-card">
         <strong>Mode Flash</strong>
-        <span>Des Polaroids apparaissent en ville.<br>Premier à scanner, premier à gagner.</span>
+        <span>Trouves les petits Polaroids qui apparaissent dans la ville<br>Des Polaroids apparaissent aléatoirement en ville.<br>Chacun ne peut être capturé qu'une seule fois.<br>Premier à scanner, premier à gagner.</span>
       </div>
     </div>
     <div class="qt-actions">
@@ -1294,7 +1294,7 @@ function _doCheckin() {
     const t = treasures.find(t => t.id === targetId);
     if (!t) { _checkinError('Polaroid introuvable — il a peut-être été retiré.'); return; }
     if (t.found_by && t.found_by.split(',').includes(myPseudo)) {
-      _checkinError('Tu as déjà révélé cette balise polaroid. 📷'); return;
+      _checkinError('Tu as révélé cette balise polaroid. 📷'); return;
     }
     const dist = haversine(playerLat, playerLng, t.lat, t.lng);
     if (dist > proximityR) {
@@ -1842,7 +1842,7 @@ function requestGpsKick() {
 
 function startGeoWatch(forceRestart, preferredHighAccuracy) {
   if (!navigator.geolocation) {
-    document.getElementById('radarBar').textContent = 'GPS non disponible sur cet appareil';
+    document.getElementById('radarBar').textContent = 'GPS non disponible sur cet appareil.';
     updateGpsLoadingPanel();
     return;
   }
@@ -1976,6 +1976,8 @@ function updateRadar() {
     if (!uniqueLeft.length) {
       bar.textContent = '✅ Tous les Polaroids actifs ont été capturés.';
       bar.className = '';
+      const guideText = document.getElementById('modeGuideText');
+      if (guideText) guideText.textContent = "Plus rien à prendre pour l'instant. J'en poserai d'autres. Reste dans la partie.";
       fab.style.display = 'none';
       nearestFixed = null;
       lastHapticZone = null;
@@ -2074,7 +2076,7 @@ function updateRadar() {
     nearestFixed = null;
     if (lastHapticZone !== 'far') { lastHapticZone = 'far'; }
   } else if (dist > proximityR) {
-    bar.textContent = `Tu chauffes — il est tout près.${accStr}`;
+    bar.textContent = `Tu es dans la bonne zone. Cherche bien.${accStr}`;
     bar.className = 'near';
     fab.style.display = 'none';
     nearestFixed = null;
@@ -3911,7 +3913,7 @@ async function loadMoi() {
     }
   }
 
-  const pseudo = myPseudo || 'Invité';
+  const pseudo = myPseudo || 'Visiteur';
   const grad = pseudoGradient(pseudo);
   el.innerHTML = `
     <div class="moi-avatar" style="background:${grad}">${escHtml(pseudo.charAt(0))}</div>
