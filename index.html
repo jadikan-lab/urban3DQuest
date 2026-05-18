@@ -1423,6 +1423,7 @@ function setGameMode(mode) {
   applyMapHeadingRotation();
   updateCompass();
   updateGpsLoadingPanel();
+  if (activeTab === 'explore') updateRadar();
 }
 
 // Reconnexion depuis mode invité : rouvre l'écran pseudo
@@ -3516,6 +3517,10 @@ function showTab(name, btn) {
   if (name !== 'explore') document.getElementById('radarBar').style.display = 'none';
   const gpsKickBtn = document.getElementById('gpsKickBtn');
   if (gpsKickBtn) gpsKickBtn.style.display = (name === 'explore' && isIOSDevice() && playerLat === null) ? 'block' : 'none';
+  const modeGuideCopy = document.getElementById('modeGuideCopy');
+  if (modeGuideCopy) modeGuideCopy.style.display = (name === 'explore') ? 'block' : 'none';
+  const flashFab = document.getElementById('flashFab');
+  if (flashFab) flashFab.style.display = (name === 'explore' && activeGameMode === 'unique') ? 'block' : 'none';
   updateGpsLoadingPanel();
   if (name === 'explore') {
     setTimeout(() => gameMap && gameMap.invalidateSize(), 60);
