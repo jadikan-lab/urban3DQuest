@@ -34,9 +34,9 @@ async function _doProcessFind(treasureId) {
   const { data: dupEvent } = await db.from('events').select('id').eq('pseudo', myPseudo).eq('treasure_id', t.id).maybeSingle();
   if (dupEvent) { showFoundResult('already', t); return; }
 
-  // Calculate duration
-  // Calculate duration from max(placed_at, gameStart) to now
-  const refTime = gameStart && gameStart > new Date(t.placed_at) ? gameStart : new Date(t.placed_at);
+  // Calculate duration from max(gameStart, activation time) to now
+  const activationTime = t.activated_at ? new Date(t.activated_at) : new Date(t.placed_at);
+  const refTime = gameStart && gameStart > activationTime ? gameStart : activationTime;
   const durationSec = Math.max(0, Math.round((Date.now() - refTime.getTime()) / 1000));
 
   // Update treasure found_by

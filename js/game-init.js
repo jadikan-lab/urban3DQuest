@@ -324,7 +324,7 @@ async function loadTreasures() {
     treasures.filter(t => t.type === 'unique' && !(t.found_by && t.found_by.length > 0)).map(t => t.id)
   );
   const { data, error } = await db.from('treasures')
-    .select('id,type,lat,lng,label,hint,visible,photo_url,found_by,placed_at,quest')
+    .select('id,type,lat,lng,label,hint,visible,photo_url,found_by,placed_at,activated_at,quest')
     .eq('visible', true);
   if (error) {
     console.error('loadTreasures error:', error.message);
