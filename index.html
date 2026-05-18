@@ -3804,6 +3804,18 @@ function revealFixedClueFromSheet(id) {
 
 // ── Treasure sheet ───────────────────────────────────
 function openTreasureSheet(t) {
+  if (!myPseudo) {
+    const typeLabelGuest = t && t.type === "fixed" ? "Balise · Quête" : "Polaroid · Flash";
+    document.getElementById("tsBody").innerHTML = `
+      <div class="ts-top-row"><span class="ts-badge ts-badge-open">👀 Visiteur</span><span class="ts-type">${escHtml(typeLabelGuest)}</span></div>
+      <div class="ts-photos"><img src="icons/fab-flash.svg" class="ts-photo" alt="Miniature générique"></div>
+      <div class="ts-name">Connecte-toi</div>
+      <div class="ts-hint">🔒 Connecte-toi pour voir les indices et révéler les miniatures.</div>
+      <button class="ts-cta" onclick="closeTreasureSheet();onHeaderPseudoClick()">Se connecter</button>
+    `;
+    document.getElementById("treasureSheet").classList.add("open");
+    return;
+  }
   const isMine   = t.found_by && t.found_by.split(',').includes(myPseudo);
   const isTaken  = t.type === 'unique' && t.found_by && t.found_by.length > 0;
   const typeLabel = t.type === 'fixed' ? 'Polaroid · Quete' : 'Polaroid · Flash';
