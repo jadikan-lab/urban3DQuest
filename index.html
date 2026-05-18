@@ -977,7 +977,7 @@ function initEnvUI() {
   const passInput = document.getElementById('passwordInput');
   if (passInput) passInput.style.display = 'none';
   const psSub = document.querySelector('.ps-sub');
-  if (psSub) psSub.textContent = 'STG · J'ai caché des miniatures dans la ville. C'est à toi de les trouver.';
+  if (psSub) psSub.textContent = "STG · J'ai caché des miniatures dans la ville. C'est à toi de les trouver.";
   const brandTag = document.querySelector('.brand-tag');
   if (brandTag && !brandTag.dataset.stgTagged) {
     brandTag.dataset.stgTagged = '1';
@@ -2091,7 +2091,7 @@ function updateRadar() {
     if (t.photo_url && !revealedFixedClues.has(t.id)) {
       revealedFixedClues.add(t.id);
       if (myPseudo) localStorage.setItem(`u3dq_clues_${myPseudo}`, JSON.stringify([...revealedFixedClues]));
-      showFlashHint(t, 'C'est là. Regarde bien.', 'quest');
+      showFlashHint(t, "C'est là. Regarde bien.", 'quest');
     }
     if (activeTab === 'explore' && canCapture && gameMap) {
       const mapEl = document.getElementById('miniMap');
@@ -3135,7 +3135,7 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
         label.textContent = 'POLAROID RÉVÉLÉ';
         title.textContent = 'Révélé.';
         dur.textContent = durationSec != null ? formatDuration(durationSec) + ' depuis le début' : '';
-        desc.textContent = 'Tu as révélé tout ce que j'avais caché. Merci d'avoir cherché.';
+        desc.textContent = "Tu as révélé tout ce que j'avais caché. Merci d'avoir cherché.";
         db.from('config').select('key,value').then(({ data: cfgData }) => {
           if (!cfgData) return;
           const cfg = Object.fromEntries(cfgData.map(r => [r.key, r.value]));
@@ -3191,9 +3191,9 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
   } else {
     setFoundIcon('lock', 'danger');
     label.textContent = 'PRIS';
-    title.textContent = 'Quelqu'un est arrivé avant toi.';
+    title.textContent = "Quelqu'un est arrivé avant toi.";
     dur.textContent   = '';
-    desc.textContent  = 'D'autres Polaroids apparaissent régulièrement — surveille la carte.';
+    desc.textContent  = "D'autres Polaroids apparaissent régulièrement — surveille la carte.";
   }
   modal.classList.add('open');
   // Flash overlay on success
