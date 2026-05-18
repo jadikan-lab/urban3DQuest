@@ -47,7 +47,7 @@ function refreshEffectiveHeading() {
   const now = Date.now();
   const gpsCourseFresh = Number.isFinite(gpsCourseHeading) && gpsCourseSpeed >= 1.5 && (now - gpsCourseLastAt) <= 4500;
   const correctedSensorHeading = Number.isFinite(sensorHeading)
-    ? _normHeading(sensorHeading + headingAutoOffset)
+    ? _normHeading(sensorHeading)
     : null;
 
   // Auto-calibration: when moving with acceptable GPS accuracy, align compass axis to GPS course.
@@ -61,13 +61,14 @@ function refreshEffectiveHeading() {
     }
   }
 
-  const target = gpsCourseFresh ? gpsCourseHeading : correctedSensorHeading;
+  // Keep compass as source of truth for north; GPS course is fallback if compass is unavailable.
+  const target = Number.isFinite(correctedSensorHeading) ? correctedSensorHeading : (gpsCourseFresh ? gpsCourseHeading : null);
   if (!Number.isFinite(target)) {
     deviceHeading = null;
     headingSource = 'none';
     return;
   }
-  headingSource = gpsCourseFresh ? 'gps-course' : 'compass';
+  headingSource = Number.isFinite(correctedSensorHeading) ? 'compass' : 'gps-course';
   const factor = headingSource === 'gps-course' ? 0.38 : 0.26;
   deviceHeading = _smoothHeading(deviceHeading, target, factor);
 }

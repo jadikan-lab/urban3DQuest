@@ -196,8 +196,9 @@
     .cmp-hint{font-size:0.8rem;color:var(--cyan);margin-bottom:8px}
     .cmp-capture{width:100%;padding:10px;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:10px;color:#fff;font-weight:800;cursor:pointer;font-size:0.95rem;box-shadow:0 2px 12px rgba(34,197,94,.4);min-height:52px}
     /* ── Capture FAB ── */
-    #captureFab{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:74px;height:74px;min-height:74px;padding:0;background:radial-gradient(circle at 32% 32%,rgba(255,255,255,.96) 0%,rgba(220,228,240,.88) 55%,rgba(180,195,215,.82) 100%);border:4px solid rgba(15,23,42,.78);border-radius:999px;font-size:0;color:transparent;cursor:pointer;z-index:1100;box-shadow:0 10px 28px rgba(15,23,42,.35),0 0 0 2px rgba(255,255,255,.72) inset;display:none;letter-spacing:0;transition:transform 0.12s,box-shadow .2s;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+    #captureFab{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:74px;height:74px;min-height:74px;padding:0;background:radial-gradient(circle at 32% 32%,rgba(255,255,255,.97) 0%,rgba(34,211,238,.32) 55%,rgba(14,165,233,.42) 100%);border:4px solid #06b6d4;border-radius:999px;font-size:0;color:transparent;cursor:pointer;z-index:1100;box-shadow:var(--glow-cyan),0 0 0 2px rgba(255,255,255,.72) inset;display:none;letter-spacing:0;transition:transform 0.12s;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);animation:captureFabPulse 1.35s ease-in-out infinite}
     #captureFab:active{transform:translate(-50%,-50%) scale(0.93)}
+    @keyframes captureFabPulse{0%,100%{box-shadow:var(--glow-cyan),0 0 0 2px rgba(255,255,255,.72) inset}50%{box-shadow:0 0 20px rgba(34,211,238,.9),0 0 46px rgba(14,165,233,.42),0 0 0 2px rgba(255,255,255,.72) inset}}
     #flashFab{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);width:74px;height:74px;min-height:74px;padding:0;background:radial-gradient(circle at 32% 32%,rgba(255,255,255,.97) 0%,rgba(255,61,138,.28) 55%,rgba(200,30,90,.38) 100%);border:4px solid var(--magenta);border-radius:999px;font-size:0;color:transparent;cursor:pointer;z-index:1100;box-shadow:var(--glow-magenta),0 0 0 2px rgba(255,255,255,.72) inset;display:none;letter-spacing:0;transition:transform 0.12s;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);animation:flashFabPulse 1.2s ease-in-out infinite}
     #flashFab:active{transform:translateX(-50%) scale(0.93)}
     @keyframes flashFabPulse{0%,100%{box-shadow:var(--glow-magenta),0 0 0 2px rgba(255,255,255,.72) inset}50%{box-shadow:0 0 22px rgba(255,61,138,.95),0 0 54px rgba(255,61,138,.45),0 0 0 2px rgba(255,255,255,.72) inset}}
@@ -699,11 +700,11 @@
 <!-- ── Capture FAB (balises fixes GPS) ──────────────── -->
 <button id="captureFab" onclick="captureFixed()" aria-label="Déclencher l'obturateur">
   <svg viewBox="0 0 74 74" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none" aria-hidden="true">
-    <path d="M18 26V18h8" stroke="rgba(15,23,42,0.82)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M18 48v8h8" stroke="rgba(15,23,42,0.82)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M56 26V18h-8" stroke="rgba(15,23,42,0.82)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M56 48v8h-8" stroke="rgba(15,23,42,0.82)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="37" cy="37" r="8" fill="rgba(15,23,42,0.62)"/>
+    <path d="M18 26V18h8" stroke="rgba(255,255,255,0.95)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M18 48v8h8" stroke="rgba(255,255,255,0.95)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M56 26V18h-8" stroke="rgba(255,255,255,0.95)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M56 48v8h-8" stroke="rgba(255,255,255,0.95)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="37" cy="37" r="8" fill="rgba(255,255,255,0.9)"/>
   </svg>
 </button>
 
@@ -2222,7 +2223,7 @@ function refreshEffectiveHeading() {
   const now = Date.now();
   const gpsCourseFresh = Number.isFinite(gpsCourseHeading) && gpsCourseSpeed >= 1.5 && (now - gpsCourseLastAt) <= 4500;
   const correctedSensorHeading = Number.isFinite(sensorHeading)
-    ? _normHeading(sensorHeading + headingAutoOffset)
+    ? _normHeading(sensorHeading)
     : null;
 
   // Auto-calibration: when moving with acceptable GPS accuracy, align compass axis to GPS course.
@@ -2236,13 +2237,14 @@ function refreshEffectiveHeading() {
     }
   }
 
-  const target = gpsCourseFresh ? gpsCourseHeading : correctedSensorHeading;
+  // Keep compass as source of truth for north; GPS course is fallback if compass is unavailable.
+  const target = Number.isFinite(correctedSensorHeading) ? correctedSensorHeading : (gpsCourseFresh ? gpsCourseHeading : null);
   if (!Number.isFinite(target)) {
     deviceHeading = null;
     headingSource = 'none';
     return;
   }
-  headingSource = gpsCourseFresh ? 'gps-course' : 'compass';
+  headingSource = Number.isFinite(correctedSensorHeading) ? 'compass' : 'gps-course';
   const factor = headingSource === 'gps-course' ? 0.38 : 0.26;
   deviceHeading = _smoothHeading(deviceHeading, target, factor);
 }
