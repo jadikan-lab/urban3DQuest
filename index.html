@@ -581,7 +581,7 @@
 <!-- ── Explorer (carte + boussole fusionnées) ────────── -->
 <div id="panelExplore" class="panel active">
   <div id="miniMap" class="relative-wrap">
-    <button id="arrowToggleBtn" onclick="toggleCompassArrows()">Polaroids</button>
+    <button id="arrowToggleBtn" onclick="toggleCompassArrows()" hidden>Polaroids</button>
     <button id="locateMeBtn" onclick="recenterMap()" title="Recentrer sur ma position"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="10" r="2.5" fill="currentColor"/><line x1="10" y1="1" x2="10" y2="4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="10" y1="15.5" x2="10" y2="19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="1" y1="10" x2="4.5" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="15.5" y1="10" x2="19" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
     <div id="compassCorner" aria-label="Boussole">
       <div id="compassRose" aria-hidden="true">
@@ -1373,7 +1373,7 @@ function updateModeUI() {
       : 'Flash';
   }
 
-  if (arrowBtn) arrowBtn.style.display = activeGameMode === 'unique' ? 'block' : 'none';
+  if (arrowBtn) arrowBtn.style.display = 'none';
 
   if (miniMap) {
     miniMap.classList.toggle('mode-fixed', activeGameMode === 'fixed');
