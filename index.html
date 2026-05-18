@@ -1953,8 +1953,27 @@ function updateRadar() {
 
   const flashFabEl = document.getElementById('flashFab');
   if (!myPseudo) {
-    bar.textContent = '👀 Mode invité — carte visible · pas de score · tape en haut pour jouer';
-    bar.className = '';
+    const guideText = document.getElementById('modeGuideText');
+    if (activeGameMode === 'unique') {
+      const uniqueLeftGuest = treasures
+        .filter(t => t.type === 'unique')
+        .filter(t => !(t.found_by && t.found_by.length > 0));
+      const availableGuest = uniqueLeftGuest.length;
+      const guestCountText = availableGuest === 1
+        ? '1 Polaroid est actuellement à trouver en ville'
+        : `${availableGuest} Polaroids sont actuellement à trouver en ville`;
+
+      bar.textContent = `${guestCountText} · Connecte-toi pour scanner.`;
+      bar.className = '';
+      if (guideText) guideText.textContent = availableGuest === 1
+        ? '1 Polaroid est actuellement à trouver en ville.'
+        : `${availableGuest} Polaroids sont actuellement à trouver en ville.`;
+    } else {
+      bar.textContent = '👀 Mode invité — carte visible · pas de score · tape en haut pour jouer';
+      bar.className = '';
+      if (guideText) guideText.textContent = 'Balises fixes dans la ville. Approche-toi, scanne, révèle.';
+    }
+
     fab.style.display = 'none';
     flashFabEl.style.display = 'none';
     hideFlashHint();
@@ -1991,14 +2010,14 @@ function updateRadar() {
 
     const available = uniqueLeft.length;
     const cStr = available === 1
-  ? '1 miniature à trouver actuellement'
-  : `${available} miniatures à trouver actuellement`;
+  ? '1 Polaroid est actuellement à trouver en ville'
+  : `${available} Polaroids sont actuellement à trouver en ville`;
 
     // Update guide bar count
     const guideText = document.getElementById('modeGuideText');
     if (guideText) guideText.textContent = available === 1
-      ? '1 miniature à trouver actuellement.'
-      : `${available} miniatures à trouver actuellement.`;
+      ? '1 Polaroid est actuellement à trouver en ville.'
+      : `${available} Polaroids sont actuellement à trouver en ville.`;
 
     const uniqueDist = Math.round(nearestU.d);
     const flashFab = document.getElementById('flashFab');
