@@ -1,16 +1,6 @@
 // ── Supabase env + global state ─────────────────────
-const SUPABASE_ENVS = {
-  prod: {
-    label: 'PROD',
-    url: 'https://jocfvobqfpygixrawnbq.supabase.co',
-    key: 'sb_publishable_M8SxhXrmh17vrOf1WlOM6Q_ZNKNqQhM'
-  },
-  stg: {
-    label: 'STG',
-    url: 'https://uuofsgcwznuwcsaqsmzc.supabase.co',
-    key: 'sb_publishable_LzvsvuvfbJvIL8eynQIC4A_dbJ9A2CF'
-  }
-};
+// SUPABASE_ENVS est défini dans js/supabase-env.js (source de vérité).
+// Ce fichier suppose que supabase-env.js est chargé en premier.
 
 function resolveSupabaseEnv() {
   const params = new URLSearchParams(location.search);

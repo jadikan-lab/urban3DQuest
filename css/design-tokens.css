@@ -1,0 +1,35 @@
+/*
+ * Urban3DQuest — Design tokens partagés — SOURCE DE VÉRITÉ
+ *
+ * Contient uniquement les tokens identiques entre le jeu et l'admin.
+ * L'admin (urban3DQuest-admin/admin.html) en conserve une copie miroir :
+ * mettre à jour ici EN PREMIER, puis répercuter dans admin.html.
+ *
+ * Tokens NON inclus ici (valeurs différentes entre jeu et admin) :
+ *   --bg, --bg-2, --surface, --surface-2   (clair côté jeu, sombre côté admin)
+ *   --ink, --ink-2, --ink-3
+ *   --line, --line-2
+ */
+
+:root {
+  /* ── Couleurs d'accent ── */
+  --magenta: #ff3d8a;
+  --cyan:    #00e5ff;
+  --amber:   #ffb020;
+  --violet:  #a855f7;
+
+  /* ── Glow effects ── */
+  --glow-magenta: 0 0 14px rgba(255,61,138,0.55), 0 0 30px rgba(255,61,138,0.25);
+  --glow-cyan:    0 0 14px rgba(0,229,255,0.55),   0 0 30px rgba(0,229,255,0.25);
+  --glow-amber:   0 0 14px rgba(255,176,32,0.55),  0 0 30px rgba(255,176,32,0.25);
+  --glow-violet:  0 0 14px rgba(168,85,247,0.55),  0 0 30px rgba(168,85,247,0.25);
+
+  /* ── Typographie ── */
+  --display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --mono:    'JetBrains Mono', ui-monospace, monospace;
+
+  /* ── Border radius ── */
+  --radius-sm: 8px;
+  --radius:    14px;
+  --radius-lg: 22px;
+}

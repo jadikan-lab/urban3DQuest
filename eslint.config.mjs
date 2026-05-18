@@ -115,7 +115,18 @@ const projectGlobals = {
 
 export default [
   {
-    files: ["**/*.js", "**/*.mjs"],
+    files: ["**/*.mjs"],
+    ...js.configs.recommended,
+    rules: {
+      'no-unused-vars': ['error', { vars: 'local', args: 'after-used' }]
+    },
+    languageOptions: {
+      sourceType: 'module',
+      globals: { ...globals.node }
+    }
+  },
+  {
+    files: ["**/*.js"],
     ...js.configs.recommended,
     rules: {
       // Non-module project: top-level declarations are intentionally global.

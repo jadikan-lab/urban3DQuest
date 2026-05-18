@@ -72,8 +72,11 @@ proximityR       // proximity radius in meters (from config, default 100)
 ### Known bugs (do not regress)
 
 - `renderMarkers()` does not filter by `activeGameMode` — unique treasures appear on the map in Quête mode. Any change to marker rendering must add this filter.
-- Score is written to `players` directly from the client in `processFindById()`. A PostgreSQL trigger on `events` should eventually replace this.
 - GPS proximity check is client-side only in `_doCheckin()`.
+
+### Resolved (do not reintroduce)
+
+- ~~Score is written to `players` directly from the client in `processFindById()`.~~ Fixed: `find.js` inserts only an `events` row; the trigger `trg_events_sync_player_stats` (see `migration_add_score_trigger.sql`) recalculates `score` and `found_count` server-side. The client reads back the updated values from `players` after the insert.
 
 ## Commit conventions
 
