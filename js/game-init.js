@@ -323,9 +323,19 @@ async function loadTreasures() {
   const _prevAvailableFlash = new Set(
     treasures.filter(t => t.type === 'unique' && !(t.found_by && t.found_by.length > 0)).map(t => t.id)
   );
-  const { data, error } = await db.from('treasures')
+  let data = null;
+  let error = null;
+  ({ data, error } = await db.from('treasures')
     .select('id,type,lat,lng,label,hint,visible,photo_url,found_by,placed_at,activated_at,quest')
-    .eq('visible', true);
+    .eq('visible', true));
+  if (error && /activated_at/i.test(error.message || '')) {
+    // Backward-compatible fallback for environments where the migration was not applied yet.
+    const retry = await db.from('treasures')
+      .select('id,type,lat,lng,label,hint,visible,photo_url,found_by,placed_at,quest')
+      .eq('visible', true);
+    error = retry.error;
+    data = (retry.data || []).map(t => ({ ...t, activated_at: null }));
+  }
   if (error) {
     console.error('loadTreasures error:', error.message);
     const bar = document.getElementById('radarBar');

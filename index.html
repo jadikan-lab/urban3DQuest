@@ -1491,9 +1491,19 @@ async function loadTreasures() {
   const _prevAvailableFlash = new Set(
     treasures.filter(t => t.type === 'unique' && !(t.found_by && t.found_by.length > 0)).map(t => t.id)
   );
-  const { data, error } = await db.from('treasures')
+  let data = null;
+  let error = null;
+  ({ data, error } = await db.from('treasures')
     .select('id,type,lat,lng,label,hint,visible,photo_url,found_by,placed_at,activated_at,quest')
-    .eq('visible', true);
+    .eq('visible', true));
+  if (error && /activated_at/i.test(error.message || '')) {
+    // Backward-compatible fallback for environments where the migration was not applied yet.
+    const retry = await db.from('treasures')
+      .select('id,type,lat,lng,label,hint,visible,photo_url,found_by,placed_at,quest')
+      .eq('visible', true);
+    error = retry.error;
+    data = (retry.data || []).map(t => ({ ...t, activated_at: null }));
+  }
   if (error) {
     console.error('loadTreasures error:', error.message);
     const bar = document.getElementById('radarBar');
@@ -3370,6 +3380,17 @@ async function loadLeaderboard() {
   // ── My personal card ──
   const myData = rows.find(p => p.pseudo === myPseudo);
   const myRankNum = myData ? rows.indexOf(myData) + 1 : null;
+  _lbShareData = {
+    hasData: !!myData,
+    pseudo: myPseudo || '',
+    rank: myRankNum || null,
+    totalPlayers: rows.length,
+    fixedCount: myData ? myData.fixedCount : 0,
+    totalFixed: totalFixed || 0,
+    flashCount: myData ? myData.uniqueEvents.length : 0,
+    fixedDuration: myData && myData.allFixed ? myData.fixedDuration : null,
+    allFixed: myData ? !!myData.allFixed : false
+  };
   const myCardEl = document.getElementById('myCard');
   myCardEl.style.display = myPseudo ? 'block' : 'none';
   if (myData) {
@@ -3392,11 +3413,13 @@ async function loadLeaderboard() {
       </div>
       ${totalFixed > 0 ? `<div class="my-card-bar"><div class="${fillClass}" style="width:${pct}%"></div></div>` : ''}
       ${rewardTxt}
+      <button class="btn-share" id="scoreShareBtn" style="margin-top:10px;padding:11px 12px;font-size:0.88rem" onclick="shareScoreResult()">📤 Partager mon score</button>
     </div>`;
   } else {
     myCardEl.innerHTML = `<div class="my-card" style="text-align:center;padding:14px">
       <div class="my-card-pseudo">${escHtml(myPseudo)}</div>
       <div class="my-card-sub" style="margin-top:4px">Tu n'as pas encore révélé de polaroid — en avant !</div>
+      <button class="btn-share" id="scoreShareBtn" style="margin-top:10px;padding:11px 12px;font-size:0.88rem" onclick="shareScoreResult()">📤 Inviter mes amis</button>
     </div>`;
   }
 
@@ -3502,6 +3525,7 @@ function startLbPolling() {
 }
 
 let _lbActiveTab = 'quete';
+let _lbShareData = null;
 function switchLbTab(tab) {
   _lbActiveTab = tab;
   document.getElementById('lbTabQuete').classList.toggle('active', tab === 'quete');
@@ -3648,6 +3672,40 @@ function shareQuestResult() {
       const btn = document.getElementById('qcShareBtn');
       if (btn) { btn.textContent = '✓ Copié !'; setTimeout(() => { btn.textContent = '📤 Partager'; }, 2000); }
     });
+  }
+}
+
+function shareScoreResult() {
+  const d = _lbShareData;
+  if (!d || !myPseudo) return;
+  const playUrl = location.origin + location.pathname;
+  let text = '';
+  if (d.hasData) {
+    const rankTxt = d.rank && d.totalPlayers ? `#${d.rank}/${d.totalPlayers}` : '—';
+    const fixedTxt = d.totalFixed > 0 ? `${d.fixedCount}/${d.totalFixed}` : `${d.fixedCount}`;
+    const flashTxt = d.flashCount;
+    const timeTxt = d.allFixed && d.fixedDuration !== null ? ` · ⏱ ${formatDuration(d.fixedDuration)}` : '';
+    text = `🏙 Urban 3D Quest\n👤 ${d.pseudo}\n🏅 Rang Quête: ${rankTxt}\n📷 Balises fixes: ${fixedTxt}${timeTxt}\n⚡ Flash: ${flashTxt}\n\nViens jouer : ${playUrl}`;
+  } else {
+    text = `🏙 Je joue à Urban 3D Quest !\nRejoins-moi pour trouver les polaroids dans la ville.\n\n${playUrl}`;
+  }
+
+  if (navigator.share) {
+    navigator.share({ title: 'Urban 3D Quest — Mon score', text }).catch(() => {});
+    return;
+  }
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById('scoreShareBtn');
+      if (btn) {
+        const original = btn.textContent;
+        btn.textContent = '✓ Copié !';
+        setTimeout(() => {
+          btn.textContent = original && original.indexOf('Inviter') >= 0 ? '📤 Inviter mes amis' : '📤 Partager mon score';
+        }, 2000);
+      }
+    }).catch(() => {});
   }
 }
 

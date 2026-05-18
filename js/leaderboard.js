@@ -1,4 +1,6 @@
 // ── Leaderboard, tabs, panels ───────────────────────
+let _lbShareData = null;
+
 async function loadLeaderboard() {
   const el = document.getElementById('lbList');
   if (!el.dataset.loaded) {
@@ -72,6 +74,17 @@ async function loadLeaderboard() {
   // ── My personal card ──
   const myData = rows.find(p => p.pseudo === myPseudo);
   const myRankNum = myData ? rows.indexOf(myData) + 1 : null;
+  _lbShareData = {
+    hasData: !!myData,
+    pseudo: myPseudo || '',
+    rank: myRankNum || null,
+    totalPlayers: rows.length,
+    fixedCount: myData ? myData.fixedCount : 0,
+    totalFixed: totalFixed || 0,
+    flashCount: myData ? myData.uniqueEvents.length : 0,
+    fixedDuration: myData && myData.allFixed ? myData.fixedDuration : null,
+    allFixed: myData ? !!myData.allFixed : false
+  };
   const myCardEl = document.getElementById('myCard');
   myCardEl.style.display = myPseudo ? 'block' : 'none';
   if (myData) {
@@ -94,11 +107,13 @@ async function loadLeaderboard() {
       </div>
       ${totalFixed > 0 ? `<div class="my-card-bar"><div class="${fillClass}" style="width:${pct}%"></div></div>` : ''}
       ${rewardTxt}
+      <button class="btn-share" id="scoreShareBtn" style="margin-top:10px;padding:11px 12px;font-size:0.88rem" onclick="shareScoreResult()">📤 Partager mon score</button>
     </div>`;
   } else {
     myCardEl.innerHTML = `<div class="my-card" style="text-align:center;padding:14px">
       <div class="my-card-pseudo">${escHtml(myPseudo)}</div>
       <div class="my-card-sub" style="margin-top:4px">Tu n'as pas encore révélé de polaroid — en avant !</div>
+      <button class="btn-share" id="scoreShareBtn" style="margin-top:10px;padding:11px 12px;font-size:0.88rem" onclick="shareScoreResult()">📤 Inviter mes amis</button>
     </div>`;
   }
 

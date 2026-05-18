@@ -134,6 +134,40 @@ function shareQuestResult() {
   }
 }
 
+function shareScoreResult() {
+  const d = _lbShareData;
+  if (!d || !myPseudo) return;
+  const playUrl = location.origin + location.pathname;
+  let text = '';
+  if (d.hasData) {
+    const rankTxt = d.rank && d.totalPlayers ? `#${d.rank}/${d.totalPlayers}` : '—';
+    const fixedTxt = d.totalFixed > 0 ? `${d.fixedCount}/${d.totalFixed}` : `${d.fixedCount}`;
+    const flashTxt = d.flashCount;
+    const timeTxt = d.allFixed && d.fixedDuration !== null ? ` · ⏱ ${formatDuration(d.fixedDuration)}` : '';
+    text = `🏙 Urban 3D Quest\n👤 ${d.pseudo}\n🏅 Rang Quête: ${rankTxt}\n📷 Balises fixes: ${fixedTxt}${timeTxt}\n⚡ Flash: ${flashTxt}\n\nViens jouer : ${playUrl}`;
+  } else {
+    text = `🏙 Je joue à Urban 3D Quest !\nRejoins-moi pour trouver les polaroids dans la ville.\n\n${playUrl}`;
+  }
+
+  if (navigator.share) {
+    navigator.share({ title: 'Urban 3D Quest — Mon score', text }).catch(() => {});
+    return;
+  }
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById('scoreShareBtn');
+      if (btn) {
+        const original = btn.textContent;
+        btn.textContent = '✓ Copié !';
+        setTimeout(() => {
+          btn.textContent = original && original.indexOf('Inviter') >= 0 ? '📤 Inviter mes amis' : '📤 Partager mon score';
+        }, 2000);
+      }
+    }).catch(() => {});
+  }
+}
+
 function closeMoreMenu() {}
 function showTabFromMore(name) { showTab(name, null); }
 
