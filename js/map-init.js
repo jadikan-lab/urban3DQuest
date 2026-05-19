@@ -144,10 +144,10 @@ function renderMarkers() {
     const color   = isMine ? '#4ade80' : isTaken ? '#475569' : (t.type === 'unique' ? '#c084fc' : '#60a5fa');
     const opacity = isTaken && !isMine ? 0.4 : 1;
 
-    // Unique treasures not yet found: fuzzy circle — center is randomly OFFSET from
+    // Unique treasures still available: fuzzy circle — center is randomly OFFSET from
     // the real location (deterministic per treasure ID), so zooming in never reveals
     // the exact spot. The treasure is somewhere inside the circle, not at the center.
-    if (t.type === 'unique' && !isMine) {
+    if (t.type === 'unique' && !isMine && !isTaken) {
       // Deterministic pseudo-random offset from treasure ID (same result every render)
       let seed = 0;
       for (let i = 0; i < t.id.length; i++) seed = (seed * 31 + t.id.charCodeAt(i)) & 0xffffffff;
@@ -162,6 +162,20 @@ function renderMarkers() {
         fillOpacity: 0.18 * opacity, weight: 2, opacity: 0.75 * opacity
       }).addTo(gameMap).on('click', () => openTreasureSheet(t));
       mapMarkers[t.id] = c;
+      return;
+    }
+
+    // Unique treasures already taken by another player: keep an archive point visible
+    // so players can see flash history on the map.
+    if (t.type === 'unique' && !isMine && isTaken) {
+      mapMarkers[t.id] = L.circleMarker([t.lat, t.lng], {
+        radius: 6,
+        color: '#334155',
+        weight: 2,
+        fillColor: '#94a3b8',
+        fillOpacity: 0.92,
+        opacity: 0.95
+      }).addTo(gameMap).on('click', () => openTreasureSheet(t));
       return;
     }
 
