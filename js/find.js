@@ -281,7 +281,11 @@ function setFoundIcon(name, className) {
 function formatDuration(sec) {
   if (sec < 60)   return `${sec}s`;
   if (sec < 3600) return `${Math.floor(sec/60)}min ${sec%60}s`;
-  return `${Math.floor(sec/3600)}h ${Math.floor((sec%3600)/60)}min`;
+  if (sec < 86400) return `${Math.floor(sec/3600)}h ${Math.floor((sec%3600)/60)}min`;
+  const days = Math.floor(sec / 86400);
+  const hours = Math.floor((sec % 86400) / 3600);
+  const mins = Math.floor((sec % 3600) / 60);
+  return `${days}j ${hours}h ${mins}min`;
 }
 function pseudoGradient(pseudo) {
   let seed = 0;
