@@ -170,7 +170,14 @@ async function startGame() {
         return;
       }
       myScore = raced.score || 0; myFoundCount = raced.found_count || 0;
-      await db.from('players').update({ session_token: token }).eq('pseudo', pseudo);
+      const { error: sessionError } = await db.from('players').update({ session_token: token }).eq('pseudo', pseudo);
+      if (sessionError) {
+        err.textContent = 'Impossible de créer la session : ' + sessionError.message;
+        err.style.display = 'block';
+        document.getElementById('startBtn').disabled = false;
+        document.getElementById('startBtn').textContent = '🚀 Rejoindre le jeu';
+        return;
+      }
     }
   } else {
     // Existing player — verify password (PROD only)
@@ -184,7 +191,14 @@ async function startGame() {
     // If password_hash is empty (pre-auth player): accept any password and set it now (first-login claim)
     const updates = { session_token: token };
     if (!isStg && !existing.password_hash) updates.password_hash = hash;
-    await db.from('players').update(updates).eq('pseudo', pseudo);
+    const { error: sessionError } = await db.from('players').update(updates).eq('pseudo', pseudo);
+    if (sessionError) {
+      err.textContent = 'Impossible de créer la session : ' + sessionError.message;
+      err.style.display = 'block';
+      document.getElementById('startBtn').disabled = false;
+      document.getElementById('startBtn').textContent = '🚀 Rejoindre le jeu';
+      return;
+    }
     myScore      = existing.score      || 0;
     myFoundCount = existing.found_count || 0;
   }

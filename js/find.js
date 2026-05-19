@@ -2,6 +2,19 @@
 let _processingFind = false;
 const _inFlightCaptures = new Set(); // protection double-scan par balise
 
+async function _rollbackFoundBy(treasure, previousFoundBy, expectedFoundBy) {
+  const rollbackPayload = {
+    found_by: previousFoundBy,
+    found_at: treasure.found_at || null
+  };
+  const { error } = await db.from('treasures')
+    .update(rollbackPayload)
+    .eq('id', treasure.id)
+    .eq('found_by', expectedFoundBy)
+    .select('id');
+  return !error;
+}
+
 async function processFindById(treasureId) {
   if (_processingFind) return;
   if (_inFlightCaptures.has(treasureId)) return;
@@ -62,7 +75,13 @@ async function _doProcessFind(treasureId) {
       showFoundResult('already', t);
       return;
     }
-    _checkinError('Révélation enregistrée partiellement. Réessaie dans quelques secondes.');
+    // Keep treasure/events consistency when event insert fails.
+    const rolledBack = await _rollbackFoundBy(t, t.found_by || '', newFoundBy);
+    if (!rolledBack) {
+      _checkinError('Révélation enregistrée partiellement. Réessaie dans quelques secondes.');
+      return;
+    }
+    _checkinError('Révélation impossible pour le moment. Réessaie dans quelques secondes.');
     return;
   }
 
