@@ -33,6 +33,56 @@ Conseils pour humains
 - Utiliser des PRs pour modifications significatives et demander review.
 - Documenter toute modification de sécurité (Supabase/RLS) séparément.
 
+Convention équipe — Cache-buster + QA release
+---------------------------------------------
+
+Pourquoi
+--------
+- Eviter de tester un build ancien servi par cache.
+- Garantir que toute validation QA est faite sur la version réellement déployée.
+
+Format cache-buster (cb)
+------------------------
+- Toujours utiliser un cb neuf à chaque session QA.
+- Format obligatoire: <type>-<YYYYMMDD>-<HHmm>-<initiales>
+- Types recommandés: qa, hotfix, release
+- Exemples:
+  - qa-20260519-1415-gn
+  - release-20260519-1930-team
+
+Règles cb
+---------
+- Ne jamais réutiliser un ancien cb.
+- Ne pas tester avec des alias historiques (ex: qa-final-1).
+- Chaque personne QA utilise son propre suffixe (<initiales>).
+
+Protocole QA en 5 étapes (obligatoire)
+--------------------------------------
+1. Ouvrir l'app avec un cb neuf:
+	- PROD: index.html?env=prod&cb=<cb-neuf>
+	- STG:  index.html?env=stg&cb=<cb-neuf>
+2. Vérifier la version affichée dans l'UI avant tout test.
+3. Exécuter les parcours critiques:
+	- Connexion
+	- Capture (scan/QR)
+	- Scores + partage
+4. Vérifier la console navigateur:
+	- Aucun nouveau crash JS
+	- Noter les erreurs réseau récurrentes (si connues) sans les ignorer
+5. Journaliser le run QA dans le ticket/PR:
+	- URL exacte (avec cb)
+	- Version affichée
+	- Résultat des 3 parcours
+	- Anomalies restantes
+
+Checklist release rapide
+------------------------
+- cb neuf utilisé
+- version UI confirmée
+- 3 parcours OK
+- anomalies notées
+- go/no-go explicite
+
 Contact
 -------
 Le dépôt : https://github.com/jadikan-lab/urban3DQuest
