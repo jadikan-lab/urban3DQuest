@@ -83,6 +83,31 @@ Checklist release rapide
 - anomalies notées
 - go/no-go explicite
 
+Suivi de version (obligatoire)
+------------------------------
+
+Objectif
+--------
+- Savoir exactement ce qui est en prod.
+- Permettre un QA fiable avec une version visible dans l'UI.
+
+Règles
+------
+- La version affichée est définie dans `js/config.js` (`GAME_VERSION`).
+- Format: `vMAJOR.MINOR.PATCH` (SemVer).
+- `PATCH`: bugfix/comportement sans rupture.
+- `MINOR`: nouvelle fonctionnalité compatible.
+- `MAJOR`: changement cassant ou migration lourde.
+
+Process release conseillé
+------------------------
+1. Bump `GAME_VERSION` dans `js/config.js`.
+2. Ajouter une entrée dans `CHANGELOG.md`.
+3. Commit de release dédié (version + changelog).
+4. Push main.
+5. Créer un tag git `vX.Y.Z` correspondant.
+6. QA avec un `cb` neuf et vérification de la version UI.
+
 Contact
 -------
 Le dépôt : https://github.com/jadikan-lab/urban3DQuest
