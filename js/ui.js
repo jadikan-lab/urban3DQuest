@@ -1,10 +1,12 @@
 // ── Page Visibility API — pause timers en arrière-plan ──
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
+    if (_configRefreshInterval) { clearInterval(_configRefreshInterval); _configRefreshInterval = null; }
     if (lbInterval) { clearInterval(lbInterval); lbInterval = null; }
     stopCompassInterval();
     if (geoWatch !== null) { navigator.geolocation.clearWatch(geoWatch); geoWatch = null; }
   } else {
+    startConfigRefreshPolling();
     setTimeout(() => startGeoWatch(true), 300);
     if (myPseudo || activeTab === 'scores') startLbPolling();
     if (activeTab === 'explore') startCompassInterval();
@@ -14,6 +16,8 @@ document.addEventListener('visibilitychange', () => {
 });
 
 window.addEventListener('beforeunload', () => {
+  if (_configRefreshInterval) { clearInterval(_configRefreshInterval); _configRefreshInterval = null; }
+  if (gameSyncChannel && db && typeof db.removeChannel === 'function') db.removeChannel(gameSyncChannel);
   if (geoWatch !== null) navigator.geolocation.clearWatch(geoWatch);
   if (geoWatchdog) { clearInterval(geoWatchdog); geoWatchdog = null; }
 });
@@ -237,37 +241,90 @@ function _setOfflineBanner(isOffline) {
 window.addEventListener('online',  () => _setOfflineBanner(false));
 window.addEventListener('offline', () => _setOfflineBanner(true));
 
-// ── Periodic refresh (treasures + config) ────────────
-setInterval(async () => {
-  if (!navigator.onLine) { _setOfflineBanner(true); return; }
-  _setOfflineBanner(false);
-  try {
-    // Session guard: if another device logged in with same credentials, force re-login
-    if (myPseudo && myToken) {
-      const { data: sp } = await db.rpc('validate_player_session', { p_pseudo: myPseudo, p_session_token: myToken });
-      if (!sp || !sp.valid) {
-        localStorage.removeItem('u3dq_pseudo');
-        localStorage.removeItem('u3dq_token');
-        alert('⚠️ Ta session a été prise par un autre appareil. Reconnecte-toi.');
-        location.reload();
-        return;
+let gameSyncChannel = null;
+let _treasureRefreshTimer = null;
+let _leaderboardRefreshTimer = null;
+let _configRefreshInterval = null;
+
+function scheduleTreasureRefresh(delayMs = 0) {
+  if (_treasureRefreshTimer) clearTimeout(_treasureRefreshTimer);
+  _treasureRefreshTimer = setTimeout(() => {
+    _treasureRefreshTimer = null;
+    loadTreasures();
+  }, delayMs);
+}
+
+function scheduleLeaderboardRefresh(delayMs = 0) {
+  if (_leaderboardRefreshTimer) clearTimeout(_leaderboardRefreshTimer);
+  _leaderboardRefreshTimer = setTimeout(() => {
+    _leaderboardRefreshTimer = null;
+    loadLeaderboard();
+  }, delayMs);
+}
+
+function ensureGameRealtimeSync() {
+  if (gameSyncChannel) return gameSyncChannel;
+  if (!window.supabase || !db || typeof db.channel !== 'function') return null;
+
+  gameSyncChannel = db.channel('u3dq-game-sync');
+  gameSyncChannel
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, () => {
+      scheduleLeaderboardRefresh(150);
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'treasures' }, () => {
+      scheduleTreasureRefresh(150);
+      scheduleLeaderboardRefresh(250);
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'config' }, () => {
+      scheduleTreasureRefresh(150);
+      scheduleLeaderboardRefresh(250);
+      if (activeTab === 'explore') updateRadar();
+      if (activeTab === 'scores') loadLeaderboard();
+    })
+    .subscribe();
+
+  return gameSyncChannel;
+}
+
+function startConfigRefreshPolling() {
+  if (_configRefreshInterval) clearInterval(_configRefreshInterval);
+  if (document.hidden) return;
+
+  _configRefreshInterval = setInterval(async () => {
+    if (!navigator.onLine) {
+      _setOfflineBanner(true);
+      return;
+    }
+    _setOfflineBanner(false);
+    try {
+      // Session guard: if another device logged in with same credentials, force re-login
+      if (myPseudo && myToken) {
+        const { data: sp } = await db.rpc('validate_player_session', { p_pseudo: myPseudo, p_session_token: myToken });
+        if (!sp || !sp.valid) {
+          localStorage.removeItem('u3dq_pseudo');
+          localStorage.removeItem('u3dq_token');
+          alert('⚠️ Ta session a été prise par un autre appareil. Reconnecte-toi.');
+          location.reload();
+          return;
+        }
       }
+      const { data: cfg } = await db.from('config').select('key,value');
+      if (cfg) {
+        const c = Object.fromEntries(cfg.map(r => [r.key, r.value]));
+        if (c.gameActive === 'false') showPause();
+        else document.getElementById('pauseScreen').classList.remove('open');
+        if (c.proximityRadius) proximityR = Number(c.proximityRadius);
+      }
+      scheduleTreasureRefresh(0);
+      scheduleLeaderboardRefresh(0);
+    } catch {
+      _setOfflineBanner(true);
     }
-    const { data: cfg } = await db.from('config').select('*');
-    if (cfg) {
-      const c = Object.fromEntries(cfg.map(r => [r.key, r.value]));
-      if (c.gameActive === 'false') showPause();
-      else document.getElementById('pauseScreen').classList.remove('open');
-      if (c.proximityRadius) proximityR = Number(c.proximityRadius);
-    }
-    await loadTreasures();
-    renderMarkers();
-    updateRadar();
-    updateProgressBar();
-  } catch {
-    _setOfflineBanner(true);
-  }
-}, 15000);
+  }, 60000);
+}
+
+// ── Periodic refresh (treasures + config) ────────────
+startConfigRefreshPolling();
 
 // ── Nearest list ─────────────────────────────────────
 let _nearestTreasure = null;

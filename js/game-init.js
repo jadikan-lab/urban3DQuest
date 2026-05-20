@@ -36,6 +36,7 @@ async function initGame(pendingFoundId) {
   // Load treasures & init map
   await loadTreasures();
   initMap();
+  ensureGameRealtimeSync();
   batterySaverMode = !!localStorage.getItem('u3dq_bsaver');
   if (batterySaverMode) {
     const bso = document.getElementById('batterySaverOverlay');

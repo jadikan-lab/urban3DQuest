@@ -45,6 +45,18 @@ Selected via `?env=stg` URL param or `localStorage('u3dq_env')`:
 - `PROD`: full auth (password required, session token enforced)
 - `STG`: no password, session trusted from localStorage — body gets class `env-stg`, orange banner shown
 
+### Environment workflow rule (team)
+
+- Until game launch: work and validate directly in `PROD` first.
+- After first launch validation: copy current state to `STG` (preprod), then continue iterative changes in `STG` before promoting again.
+- If this rule conflicts with older notes or habits, this section is the source of truth.
+
+### Repository policy (team)
+
+- We use two code repositories only: `urban3DQuest` (game) and `urban3DQuest-admin` (admin).
+- We no longer maintain a separate staging code repository.
+- `STG` remains an environment, not a separate repo.
+
 ### Key global state
 
 ```js
