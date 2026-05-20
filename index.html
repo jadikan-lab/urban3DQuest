@@ -74,7 +74,6 @@
 <!-- ── Explorer (carte + boussole fusionnées) ────────── -->
 <div id="panelExplore" class="panel active">
   <div id="miniMap" class="relative-wrap">
-    <button id="arrowToggleBtn" onclick="toggleCompassArrows()" hidden>Polaroids</button>
     <button id="locateMeBtn" onclick="recenterMap()" title="Recentrer sur ma position"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="10" r="2.5" fill="currentColor"/><line x1="10" y1="1" x2="10" y2="4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="10" y1="15.5" x2="10" y2="19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="1" y1="10" x2="4.5" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="15.5" y1="10" x2="19" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
     <div id="compassCorner" aria-label="Boussole">
       <div id="compassRose" aria-hidden="true">
@@ -215,7 +214,7 @@
 <!-- ── Progress bar ──────────────────────────────────── -->
 <div id="progressBar">
   <div class="pb-label">
-    <span>📷 Polaroids révélés</span>
+    <span>📷 Polaroids trouvés</span>
     <strong id="pbCount">0 / 5</strong>
   </div>
   <div class="pb-track"><div class="pb-fill" id="pbFill" style="width:0%"></div></div>
@@ -263,11 +262,11 @@
     <div class="qt-grid">
       <div class="qt-card">
         <strong>Mode Quête</strong>
-        <span>Balises fixes dans la ville.<br>Approche-toi, scanne, révèle.<br>Objectif : toutes les trouver.</span>
+        <span>Balises fixes dans la ville.<br>Approche-toi, scanne, collectionne.<br>Objectif : toutes les trouver.</span>
       </div>
       <div class="qt-card">
         <strong>Mode Flash</strong>
-        <span>Trouves les petits Polaroids qui apparaissent dans la ville<br>Des Polaroids apparaissent aléatoirement en ville.<br>Chacun ne peut être capturé qu'une seule fois.<br>Premier à scanner, premier à gagner.</span>
+        <span>Trouves les petits Polaroids qui apparaissent dans la ville<br>Des Polaroids apparaissent aléatoirement en ville.<br>Chacun ne peut être cueilli qu'une seule fois.</span>
       </div>
     </div>
     <div class="qt-actions">

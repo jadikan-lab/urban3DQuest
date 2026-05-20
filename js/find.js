@@ -213,15 +213,15 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
       }
     } else {
       setFoundIcon('flash', 'flash');
-      label.textContent = 'FLASH !';
-      title.textContent = `Flash ! Tu es le seul à l'avoir.`;
+      label.textContent = 'Félicitation !';
+      title.textContent = `Tu es le premier à l'avoir trouvé`;
       dur.textContent   = formatDuration(durationSec);
       desc.textContent  = '';
     }
   } else if (status === 'already') {
     setFoundIcon('refresh', 'warn');
-    label.textContent = 'DÉJÀ RÉVÉLÉ';
-    title.textContent = 'Tu as déjà révélé ce polaroid.';
+    label.textContent = 'DÉJÀ FLASHÉ';
+    title.textContent = 'Tu as déjà flashé ce polaroid.';
     dur.textContent   = '';
     desc.textContent  = '';
   } else {
@@ -229,7 +229,7 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
     label.textContent = 'TROP TARD';
     title.textContent = 'Trop tard !';
     dur.textContent   = '';
-    desc.textContent  = 'Trop tard. Ce flash a déjà été pris.';
+    desc.textContent  = 'Trop tard. Ce flash trésor a déjà été pris.';
   }
   modal.classList.add('open');
   // Flash overlay on success

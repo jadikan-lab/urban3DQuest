@@ -282,8 +282,8 @@ function updateRadar() {
     // Update guide bar count
     const guideText = document.getElementById('modeGuideText');
     if (guideText) guideText.textContent = available === 1
-      ? '1 trésor disponible · sois le premier !'
-      : `${available} trésors disponibles · sois le premier !`;
+      ? 'il reste 1 miniature, dépèche toi'
+      : `${available} miniatures à cueillir · sois le premier !`;
 
     const uniqueDist = Math.round(nearestU.d);
     const flashFab = document.getElementById('flashFab');
@@ -298,7 +298,7 @@ function updateRadar() {
       if (lastHapticZone !== 'unique-capture') { lastHapticZone = 'unique-capture'; haptic([100, 50, 100, 50, 200]); }
     } else if (uniqueDist <= FLASH_HINT_M) {
       // Palier 2 — < 50m : photo indice révélée, pas encore de FAB
-      bar.textContent = `${cStr} · Cherche bien, il est là !${accStr}`;
+      bar.textContent = `${cStr} · Cherche bien, il n'est pas loin !${accStr}`;
       bar.className = 'very-near';
       nearestUnique = null;
       flashFab.style.display = 'none';

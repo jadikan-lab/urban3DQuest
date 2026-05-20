@@ -196,18 +196,15 @@ function updateHeader() {
 
 function updateModeUI() {
   const pbLabel = document.querySelector('#progressBar .pb-label span');
-  const arrowBtn = document.getElementById('arrowToggleBtn');
   const guideTitle = document.getElementById('modeGuideTitle');
   const guideText = document.getElementById('modeGuideText');
   const miniMap = document.getElementById('miniMap');
 
   if (pbLabel) {
     pbLabel.textContent = activeGameMode === 'fixed'
-      ? 'Polaroids révélés'
+      ? 'Polaroids trouvés'
       : 'Flash';
   }
-
-  if (arrowBtn) arrowBtn.style.display = activeGameMode === 'fixed' ? 'block' : 'none';
 
   if (miniMap) {
     miniMap.classList.toggle('mode-fixed', activeGameMode === 'fixed');
@@ -217,7 +214,7 @@ function updateModeUI() {
   if (guideTitle && guideText) {
     if (activeGameMode === 'fixed') {
       guideTitle.textContent = 'Mode Quête';
-      guideText.textContent = 'Balise fixe: approche-toi, trouve l\'objet et scanne.';
+      guideText.textContent = 'Approche toi pour trouver les balises fixes';
     } else {
       guideTitle.textContent = 'Mode Flash';
       guideText.textContent = 'Trésor unique: trouve l\'objet en premier.';

@@ -195,7 +195,7 @@ async function loadCarnet() {
       .order('created_at', { ascending: false });
     if (error) throw error;
     if (!evts || evts.length === 0) {
-      el.innerHTML = `<div class="cn-empty"><span class="cn-empty-icon">🌍</span><span class="cn-empty-label">Aucun polaroid révélé pour l’instant</span></div>`;
+      el.innerHTML = `<div class="cn-empty"><span class="cn-empty-icon">🌍</span><span class="cn-empty-label">Aucun polaroid trouvés pour l'instant</span></div>`;
       countEl.textContent = '';
       return;
     }
