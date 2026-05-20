@@ -244,8 +244,8 @@ setInterval(async () => {
   try {
     // Session guard: if another device logged in with same credentials, force re-login
     if (myPseudo && myToken) {
-      const { data: sp } = await db.from('players').select('session_token').eq('pseudo', myPseudo).single();
-      if (!sp || sp.session_token !== myToken) {
+      const { data: sp } = await db.rpc('validate_player_session', { p_pseudo: myPseudo, p_session_token: myToken });
+      if (!sp || !sp.valid) {
         localStorage.removeItem('u3dq_pseudo');
         localStorage.removeItem('u3dq_token');
         alert('⚠️ Ta session a été prise par un autre appareil. Reconnecte-toi.');

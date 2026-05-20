@@ -12,7 +12,7 @@ async function logoutPlayer() {
   if (!window.confirm('Se déconnecter de Urban3DQuest ?\nTon score est sauvegardé, tu pourras te reconnecter avec le même pseudo et mot de passe.')) return;
   const pseudo = myPseudo;
   if (pseudo) {
-    await db.from('players').update({ session_token: null }).eq('pseudo', pseudo);
+    await db.rpc('clear_player_session', { p_pseudo: pseudo });
     localStorage.removeItem(`u3dq_clues_${pseudo}`);
     localStorage.removeItem(`u3dq_first_fixed_at_${pseudo}`);
   }
@@ -79,9 +79,9 @@ window.addEventListener('load', async () => {
       initGame(foundId);
       return;
     }
-    const { data: p } = await db.from('players').select('session_token,score,found_count').eq('pseudo', myPseudo).single();
     const storedToken = localStorage.getItem('u3dq_token');
-    if (!p || !storedToken || p.session_token !== storedToken) {
+    const { data: session } = await db.rpc('validate_player_session', { p_pseudo: myPseudo, p_session_token: storedToken });
+    if (!session || !session.valid) {
       // Session expired or taken over by another device
       localStorage.removeItem('u3dq_pseudo');
       localStorage.removeItem('u3dq_token');
@@ -90,8 +90,8 @@ window.addEventListener('load', async () => {
       if (errEl) { errEl.textContent = 'Ta session a expiré ou un autre appareil t\'a déconnecté. Reconnecte-toi.'; errEl.style.display = 'block'; }
       // Fall through to show landing screen
     } else {
-      myScore      = p.score      || 0;
-      myFoundCount = p.found_count || 0;
+      myScore      = session.score      || 0;
+      myFoundCount = session.found_count || 0;
       document.getElementById('pseudoScreen').style.display = 'none';
       document.getElementById('bgMap').style.display = 'none';
       if (checkin) sessionStorage.setItem('pendingCheckin', checkinId);
@@ -145,63 +145,22 @@ async function startGame() {
   const hash  = isStg ? null : await sha256(pass);
   const token = crypto.randomUUID();
 
-  // Check/insert player
-  const { data: existing } = await db.from('players').select('pseudo,score,found_count,password_hash').eq('pseudo', pseudo).single();
-  if (!existing) {
-    // New player — register
-    const insertData = { pseudo, joined_at: new Date().toISOString(), score: 0, found_count: 0, session_token: token };
-    if (!isStg) insertData.password_hash = hash;
-    const { error } = await db.from('players').insert(insertData);
-    if (error && error.code !== '23505') {
-      err.textContent = 'Erreur réseau : ' + error.message;
-      err.style.display = 'block';
-      document.getElementById('startBtn').disabled = false;
-      document.getElementById('startBtn').textContent = '🚀 Rejoindre le jeu';
-      return;
-    }
-    if (error) {
-      // Race: pseudo registered between our read and insert → treat as login
-      const { data: raced } = await db.from('players').select('pseudo,score,found_count,password_hash').eq('pseudo', pseudo).single();
-      if (!raced || (!isStg && raced.password_hash && raced.password_hash !== hash)) {
-        err.textContent = 'Pseudo déjà pris — choisis-en un autre ou entre ton mot de passe.';
-        err.style.display = 'block';
-        document.getElementById('startBtn').disabled = false;
-        document.getElementById('startBtn').textContent = '🚀 Rejoindre le jeu';
-        return;
-      }
-      myScore = raced.score || 0; myFoundCount = raced.found_count || 0;
-      const { error: sessionError } = await db.from('players').update({ session_token: token }).eq('pseudo', pseudo);
-      if (sessionError) {
-        err.textContent = 'Impossible de créer la session : ' + sessionError.message;
-        err.style.display = 'block';
-        document.getElementById('startBtn').disabled = false;
-        document.getElementById('startBtn').textContent = '🚀 Rejoindre le jeu';
-        return;
-      }
-    }
-  } else {
-    // Existing player — verify password (PROD only)
-    if (!isStg && existing.password_hash && existing.password_hash !== hash) {
-      err.textContent = 'Mot de passe incorrect.';
-      err.style.display = 'block';
-      document.getElementById('startBtn').disabled = false;
-      document.getElementById('startBtn').textContent = '🚀 Rejoindre le jeu';
-      return;
-    }
-    // If password_hash is empty (pre-auth player): accept any password and set it now (first-login claim)
-    const updates = { session_token: token };
-    if (!isStg && !existing.password_hash) updates.password_hash = hash;
-    const { error: sessionError } = await db.from('players').update(updates).eq('pseudo', pseudo);
-    if (sessionError) {
-      err.textContent = 'Impossible de créer la session : ' + sessionError.message;
-      err.style.display = 'block';
-      document.getElementById('startBtn').disabled = false;
-      document.getElementById('startBtn').textContent = '🚀 Rejoindre le jeu';
-      return;
-    }
-    myScore      = existing.score      || 0;
-    myFoundCount = existing.found_count || 0;
+  const { data: authResult } = await db.rpc('authenticate_player', {
+    p_pseudo: pseudo,
+    p_password_hash: hash,
+    p_session_token: token,
+    p_is_stg: isStg
+  });
+  if (!authResult?.ok) {
+    err.textContent = authResult?.message || 'Connexion impossible.';
+    err.style.display = 'block';
+    document.getElementById('startBtn').disabled = false;
+    document.getElementById('startBtn').textContent = '🚀 Rejoindre le jeu';
+    return;
   }
+
+  myScore      = authResult.score      || 0;
+  myFoundCount = authResult.found_count || 0;
 
   myPseudo = pseudo;
   myToken  = token;
