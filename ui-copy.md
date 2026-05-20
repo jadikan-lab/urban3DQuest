@@ -43,11 +43,11 @@ NAV_SCORES:         Scores
 
 ```
 GUIDE_QUETE_TITRE:       Mode Quête
-GUIDE_QUETE_SOUS:        Balise fixe: approche-toi, trouve l'objet et scanne.
+GUIDE_QUETE_SOUS:        Approche toi pour trouver les balises fixes
 
 GUIDE_FLASH_TITRE:       Mode Flash
-GUIDE_FLASH_SOUS_SOLO:   1 trésor disponible · sois le premier !
-GUIDE_FLASH_SOUS_MULTI:  {N} trésors disponibles · sois le premier !
+GUIDE_FLASH_SOUS_SOLO:   il reste 1 miniature, dépèche toi
+GUIDE_FLASH_SOUS_MULTI:  {N} miniatures à cueillir · sois le premier !
 ```
 
 ---
@@ -194,6 +194,16 @@ COMPLETE_STATS_TEMPS:      Temps
 COMPLETE_STATS_RANG:       Rang
 COMPLETE_SHARE:   📤 Partager
 COMPLETE_CTA:     Continuer
+```
+
+---
+
+## BARRE DE PROGRESSION — Mode Quête uniquement
+
+> S'affiche en bas de l'écran uniquement dans l'onglet Quête (pas en Compte ni Scores).
+
+```
+PROGRES_LABEL:    📷 Polaroids trouvés
 ```
 
 ---

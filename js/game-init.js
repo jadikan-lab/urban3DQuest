@@ -202,7 +202,7 @@ function updateModeUI() {
 
   if (pbLabel) {
     pbLabel.textContent = activeGameMode === 'fixed'
-      ? 'Polaroids trouvés'
+      ? 'Balises trouvés'
       : 'Flash';
   }
 

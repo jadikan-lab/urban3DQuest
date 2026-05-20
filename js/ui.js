@@ -29,13 +29,17 @@ function showTab(name, btn) {
   document.querySelectorAll('nav button').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
   document.getElementById('panel' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
   if (btn) { btn.classList.add('active'); btn.setAttribute('aria-selected', 'true'); }
-  if (name !== 'explore') document.getElementById('radarBar').style.display = 'none';
+  if (name !== 'explore') {
+    document.getElementById('radarBar').style.display = 'none';
+    document.getElementById('progressBar').style.display = 'none';
+  }
   const gpsKickBtn = document.getElementById('gpsKickBtn');
   if (gpsKickBtn) gpsKickBtn.style.display = (name === 'explore' && isIOSDevice() && playerLat === null) ? 'block' : 'none';
   updateGpsLoadingPanel();
   if (name === 'explore') {
     setTimeout(() => gameMap && gameMap.invalidateSize(), 60);
     startCompassInterval();
+    updateProgressBar();
     updateRadar();
     _updateRadarBg();
     applyExploreMapLock();
