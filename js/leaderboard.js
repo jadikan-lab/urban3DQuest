@@ -2,8 +2,10 @@
 let _lbShareData = null;
 
 async function _fetchLeaderboardData() {
+  let evQuery = db.from('events').select('pseudo,treasure_id,treasure_type,duration_sec,created_at').order('created_at', { ascending: true });
+  if (gameStart) evQuery = evQuery.gte('created_at', gameStart.toISOString());
   const [evRes, cfgRes] = await Promise.all([
-    db.from('events').select('pseudo,treasure_id,treasure_type,duration_sec,created_at').order('created_at', { ascending: true }),
+    evQuery,
     db.from('config').select('key,value')
   ]);
   if (evRes.error) throw new Error('Supabase : ' + evRes.error.message);

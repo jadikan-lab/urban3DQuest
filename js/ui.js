@@ -320,7 +320,7 @@ function startConfigRefreshPolling() {
         if (c.proximityRadius) proximityR = Number(c.proximityRadius);
       }
       scheduleTreasureRefresh(0);
-      scheduleLeaderboardRefresh(0);
+      if (activeTab === 'scores') scheduleLeaderboardRefresh(0);
     } catch {
       _setOfflineBanner(true);
     }
