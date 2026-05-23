@@ -6,8 +6,8 @@
 const SUPABASE_ENVS = {
   prod: {
     label: 'PROD',
-    url: 'https://jocfvobqfpygixrawnbq.supabase.co',
-    key: 'sb_publishable_M8SxhXrmh17vrOf1WlOM6Q_ZNKNqQhM'
+    url: 'https://uchzuvmfbgxafcziayvg.supabase.co',
+    key: 'sb_publishable_nT1dMZd7U4WNLnn4m3scuA_uNXouYXD'
   },
   stg: {
     label: 'STG',
