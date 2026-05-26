@@ -1,6 +1,7 @@
 // ── Find processing & UI feedback ───────────────────
 let _processingFind = false;
 const _inFlightCaptures = new Set(); // protection double-scan par balise
+window._uniqueCaptureShareData = window._uniqueCaptureShareData || null;
 
 async function _rollbackFoundBy(treasure, previousFoundBy, expectedFoundBy) {
   const rollbackPayload = {
@@ -138,6 +139,14 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
   const title  = document.getElementById('foundTitle');
   const dur    = document.getElementById('foundDuration');
   const desc   = document.getElementById('foundDesc');
+  const sharePanel = document.getElementById('foundSharePanel');
+  const shareBtn = document.getElementById('foundShareCaptureBtn');
+  const inviteBtn = document.getElementById('foundInviteBtn');
+
+  window._uniqueCaptureShareData = null;
+  if (sharePanel) sharePanel.classList.add('field-hidden');
+  if (shareBtn) shareBtn.textContent = 'Partager ma capture';
+  if (inviteBtn) inviteBtn.textContent = 'Inviter mes amis';
 
   // Show photos if available and found
   const photoStrip = document.getElementById('foundPhotoStrip');
@@ -213,10 +222,21 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
       }
     } else {
       setFoundIcon('flash', 'flash');
-      label.textContent = 'Félicitation !';
-      title.textContent = `Tu es le premier à l'avoir trouvé`;
+      label.textContent = 'CAPTURÉ';
+      title.textContent = 'Trésor unique capturé !';
       dur.textContent   = formatDuration(durationSec);
-      desc.textContent  = '';
+      desc.textContent  = 'Partage la capture ou invite d’autres joueurs à rejoindre la chasse.';
+      window._uniqueCaptureShareData = {
+        id: t.id,
+        label: tLabel(t),
+        quest: t.quest || '',
+        durationSec: durationSec || 0,
+        durationText: durationSec != null ? formatDuration(durationSec) : '',
+        shareUrl: location.origin + location.pathname,
+        pseudo: myPseudo || '',
+        photoUrl: t.photo_url || ''
+      };
+      if (sharePanel) sharePanel.classList.remove('field-hidden');
     }
   } else if (status === 'already') {
     setFoundIcon('refresh', 'warn');

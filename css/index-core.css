@@ -141,6 +141,13 @@
     /* ── Found modal flash overlay ── */
     #foundFlashOverlay{position:absolute;inset:0;border-radius:var(--radius-lg);background:#fff;pointer-events:none;opacity:0;z-index:10}
     #foundFlashOverlay.flash{animation:foundFlashAnim .55s ease-out forwards}
+    .found-share{margin:6px 0 2px;padding:14px;border-radius:16px;background:linear-gradient(180deg,rgba(255,61,138,.08),rgba(0,229,255,.06));border:1px solid rgba(255,61,138,.18);position:relative;z-index:12}
+    .found-share-kicker{font-family:var(--mono);font-size:0.68rem;letter-spacing:.12em;color:var(--magenta);font-weight:800;margin-bottom:4px}
+    .found-share-title{font-size:1rem;font-weight:800;color:var(--ink);line-height:1.35;margin-bottom:5px}
+    .found-share-text{font-size:0.82rem;color:var(--ink-2);line-height:1.45}
+    .found-share-actions{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+    .found-share-actions > *{width:100%}
+    .found-share-link{min-height:54px}
     @keyframes foundFlashAnim{0%{opacity:.85}100%{opacity:0}}
     /* ── Leaderboard tabs ── */
     #lbTabs{display:flex;gap:0;margin-bottom:10px;border:1px solid var(--line-2);border-radius:12px;overflow:hidden;background:var(--bg)}
