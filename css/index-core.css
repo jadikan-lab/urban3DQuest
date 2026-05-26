@@ -6,6 +6,7 @@
       --line:rgba(26,24,38,0.07);--line-2:rgba(26,24,38,0.14);
       --map-bg:#f0ede8;--map-stroke:rgba(26,24,38,0.07);--map-water:#e8e4dc;--map-ink:rgba(26,24,38,0.55);
     }
+    html{font-size:clamp(16px,4.2vw,17px)}
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:var(--display);font-weight:500;background:var(--bg);color:var(--ink);height:100dvh;overflow:hidden;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top);-webkit-font-smoothing:antialiased}
     #bgMap{position:fixed;inset:0;z-index:0}
@@ -29,12 +30,12 @@
     /* ── Header ── */
     header{background:var(--bg);padding:2px 8px;display:flex;align-items:center;gap:4px;border-bottom:1px solid var(--line);min-height:44px}
     header h1{display:none}
-    .brand-tag{flex:1;min-width:0;text-align:center;font-family:var(--mono);font-size:0.54rem;letter-spacing:.04em;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .brand-tag{flex:1;min-width:0;text-align:center;font-family:var(--mono);font-size:0.72rem;letter-spacing:.04em;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .brand-tag a{color:var(--magenta);font-weight:700;text-decoration:none}
     .brand-tag a:active{opacity:.8}
-    .pseudo-chip{background:rgba(0,229,255,0.12);color:var(--cyan);padding:2px 7px;border-radius:12px;font-size:0.68rem;font-weight:700;font-family:var(--mono)}
+    .pseudo-chip{background:rgba(0,229,255,0.12);color:var(--cyan);padding:2px 7px;border-radius:12px;font-size:0.75rem;font-weight:700;font-family:var(--mono)}
     /* ── GPS chip — point de statut ── */
-    #gpsChip{display:flex;align-items:center;gap:5px;padding:1px 7px;border-radius:12px;font-size:0.68rem;font-weight:700;background:var(--surface);border:1px solid var(--line-2);color:var(--ink-2);cursor:default;transition:all 0.4s;font-family:var(--mono);min-height:24px}
+    #gpsChip{display:flex;align-items:center;gap:5px;padding:1px 7px;border-radius:12px;font-size:0.75rem;font-weight:700;background:var(--surface);border:1px solid var(--line-2);color:var(--ink-2);cursor:default;transition:all 0.4s;font-family:var(--mono);min-height:24px}
     #gpsDot{width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:inherit;transition:color 0.4s,filter 0.4s}
     #gpsDot svg{width:14px;height:14px;display:block;stroke:currentColor;fill:none}
     #gpsChip.gps-ok{border-color:#16a34a;color:#4ade80;background:rgba(22,163,74,.12)}
@@ -43,14 +44,14 @@
     #gpsChip.gps-mid #gpsDot{color:#fbbf24}
     #gpsChip.gps-bad{border-color:#dc2626;color:#f87171;background:rgba(220,38,38,.15);animation:pulse 0.8s infinite}
     #gpsChip.gps-bad #gpsDot{color:#f87171}
-    #tutorialMiniBtn{display:none;align-items:center;justify-content:center;min-height:28px;padding:2px 8px;border-radius:10px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink-2);font-size:0.68rem;font-weight:800;font-family:var(--mono);cursor:pointer;white-space:nowrap}
+    #tutorialMiniBtn{display:none;align-items:center;justify-content:center;min-height:28px;padding:2px 8px;border-radius:10px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink-2);font-size:0.75rem;font-weight:800;font-family:var(--mono);cursor:pointer;white-space:nowrap}
     #tutorialMiniBtn:active{opacity:.8}
     /* ── Navigation ── */
     nav{display:flex;background:var(--surface);border-bottom:1px solid var(--line-2);padding:0 1px;min-height:42px}
-    nav button{flex:1;padding:4px 2px;min-height:42px;background:none;border:none;color:var(--ink-3);font-size:0.74rem;font-weight:800;cursor:pointer;letter-spacing:0.01em;transition:color 0.15s,background 0.15s;display:flex;flex-direction:column;align-items:center;gap:0;font-family:var(--display)}
+    nav button{flex:1;padding:4px 2px;min-height:42px;background:none;border:none;color:var(--ink-3);font-size:0.82rem;font-weight:800;cursor:pointer;letter-spacing:0.01em;transition:color 0.15s,background 0.15s;display:flex;flex-direction:column;align-items:center;gap:0;font-family:var(--display)}
     .nav-icon{display:flex;align-items:center;justify-content:center;width:18px;height:18px}
     .nav-icon svg{width:18px;height:18px}
-    .nav-label{font-size:0.62rem;font-weight:800;letter-spacing:.01em;line-height:1}
+    .nav-label{font-size:0.72rem;font-weight:800;letter-spacing:.01em;line-height:1}
     nav button.active{color:var(--magenta);border-bottom:2px solid var(--magenta);background:rgba(255,61,138,.08);font-weight:800}
     nav button:active{background:rgba(26,24,38,.05)}
     .field-spaced{margin-top:0;margin-bottom:12px}
