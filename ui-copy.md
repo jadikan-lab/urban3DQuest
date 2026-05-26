@@ -203,7 +203,7 @@ COMPLETE_CTA:     Continuer
 > S'affiche en bas de l'écran uniquement dans l'onglet Quête (pas en Compte ni Scores).
 
 ```
-PROGRES_LABEL:    📷 Polaroids trouvés
+PROGRES_LABEL:    📷 Balises trouvées
 ```
 
 ---

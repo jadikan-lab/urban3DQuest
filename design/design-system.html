@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Urban3DQuest — Design System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/design-tokens.css">
+  <style>
+    /* ── Thème jeu (light) ─────────────────────────── */
+    :root {
+      --bg: #f4f1ec;
+      --bg-2: #ede9e3;
+      --surface: #ffffff;
+      --surface-2: #f8f5f0;
+      --ink: #1a1826;
+      --ink-2: #5a5568;
+      --ink-3: #9d97a8;
+      --line: rgba(26,24,38,0.07);
+      --line-2: rgba(26,24,38,0.14);
+    }
+
+    /* ── Thème admin (dark) — activé via body.dark ── */
+    body.dark {
+      --bg: #050610;
+      --bg-2: #0a0c1a;
+      --surface: #0f1124;
+      --surface-2: #161830;
+      --ink: #f4f1ec;
+      --ink-2: #b8b3c4;
+      --ink-3: #6e6a82;
+      --line: rgba(255,255,255,0.06);
+      --line-2: rgba(255,255,255,0.12);
+    }
+
+    /* ── Reset & base ──────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--display);
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ── Layout ────────────────────────────────────── */
+    .ds-header {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--surface);
+      border-bottom: 1px solid var(--line-2);
+      padding: 14px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px;
+    }
+    .ds-header-title {
+      font-family: var(--mono); font-size: 0.78rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.12em; color: var(--magenta);
+    }
+    .ds-header-sub {
+      font-size: 0.72rem; color: var(--ink-3); font-family: var(--mono);
+    }
+    .ds-theme-toggle {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.72rem; font-family: var(--mono); color: var(--ink-2);
+    }
+    .ds-theme-toggle button {
+      padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line-2);
+      background: var(--bg); color: var(--ink-2); font-family: var(--mono);
+      font-size: 0.72rem; font-weight: 700; cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .ds-theme-toggle button.active {
+      background: var(--ink); color: var(--bg); border-color: var(--ink);
+    }
+
+    .ds-toc {
+      position: sticky; top: 57px; z-index: 90;
+      background: var(--bg-2); border-bottom: 1px solid var(--line);
+      padding: 0 24px; display: flex; gap: 0; overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .ds-toc::-webkit-scrollbar { display: none; }
+    .ds-toc a {
+      display: block; padding: 10px 14px; font-family: var(--mono);
+      font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--ink-3); text-decoration: none;
+      white-space: nowrap; border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .ds-toc a:hover { color: var(--ink); border-bottom-color: var(--line-2); }
+
+    .ds-main { max-width: 900px; margin: 0 auto; padding: 40px 24px 80px; }
+
+    .ds-section { margin-bottom: 56px; }
+    .ds-section-title {
+      font-family: var(--mono); font-size: 0.7rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-3);
+      border-bottom: 1px solid var(--line-2); padding-bottom: 10px; margin-bottom: 24px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .ds-section-title::before {
+      content: ''; display: block; width: 3px; height: 14px;
+      background: var(--magenta); border-radius: 2px;
+    }
+
+    .ds-row {
+      display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .ds-col { flex: 1; min-width: 220px; }
+
+    .ds-label {
+      font-family: var(--mono); font-size: 0.64rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3);
+      margin-bottom: 6px;
+    }
+    .ds-value {
+      font-family: var(--mono); font-size: 0.74rem; color: var(--cyan);
+    }
+
+    /* ── Color swatches ──────────────────────────── */
+    .ds-swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+    .ds-swatch {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 6px; width: 80px;
+    }
+    .ds-swatch-circle {
+      width: 56px; height: 56px; border-radius: 50%;
+      border: 1px solid var(--line-2); flex-shrink: 0;
+    }
+    .ds-swatch-name {
+      font-family: var(--mono); font-size: 0.62rem; font-weight: 700;
+      text-transform: uppercase; color: var(--ink-2); text-align: center;
+    }
+    .ds-swatch-hex {
+      font-family: var(--mono); font-size: 0.6rem; color: var(--ink-3);
+      text-align: center;
+    }
+
+    /* ── Neutral palette (contextual) ─────────────── */
+    .ds-neutral-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 8px;
+    }
+    .ds-neutral-swatch {
+      height: 48px; border-radius: var(--radius-sm);
+      border: 1px solid var(--line-2);
+      display: flex; align-items: flex-end; justify-content: flex-start;
+      padding: 6px 8px;
+      font-family: var(--mono); font-size: 0.62rem; font-weight: 700;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ── Glow samples ─────────────────────────────── */
+    .ds-glow-grid { display: flex; flex-wrap: wrap; gap: 12px; }
+    .ds-glow-box {
+      width: 100px; height: 64px; border-radius: var(--radius);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono); font-size: 0.64rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      background: var(--surface); border: 1px solid var(--line-2);
+    }
+
+    /* ── Typography scale ─────────────────────────── */
+    .ds-type-row {
+      padding: 12px 0; border-bottom: 1px solid var(--line);
+      display: flex; align-items: baseline; gap: 16px;
+    }
+    .ds-type-row:last-child { border-bottom: none; }
+    .ds-type-meta {
+      min-width: 160px; font-family: var(--mono); font-size: 0.62rem;
+      color: var(--ink-3); flex-shrink: 0; line-height: 1.4;
+    }
+
+    /* ── Radius swatches ──────────────────────────── */
+    .ds-radius-grid { display: flex; gap: 16px; flex-wrap: wrap; }
+    .ds-radius-box {
+      background: var(--surface-2); border: 1.5px solid var(--line-2);
+      padding: 20px 28px;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+    }
+    .ds-radius-label {
+      font-family: var(--mono); font-size: 0.64rem; color: var(--ink-3);
+      text-align: center;
+    }
+
+    /* ── Buttons ──────────────────────────────────── */
+    .btn-main {
+      width: 100%; padding: 16px; min-height: 54px;
+      border: none; border-radius: 12px;
+      background: linear-gradient(135deg,#3b82f6,#6366f1);
+      color: #fff; font-size: 1rem; font-weight: 800; cursor: pointer;
+      box-shadow: 0 4px 20px rgba(99,102,241,.3);
+      transition: transform 0.1s, opacity 0.2s;
+      letter-spacing: 0.02em; font-family: var(--display);
+    }
+    .btn-main:active { transform: scale(0.97); opacity: 0.92; }
+    .btn-main:disabled { opacity: 0.5; cursor: default; }
+
+    .btn-primary {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; padding: 15px 16px; min-height: 54px;
+      border: none; border-radius: 12px;
+      background: linear-gradient(135deg,var(--magenta),#c0106a);
+      color: #fff; font-size: 0.98rem; font-weight: 800; cursor: pointer;
+      box-shadow: 0 4px 24px rgba(255,61,138,0.36);
+      transition: transform 0.1s, opacity 0.15s;
+      letter-spacing: 0.03em; font-family: var(--display);
+    }
+    .btn-primary:active { transform: scale(0.97); opacity: 0.92; }
+    .btn-primary:disabled { opacity: 0.4; cursor: default; }
+
+    .btn-ghost {
+      background: transparent; border: 1px solid var(--line-2);
+      color: var(--ink-2); padding: 14px 16px; border-radius: 12px;
+      font-size: 0.95rem; font-weight: 700; cursor: pointer;
+      font-family: var(--display); width: 100%; min-height: 54px;
+    }
+    .btn-ghost:active { background: var(--surface); }
+
+    .btn-green {
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px; width: 100%; padding: 15px 16px; min-height: 54px;
+      border: none; border-radius: 12px;
+      background: linear-gradient(135deg,#22c55e,#16a34a);
+      color: #fff; font-size: 0.98rem; font-weight: 800; cursor: pointer;
+      box-shadow: 0 4px 24px rgba(34,197,94,0.3);
+      transition: transform 0.1s; font-family: var(--display);
+    }
+
+    .btn-small {
+      padding: 7px 14px; border-radius: 10px; border: 1px solid var(--line-2);
+      background: var(--surface); color: var(--ink-2);
+      font-size: 0.72rem; font-weight: 700; font-family: var(--mono); cursor: pointer;
+    }
+
+    /* ── Chips & badges ───────────────────────────── */
+    .pseudo-chip {
+      background: rgba(0,229,255,0.12); color: var(--cyan);
+      padding: 2px 7px; border-radius: 12px;
+      font-size: 0.68rem; font-weight: 700; font-family: var(--mono);
+    }
+    .gps-chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 9px; border-radius: 12px; font-size: 0.68rem; font-weight: 700;
+      background: var(--surface); border: 1px solid var(--line-2); color: var(--ink-2);
+      font-family: var(--mono);
+    }
+    .gps-chip.ok  { border-color: #16a34a; color: #4ade80; background: rgba(22,163,74,.12); }
+    .gps-chip.mid { border-color: #d97706; color: #fbbf24; background: rgba(217,119,6,.1); }
+    .gps-chip.bad { border-color: #dc2626; color: #f87171; background: rgba(220,38,38,.15); animation: pulse 0.8s infinite; }
+    .lb-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(0,229,255,0.1); border: 1px solid rgba(0,229,255,0.3);
+      border-radius: 8px; color: var(--cyan); font-size: 0.74rem; padding: 3px 8px;
+      font-family: var(--mono);
+    }
+    .lb-badge-done {
+      background: rgba(74,222,128,0.12); border-color: #16a34a; color: #4ade80;
+    }
+    .lb-badge-warn {
+      background: rgba(255,176,32,0.12); border-color: rgba(255,176,32,0.4); color: var(--amber);
+    }
+
+    /* ── GPS loading card ─────────────────────────── */
+    .gps-loading-card {
+      width: min(320px,100%); padding: 22px 18px;
+      border-radius: 20px; background: rgba(255,255,255,.92);
+      border: 1px solid rgba(0,229,255,.18);
+      box-shadow: 0 10px 28px rgba(26,24,38,.12); text-align: center;
+    }
+    body.dark .gps-loading-card {
+      background: rgba(15,17,36,.92);
+    }
+    .gps-loading-spinner {
+      width: 44px; height: 44px; margin: 0 auto 14px;
+      border-radius: 50%; border: 3px solid rgba(14,165,233,.18);
+      border-top-color: #0ea5e9; border-right-color: #22d3ee;
+      animation: gpsLoadingSpin 1s linear infinite;
+    }
+    @keyframes gpsLoadingSpin { to { transform: rotate(360deg); } }
+    .gps-loading-title {
+      font-size: 0.82rem; font-weight: 900; color: var(--ink);
+      font-family: var(--mono); letter-spacing: .06em;
+      text-transform: uppercase; margin-bottom: 6px;
+    }
+    .gps-loading-copy { font-size: 0.82rem; line-height: 1.55; color: var(--ink-2); }
+    .gps-loading-note {
+      margin-top: 10px; font-size: 0.7rem; font-weight: 700;
+      color: #0284c7; font-family: var(--mono);
+    }
+
+    /* ── Radar bar ────────────────────────────────── */
+    .radar-bar {
+      display: inline-block; background: rgba(255,255,255,.97);
+      border: 1px solid var(--line-2); border-radius: 24px;
+      padding: 11px 20px; font-size: 0.94rem; font-weight: 800;
+      color: var(--ink-2); white-space: nowrap; backdrop-filter: blur(8px);
+      box-shadow: 0 2px 20px rgba(26,24,38,.12);
+      letter-spacing: 0.01em; font-family: var(--mono);
+    }
+    body.dark .radar-bar { background: rgba(15,17,36,.97); }
+    .radar-bar.near {
+      color: #d97706; border-color: #d97706;
+      background: rgba(255,252,235,.97);
+      box-shadow: 0 2px 20px rgba(217,119,6,.15);
+    }
+    body.dark .radar-bar.near { background: rgba(30,20,0,.97); }
+    .radar-bar.very-near {
+      color: #16a34a; border-color: #16a34a;
+      background: rgba(240,255,244,.97);
+      animation: pulse 1s infinite;
+      box-shadow: 0 2px 24px rgba(22,163,74,.2);
+    }
+    body.dark .radar-bar.very-near { background: rgba(0,20,6,.97); }
+
+    /* ── Toast ────────────────────────────────────── */
+    .toast-sample {
+      display: inline-flex; align-items: center;
+      background: rgba(255,255,255,.97); border: 1.5px solid #22c55e;
+      border-radius: 22px; padding: 10px 20px;
+      font-size: 0.82rem; font-weight: 800; color: #16a34a;
+      backdrop-filter: blur(10px); font-family: var(--mono);
+      box-shadow: 0 4px 20px rgba(22,163,74,.18);
+    }
+    body.dark .toast-sample { background: rgba(5,6,16,.97); }
+    .toast-sample.flash {
+      background: rgba(15,23,42,.93); border-color: rgba(255,61,138,.55);
+      color: var(--magenta);
+    }
+
+    /* ── Cards ─────────────────────────────────────── */
+    .cn-card {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--radius); padding: 14px; margin-bottom: 10px;
+      display: flex; gap: 12px; align-items: flex-start;
+    }
+    .cn-card.cn-fixed  { border-left: 3px solid var(--cyan); }
+    .cn-card.cn-unique { border-left: 3px solid var(--magenta); }
+    .cn-thumb {
+      width: 52px; height: 52px; border-radius: 10px; object-fit: cover;
+      flex-shrink: 0; background: var(--bg); border: 1px solid var(--line);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; color: var(--ink-3);
+    }
+    .cn-body { flex: 1; min-width: 0; }
+    .cn-type {
+      font-family: var(--mono); font-size: 0.72rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2px;
+    }
+    .cn-fixed  .cn-type { color: var(--cyan); }
+    .cn-unique .cn-type { color: var(--magenta); }
+    .cn-name {
+      font-size: 0.95rem; font-weight: 700; color: var(--ink);
+      margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .cn-meta {
+      font-family: var(--mono); font-size: 0.75rem; color: var(--ink-3);
+      display: flex; gap: 8px;
+    }
+    .cn-hint {
+      font-style: italic; font-size: 0.8rem; color: var(--ink-2);
+      margin-top: 5px; line-height: 1.5; padding-left: 8px;
+      border-left: 2px solid rgba(255,61,138,0.3);
+    }
+
+    /* ── Leaderboard row ─────────────────────────── */
+    .lb-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 13px 16px; background: var(--surface);
+      border-radius: 14px; margin-bottom: 8px;
+      border: 1px solid var(--line);
+    }
+    .lb-row.lb-me  { border-color: var(--magenta); background: linear-gradient(135deg,rgba(255,61,138,.15),var(--surface)); }
+    .lb-row.lb-top1 { background: linear-gradient(135deg,rgba(251,191,36,.12),var(--surface)); border-color: #fbbf24; }
+    .lb-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.78rem; font-weight: 700; font-family: var(--mono);
+      flex-shrink: 0; color: #fff;
+    }
+    .lb-rank { font-size: 1.4rem; width: 28px; text-align: center; flex-shrink: 0; }
+    .lb-body { flex: 1; min-width: 0; }
+    .lb-name { font-weight: 800; font-size: 1rem; color: var(--ink); }
+    .lb-score { font-size: 0.84rem; color: var(--ink-2); margin-top: 2px; }
+    .lb-score strong { color: var(--ink); font-size: 0.88rem; }
+    .lb-pbar { height: 6px; background: var(--bg); border-radius: 4px; overflow: hidden; border: 1px solid var(--line); margin-top: 6px; }
+    .lb-pfill { height: 100%; border-radius: 4px; }
+
+    /* ── My card ─────────────────────────────────── */
+    .my-card {
+      background: linear-gradient(135deg,rgba(255,61,138,.08),var(--surface));
+      border: 1px solid rgba(255,61,138,.22); border-radius: 16px;
+      padding: 14px 16px; position: relative;
+    }
+    .my-card-pseudo { font-size: 1.05rem; font-weight: 800; color: var(--ink); margin-bottom: 2px; }
+    .my-card-sub { font-size: 0.78rem; color: var(--ink-2); margin-bottom: 10px; font-family: var(--mono); }
+    .my-card-stats { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+    .my-card-stats strong { font-size: 1.1rem; color: var(--ink); }
+    .my-card-stats span { font-size: 0.78rem; color: var(--ink-2); }
+    .my-card-bar { height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; border: 1px solid rgba(255,61,138,.3); }
+    .my-card-fill { height: 100%; background: linear-gradient(90deg,#3b82f6,#6366f1); border-radius: 4px; transition: width .6s ease; }
+
+    /* ── Found modal box ─────────────────────────── */
+    .found-box {
+      background: var(--surface); border-radius: 22px; padding: 24px 20px;
+      width: 100%; max-width: 400px; text-align: center;
+      border: 1px solid rgba(255,61,138,0.18);
+      box-shadow: 0 0 0 1px rgba(255,61,138,0.08),0 8px 40px rgba(26,24,38,.14);
+    }
+    .found-label {
+      font-family: var(--mono); font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.12em;
+      color: var(--magenta); margin-bottom: 6px;
+    }
+    .found-box h2 {
+      font-size: 1.15rem; font-weight: 800; margin-bottom: 6px;
+      font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.03em;
+      color: var(--ink);
+    }
+    .found-box p { font-size: 0.84rem; color: var(--ink-2); margin-bottom: 12px; line-height: 1.5; }
+    .found-box .duration {
+      font-size: 1.45rem; font-weight: 800; color: #4ade80;
+      margin-bottom: 6px; font-family: var(--mono);
+    }
+    .found-emoji {
+      margin-bottom: 8px; display: flex; align-items: center; justify-content: center;
+      min-height: 40px; font-size: 2.4rem;
+    }
+
+    /* ── Quest complete box ───────────────────────── */
+    .qc-box {
+      background: var(--surface); border-radius: 22px; padding: 24px 20px;
+      width: 100%; max-width: 400px; text-align: center;
+      border: 1px solid rgba(34,197,94,.18);
+      box-shadow: 0 0 0 1px rgba(34,197,94,.08),0 8px 40px rgba(26,24,38,.14);
+    }
+    .qc-title {
+      font-family: var(--mono); font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.12em; color: #4ade80; margin-bottom: 8px;
+    }
+    .qc-quest {
+      font-size: 1.2rem; font-weight: 800; font-family: var(--mono);
+      text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 16px;
+      background: linear-gradient(135deg,#4ade80,#22d3ee);
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .qc-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 18px; }
+    .qc-stat { background: var(--bg-2); border-radius: var(--radius-sm); padding: 10px 6px; }
+    .qc-stat-val { font-size: 1.2rem; font-weight: 800; font-family: var(--mono); color: var(--ink); }
+    .qc-stat-lbl {
+      font-size: 0.70rem; font-family: var(--mono); text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--ink-3); margin-top: 3px;
+    }
+
+    /* ── FABs ─────────────────────────────────────── */
+    .fab-sample {
+      width: 74px; height: 74px; border-radius: 999px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; flex-shrink: 0; border: 4px solid;
+      transition: transform 0.12s;
+    }
+    .fab-sample:active { transform: scale(0.93); }
+    .fab-cyan {
+      background: radial-gradient(circle at 32% 32%,rgba(255,255,255,.97) 0%,rgba(34,211,238,.32) 55%,rgba(14,165,233,.42) 100%);
+      border-color: #06b6d4;
+      box-shadow: var(--glow-cyan), 0 0 0 2px rgba(255,255,255,.72) inset;
+      animation: captureFabPulse 1.35s ease-in-out infinite;
+    }
+    .fab-magenta {
+      background: radial-gradient(circle at 32% 32%,rgba(255,255,255,.97) 0%,rgba(255,61,138,.28) 55%,rgba(200,30,90,.38) 100%);
+      border-color: var(--magenta);
+      box-shadow: var(--glow-magenta), 0 0 0 2px rgba(255,255,255,.72) inset;
+      animation: flashFabPulse 1.2s ease-in-out infinite;
+    }
+    @keyframes captureFabPulse {
+      0%,100% { box-shadow: var(--glow-cyan),0 0 0 2px rgba(255,255,255,.72) inset; }
+      50%      { box-shadow: 0 0 20px rgba(34,211,238,.9),0 0 46px rgba(14,165,233,.42),0 0 0 2px rgba(255,255,255,.72) inset; }
+    }
+    @keyframes flashFabPulse {
+      0%,100% { box-shadow: var(--glow-magenta),0 0 0 2px rgba(255,255,255,.72) inset; }
+      50%      { box-shadow: 0 0 22px rgba(255,61,138,.95),0 0 54px rgba(255,61,138,.45),0 0 0 2px rgba(255,255,255,.72) inset; }
+    }
+
+    /* ── Nav bar ──────────────────────────────────── */
+    .ds-nav {
+      display: flex; background: var(--surface);
+      border: 1px solid var(--line-2); border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .ds-nav button {
+      flex: 1; padding: 8px 2px; min-height: 48px; background: none; border: none;
+      color: var(--ink-3); font-size: 0.74rem; font-weight: 800; cursor: pointer;
+      letter-spacing: 0.01em; transition: color 0.15s, background 0.15s;
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      font-family: var(--display);
+    }
+    .ds-nav button.active {
+      color: var(--magenta); border-bottom: 2px solid var(--magenta);
+      background: rgba(255,61,138,.08);
+    }
+    .ds-nav button .nav-icon { font-size: 1rem; }
+    .ds-nav button .nav-label { font-size: 0.62rem; font-weight: 800; letter-spacing: .01em; }
+
+    /* ── Compass card ─────────────────────────────── */
+    .cmp-card {
+      background: var(--surface); border-radius: 16px; padding: 16px 14px;
+      display: flex; align-items: center; gap: 14px;
+      border: 2px solid var(--line-2); transition: border-color .4s;
+    }
+    .cmp-card.in-range { border-color: #22c55e; box-shadow: 0 0 20px rgba(34,197,94,.25); }
+    .cmp-arrow-wrap {
+      width: 64px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.2rem;
+    }
+    .cmp-info { flex: 1; min-width: 0; }
+    .cmp-label { font-weight: 700; font-size: 1.05rem; margin-bottom: 3px; color: var(--ink); }
+    .cmp-dist { font-size: 0.88rem; color: var(--ink-2); margin-bottom: 4px; }
+    .cmp-hint { font-size: 0.8rem; color: var(--cyan); }
+
+    /* ── Progress bar ─────────────────────────────── */
+    .pb-track {
+      height: 12px; background: var(--bg); border-radius: 8px;
+      overflow: hidden; border: 1px solid var(--line-2);
+    }
+    .pb-fill {
+      height: 100%; background: linear-gradient(90deg,#3b82f6,#6366f1);
+      border-radius: 8px; transition: width 0.6s cubic-bezier(.16,1,.3,1);
+    }
+    .pb-fill.green { background: linear-gradient(90deg,#22c55e,#16a34a); }
+
+    /* ── Icons ────────────────────────────────────── */
+    .ui-icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      vertical-align: middle; color: currentColor; flex-shrink: 0;
+    }
+    .ui-icon svg {
+      width: 18px; height: 18px; display: block;
+      stroke: currentColor; fill: none; stroke-width: 2;
+      stroke-linecap: round; stroke-linejoin: round;
+    }
+    .ui-icon.teal   { color: var(--cyan); }
+    .ui-icon.flash  { color: var(--magenta); }
+    .ui-icon.success { color: #4ade80; }
+    .ui-icon.warn   { color: #fbbf24; }
+    .ui-icon.danger { color: #f87171; }
+
+    /* ── Animations reference ─────────────────────── */
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.7} }
+    @keyframes slideUp { from{transform:translateY(28px);opacity:0} to{transform:translateY(0);opacity:1} }
+    @keyframes foundPop { from{transform:scale(0.82);opacity:0} to{transform:scale(1);opacity:1} }
+    @keyframes bounceIn { 0%{transform:scale(0.7);opacity:0} 60%{transform:scale(1.08);opacity:1} 100%{transform:scale(1)} }
+    @keyframes fadeInFast { from{opacity:0} to{opacity:1} }
+    @keyframes compassPulse {
+      0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,.6)}
+      50%{box-shadow:0 0 0 8px rgba(99,102,241,0)}
+    }
+
+    .anim-demo {
+      padding: 12px 18px; background: var(--surface); border: 1px solid var(--line-2);
+      border-radius: var(--radius-sm); font-family: var(--mono); font-size: 0.78rem;
+      color: var(--ink-2); cursor: pointer; transition: none;
+    }
+    .anim-demo:hover { opacity: 0.8; }
+
+    /* ── Mode-specific map tinting ref ───────────────*/
+    .map-mode-box {
+      height: 80px; border-radius: var(--radius); border: 2px solid;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono); font-size: 0.7rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .map-mode-box.fixed-mode {
+      background: linear-gradient(180deg,#eef6f7 0%,#f0ede8 100%);
+      border-color: rgba(0,229,255,.4); color: var(--cyan);
+    }
+    .map-mode-box.flash-mode {
+      background: radial-gradient(circle at 50% 0%,rgba(255,61,138,.18),rgba(240,237,232,1) 60%);
+      border-color: rgba(255,61,138,.4); color: var(--magenta);
+    }
+
+    /* ── Utility helpers ─────────────────────────── */
+    .ds-divider { height: 1px; background: var(--line); margin: 20px 0; }
+    .ds-note {
+      font-family: var(--mono); font-size: 0.68rem; color: var(--ink-3);
+      background: var(--bg-2); border-left: 3px solid var(--line-2);
+      padding: 8px 12px; border-radius: 0 6px 6px 0; margin-bottom: 12px;
+      line-height: 1.5;
+    }
+    .ds-note.warn { border-left-color: var(--amber); color: var(--amber); background: rgba(255,176,32,.06); }
+    .ds-note.info { border-left-color: var(--cyan); color: var(--cyan); background: rgba(0,229,255,.06); }
+    .ds-code {
+      font-family: var(--mono); font-size: 0.74rem; color: var(--cyan);
+      background: var(--bg-2); padding: 2px 6px; border-radius: 4px;
+      border: 1px solid var(--line-2);
+    }
+    .ds-token-table { width: 100%; border-collapse: collapse; }
+    .ds-token-table th, .ds-token-table td {
+      padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--line);
+      font-size: 0.78rem;
+    }
+    .ds-token-table th {
+      font-family: var(--mono); font-size: 0.64rem; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--ink-3); font-weight: 700;
+    }
+    .ds-token-table td:first-child { font-family: var(--mono); color: var(--cyan); }
+    .ds-token-table td:last-child { color: var(--ink-3); font-size: 0.72rem; }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header class="ds-header">
+  <div>
+    <div class="ds-header-title">Urban3DQuest — Design System</div>
+    <div class="ds-header-sub">Source de vérité visuelle · tokens + composants + patterns</div>
+  </div>
+  <div class="ds-theme-toggle">
+    <button id="btnLight" class="active" onclick="setTheme('light')">☀ Jeu</button>
+    <button id="btnDark" onclick="setTheme('dark')">🌑 Admin</button>
+  </div>
+</header>
+
+<!-- ── Table des matières ── -->
+<nav class="ds-toc">
+  <a href="#tokens">Tokens</a>
+  <a href="#typography">Typo</a>
+  <a href="#buttons">Boutons</a>
+  <a href="#chips">Chips</a>
+  <a href="#cards">Cards</a>
+  <a href="#modals">Modals</a>
+  <a href="#fab">FABs</a>
+  <a href="#nav">Nav</a>
+  <a href="#feedback">Feedback</a>
+  <a href="#animations">Animations</a>
+  <a href="#modes">Modes</a>
+</nav>
+
+<main class="ds-main">
+
+  <!-- ══ TOKENS ══════════════════════════════════════ -->
+  <section class="ds-section" id="tokens">
+    <div class="ds-section-title">Design Tokens</div>
+
+    <!-- Accents -->
+    <div class="ds-label">Couleurs d'accent — <span class="ds-code">css/design-tokens.css</span> (partagé jeu + admin)</div>
+    <div class="ds-swatches" style="margin-bottom:24px">
+      <div class="ds-swatch">
+        <div class="ds-swatch-circle" style="background:#ff3d8a; box-shadow: var(--glow-magenta)"></div>
+        <div class="ds-swatch-name">magenta</div>
+        <div class="ds-swatch-hex">#ff3d8a</div>
+      </div>
+      <div class="ds-swatch">
+        <div class="ds-swatch-circle" style="background:#00e5ff; box-shadow: var(--glow-cyan)"></div>
+        <div class="ds-swatch-name">cyan</div>
+        <div class="ds-swatch-hex">#00e5ff</div>
+      </div>
+      <div class="ds-swatch">
+        <div class="ds-swatch-circle" style="background:#ffb020; box-shadow: var(--glow-amber)"></div>
+        <div class="ds-swatch-name">amber</div>
+        <div class="ds-swatch-hex">#ffb020</div>
+      </div>
+      <div class="ds-swatch">
+        <div class="ds-swatch-circle" style="background:#a855f7; box-shadow: var(--glow-violet)"></div>
+        <div class="ds-swatch-name">violet</div>
+        <div class="ds-swatch-hex">#a855f7</div>
+      </div>
+    </div>
+
+    <!-- Neutrals -->
+    <div class="ds-label" style="margin-bottom:8px">Couleurs neutres — contextuelles (jeu = light / admin = dark)</div>
+    <div class="ds-note warn" style="margin-bottom:12px">Ces tokens ne sont PAS dans design-tokens.css — chaque app les définit localement.</div>
+    <div class="ds-neutral-grid" style="margin-bottom:24px">
+      <div class="ds-neutral-swatch" style="background:var(--bg);color:var(--ink-3)">--bg</div>
+      <div class="ds-neutral-swatch" style="background:var(--bg-2);color:var(--ink-3)">--bg-2</div>
+      <div class="ds-neutral-swatch" style="background:var(--surface);color:var(--ink-3);border-color:var(--line-2)">--surface</div>
+      <div class="ds-neutral-swatch" style="background:var(--surface-2);color:var(--ink-3)">--surface-2</div>
+      <div class="ds-neutral-swatch" style="background:var(--ink);color:var(--bg)">--ink</div>
+      <div class="ds-neutral-swatch" style="background:var(--ink-2);color:var(--bg)">--ink-2</div>
+      <div class="ds-neutral-swatch" style="background:var(--ink-3);color:var(--bg)">--ink-3</div>
+      <div class="ds-neutral-swatch" style="background:rgba(0,229,255,.08);color:var(--ink-3);border:1px solid var(--line)">--line</div>
+      <div class="ds-neutral-swatch" style="background:rgba(0,229,255,.12);color:var(--ink-3);border:1px solid var(--line-2)">--line-2</div>
+    </div>
+
+    <!-- Glow -->
+    <div class="ds-label" style="margin-bottom:8px">Glows — <span class="ds-code">box-shadow</span> prédefinis</div>
+    <div class="ds-glow-grid" style="margin-bottom:24px">
+      <div class="ds-glow-box" style="box-shadow:var(--glow-magenta);border-color:var(--magenta);color:var(--magenta)">--glow-magenta</div>
+      <div class="ds-glow-box" style="box-shadow:var(--glow-cyan);border-color:var(--cyan);color:var(--cyan)">--glow-cyan</div>
+      <div class="ds-glow-box" style="box-shadow:var(--glow-amber);border-color:var(--amber);color:var(--amber)">--glow-amber</div>
+      <div class="ds-glow-box" style="box-shadow:var(--glow-violet);border-color:var(--violet);color:var(--violet)">--glow-violet</div>
+    </div>
+
+    <!-- Radius -->
+    <div class="ds-label" style="margin-bottom:8px">Border radius</div>
+    <div class="ds-radius-grid">
+      <div class="ds-radius-box" style="border-radius:var(--radius-sm)">
+        <div class="ds-radius-label">--radius-sm<br>8px</div>
+      </div>
+      <div class="ds-radius-box" style="border-radius:var(--radius)">
+        <div class="ds-radius-label">--radius<br>14px</div>
+      </div>
+      <div class="ds-radius-box" style="border-radius:var(--radius-lg)">
+        <div class="ds-radius-label">--radius-lg<br>22px</div>
+      </div>
+      <div class="ds-radius-box" style="border-radius:999px">
+        <div class="ds-radius-label">pill<br>999px</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ TYPOGRAPHY ══════════════════════════════════ -->
+  <section class="ds-section" id="typography">
+    <div class="ds-section-title">Typographie</div>
+
+    <div class="ds-note info" style="margin-bottom:16px">
+      --display : Space Grotesk (corps, titres, boutons) · --mono : JetBrains Mono (labels, chips, codes, UI système)
+    </div>
+
+    <!-- Space Grotesk -->
+    <div class="ds-label" style="margin-bottom:4px">--display · Space Grotesk</div>
+    <div class="ds-divider"></div>
+    <div class="ds-type-row">
+      <div class="ds-type-meta">Display / Titre<br>1.35rem · 800</div>
+      <div style="font-family:var(--display);font-size:1.35rem;font-weight:800;letter-spacing:.04em">URBAN3DQUEST</div>
+    </div>
+    <div class="ds-type-row">
+      <div class="ds-type-meta">Titre moyen<br>1.15rem · 800</div>
+      <div style="font-family:var(--display);font-size:1.15rem;font-weight:800">Trésor découvert !</div>
+    </div>
+    <div class="ds-type-row">
+      <div class="ds-type-meta">Corps<br>1rem · 500</div>
+      <div style="font-family:var(--display);font-size:1rem;font-weight:500;color:var(--ink-2)">Approche-toi du point indiqué sur la carte et capture le trésor.</div>
+    </div>
+    <div class="ds-type-row">
+      <div class="ds-type-meta">Petit<br>0.84rem · 500</div>
+      <div style="font-family:var(--display);font-size:0.84rem;font-weight:500;color:var(--ink-2)">Durée · Score · Informations secondaires</div>
+    </div>
+    <div class="ds-divider"></div>
+
+    <!-- JetBrains Mono -->
+    <div class="ds-label" style="margin-bottom:4px;margin-top:16px">--mono · JetBrains Mono</div>
+    <div class="ds-divider"></div>
+    <div class="ds-type-row">
+      <div class="ds-type-meta">Label uppercase<br>0.72rem · 700</div>
+      <div style="font-family:var(--mono);font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3)">QUÊTE · FLASH · CLASSEMENT</div>
+    </div>
+    <div class="ds-type-row">
+      <div class="ds-type-meta">Valeur mono<br>1rem · 700</div>
+      <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--ink)">02:47:13</div>
+    </div>
+    <div class="ds-type-row">
+      <div class="ds-type-meta">Chip / badge<br>0.68rem · 700</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="pseudo-chip">SCOUT42</span>
+        <span class="lb-badge">✦ 7 trouvés</span>
+      </div>
+    </div>
+    <div class="ds-type-row">
+      <div class="ds-type-meta">Gradient titre<br>magenta → violet</div>
+      <div style="font-family:var(--mono);font-size:1.35rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;background:linear-gradient(135deg,var(--magenta),var(--violet));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">Urban Quest</div>
+    </div>
+    <div class="ds-type-row">
+      <div class="ds-type-meta">Gradient titre<br>green → cyan</div>
+      <div style="font-family:var(--mono);font-size:1.2rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;background:linear-gradient(135deg,#4ade80,#22d3ee);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">Quête complète</div>
+    </div>
+  </section>
+
+  <!-- ══ BUTTONS ══════════════════════════════════════ -->
+  <section class="ds-section" id="buttons">
+    <div class="ds-section-title">Boutons</div>
+
+    <div class="ds-row">
+      <div class="ds-col">
+        <div class="ds-label" style="margin-bottom:6px">btn-main — Login / action neutre</div>
+        <button class="btn-main">Rejoindre la partie</button>
+      </div>
+      <div class="ds-col">
+        <div class="ds-label" style="margin-bottom:6px">btn-main — disabled</div>
+        <button class="btn-main" disabled>Rejoindre la partie</button>
+      </div>
+    </div>
+
+    <div class="ds-row">
+      <div class="ds-col">
+        <div class="ds-label" style="margin-bottom:6px">btn-primary — Action principale magenta</div>
+        <button class="btn-primary">📸 Capturer ce trésor</button>
+      </div>
+      <div class="ds-col">
+        <div class="ds-label" style="margin-bottom:6px">btn-green — Confirmation / partage</div>
+        <button class="btn-green">Partager mon score</button>
+      </div>
+    </div>
+
+    <div class="ds-row">
+      <div class="ds-col">
+        <div class="ds-label" style="margin-bottom:6px">btn-ghost — Action secondaire</div>
+        <button class="btn-ghost">Continuer en invité</button>
+      </div>
+      <div class="ds-col">
+        <div class="ds-label" style="margin-bottom:6px">btn-small — Action contextuelle</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-small">Tutoriel</button>
+          <button class="btn-small">Voir la carte</button>
+          <button class="btn-small" style="color:var(--magenta);border-color:var(--magenta)">Déconnecter</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ CHIPS & BADGES ══════════════════════════════ -->
+  <section class="ds-section" id="chips">
+    <div class="ds-section-title">Chips & Badges</div>
+
+    <div class="ds-label" style="margin-bottom:10px">Pseudo chip</div>
+    <div class="ds-row" style="align-items:center;margin-bottom:20px">
+      <span class="pseudo-chip">SCOUT42</span>
+      <span class="pseudo-chip" style="background:rgba(255,61,138,.12);color:var(--magenta)">HUNTER_X</span>
+    </div>
+
+    <div class="ds-label" style="margin-bottom:10px">GPS chip — états</div>
+    <div class="ds-row" style="align-items:center;margin-bottom:20px">
+      <div class="gps-chip">📡 Recherche…</div>
+      <div class="gps-chip mid">📡 ±45 m</div>
+      <div class="gps-chip ok">📡 ±12 m</div>
+      <div class="gps-chip bad">📡 Perdu</div>
+    </div>
+
+    <div class="ds-label" style="margin-bottom:10px">Leaderboard badges</div>
+    <div class="ds-row" style="align-items:center;margin-bottom:20px">
+      <span class="lb-badge">✦ 7 trouvés</span>
+      <span class="lb-badge lb-badge-done">✓ Quête complète</span>
+      <span class="lb-badge lb-badge-warn">⚡ 3 Flash</span>
+    </div>
+
+    <div class="ds-label" style="margin-bottom:10px">Mode tag</div>
+    <div class="ds-row" style="align-items:center">
+      <span style="background:rgba(0,229,255,.12);color:var(--cyan);padding:4px 10px;border-radius:999px;font-family:var(--mono);font-size:0.68rem;font-weight:700;border:1px solid rgba(0,229,255,.3)">QUÊTE</span>
+      <span style="background:rgba(255,61,138,.12);color:var(--magenta);padding:4px 10px;border-radius:999px;font-family:var(--mono);font-size:0.68rem;font-weight:700;border:1px solid rgba(255,61,138,.3)">FLASH</span>
+      <span style="background:rgba(74,222,128,.12);color:#4ade80;padding:4px 10px;border-radius:999px;font-family:var(--mono);font-size:0.68rem;font-weight:700;border:1px solid #16a34a">TROUVÉ</span>
+    </div>
+  </section>
+
+  <!-- ══ CARDS ════════════════════════════════════════ -->
+  <section class="ds-section" id="cards">
+    <div class="ds-section-title">Cards</div>
+
+    <!-- Carnet cards -->
+    <div class="ds-label" style="margin-bottom:8px">Carnet — cn-card (fixed / unique)</div>
+    <div class="cn-card cn-fixed">
+      <div class="cn-thumb">🏛</div>
+      <div class="cn-body">
+        <div class="cn-type">Quête</div>
+        <div class="cn-name">Fontaine du Parvis</div>
+        <div class="cn-meta"><span>Il y a 2h</span><span>1:42 min</span></div>
+        <div class="cn-hint">Une statue ancienne garde l'entrée…</div>
+      </div>
+    </div>
+    <div class="cn-card cn-unique">
+      <div class="cn-thumb">⚡</div>
+      <div class="cn-body">
+        <div class="cn-type">Flash</div>
+        <div class="cn-name">Trésor #7 — Pont Rouge</div>
+        <div class="cn-meta"><span>Il y a 15 min</span><span>3:08 min</span></div>
+      </div>
+    </div>
+
+    <div class="ds-divider"></div>
+
+    <!-- Leaderboard rows -->
+    <div class="ds-label" style="margin-bottom:8px">Classement — lb-row</div>
+    <div class="lb-row lb-top1">
+      <div class="lb-rank">🥇</div>
+      <div class="lb-avatar" style="background:linear-gradient(135deg,#f59e0b,#d97706)">H</div>
+      <div class="lb-body">
+        <div class="lb-name">HUNTER_X</div>
+        <div class="lb-score"><strong>12 trouvés</strong> · 2h 14min</div>
+        <div class="lb-pbar"><div class="lb-pfill" style="width:100%;background:linear-gradient(90deg,#f59e0b,#fbbf24)"></div></div>
+      </div>
+      <span class="lb-badge lb-badge-done">✓ Complet</span>
+    </div>
+    <div class="lb-row lb-me">
+      <div class="lb-rank">🥈</div>
+      <div class="lb-avatar" style="background:linear-gradient(135deg,var(--magenta),var(--violet))">S</div>
+      <div class="lb-body">
+        <div class="lb-name">SCOUT42 <span style="font-size:0.7rem;font-family:var(--mono);color:var(--magenta);font-weight:600">← moi</span></div>
+        <div class="lb-score"><strong>9 trouvés</strong> · 3h 02min</div>
+        <div class="lb-pbar"><div class="lb-pfill" style="width:75%;background:linear-gradient(90deg,var(--magenta),var(--violet))"></div></div>
+      </div>
+    </div>
+
+    <div class="ds-divider"></div>
+
+    <!-- My card -->
+    <div class="ds-label" style="margin-bottom:8px">Ma carte — my-card</div>
+    <div class="my-card">
+      <div style="position:absolute;top:12px;right:14px;font-size:1.5rem">🥈</div>
+      <div class="my-card-pseudo">SCOUT42</div>
+      <div class="my-card-sub">Classement #2 · 3h 02min</div>
+      <div class="my-card-stats">
+        <strong>9</strong><span>trouvés</span>
+        <strong>3</strong><span>Flash</span>
+      </div>
+      <div class="my-card-bar"><div class="my-card-fill" style="width:75%"></div></div>
+    </div>
+
+    <div class="ds-divider"></div>
+
+    <!-- Compass card -->
+    <div class="ds-label" style="margin-bottom:8px">Boussole — cmp-card</div>
+    <div style="display:flex;flex-direction:column;gap:10px;max-width:400px">
+      <div class="cmp-card">
+        <div class="cmp-arrow-wrap">↗</div>
+        <div class="cmp-info">
+          <div class="cmp-label">Fontaine du Parvis</div>
+          <div class="cmp-dist">À 340 m</div>
+          <div class="cmp-hint">Indice disponible à 80 m</div>
+        </div>
+      </div>
+      <div class="cmp-card in-range">
+        <div class="cmp-arrow-wrap">⬇</div>
+        <div class="cmp-info">
+          <div class="cmp-label">Tour de l'Horloge</div>
+          <div class="cmp-dist">À 18 m — dans le rayon !</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ MODALS ════════════════════════════════════════ -->
+  <section class="ds-section" id="modals">
+    <div class="ds-section-title">Modals</div>
+
+    <div class="ds-row" style="align-items:flex-start">
+      <!-- Found modal -->
+      <div class="ds-col">
+        <div class="ds-label" style="margin-bottom:8px">Trésor trouvé — #foundModal / .found-box</div>
+        <div class="found-box">
+          <div class="found-emoji">
+            <span class="ui-icon lg teal">
+              <svg viewBox="0 0 22 22"><path d="M2 9a2 2 0 0 1 2-2h1.2L6.8 5h8.4L16.8 7H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9z"/><circle cx="11" cy="13" r="3"/></svg>
+            </span>
+          </div>
+          <div class="found-label">RÉVÉLATION</div>
+          <h2>Révélé.</h2>
+          <div class="duration">1:42</div>
+          <p>Un monument au cœur de la ville, gardien de secrets anciens.</p>
+          <hr style="border:none;height:1px;background:var(--line);margin:10px 0">
+          <button class="btn-primary">Continuer</button>
+        </div>
+        <div class="ds-note" style="margin-top:8px">found-label : «RÉVÉLATION». Icône : <span class="ds-code">.ui-icon.lg.teal</span> SVG caméra (mode Quête) ou éclair (mode Flash).</div>
+      </div>
+
+      <!-- Quest complete -->
+      <div class="ds-col">
+        <div class="ds-label" style="margin-bottom:8px">Série complète — #questCompleteModal / .qc-box</div>
+        <div class="qc-box">
+          <div class="qc-trophy" style="font-size:3rem;margin-bottom:8px">🏆</div>
+          <div class="qc-title">Série complète.</div>
+          <div class="qc-quest">La Cité Perdue</div>
+          <div class="qc-stats">
+            <div class="qc-stat">
+              <div class="qc-stat-val">12</div>
+              <div class="qc-stat-lbl">Polaroids</div>
+            </div>
+            <div class="qc-stat">
+              <div class="qc-stat-val">2h14</div>
+              <div class="qc-stat-lbl">Temps</div>
+            </div>
+            <div class="qc-stat">
+              <div class="qc-stat-val">#1</div>
+              <div class="qc-stat-lbl">Rang</div>
+            </div>
+          </div>
+          <button class="btn-green" style="width:100%;padding:15px;border:none;border-radius:12px;color:#fff;font-size:0.98rem;font-weight:800;cursor:pointer;font-family:var(--display);margin-bottom:8px">📤 Partager</button>
+          <button class="btn-main">Continuer</button>
+        </div>
+        <div class="ds-note" style="margin-top:8px">Ordre boutons : btn-share (vert) puis btn-main (bleu). Labels stat : «Polaroids», «Temps», «Rang».</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ FABs ══════════════════════════════════════════ -->
+  <section class="ds-section" id="fab">
+    <div class="ds-section-title">Floating Action Buttons</div>
+
+    <div class="ds-row" style="align-items:center">
+      <div>
+        <div class="ds-label" style="margin-bottom:10px">#captureFab — Quête · <span class="ds-code">captureFixed()</span></div>
+        <div class="fab-sample fab-cyan">
+          <svg viewBox="0 0 74 74" fill="none" style="width:52px;height:52px;pointer-events:none">
+            <path d="M18 26V18h8" stroke="rgba(255,255,255,0.95)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M18 48v8h8" stroke="rgba(255,255,255,0.95)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M56 26V18h-8" stroke="rgba(255,255,255,0.95)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M56 48v8h-8" stroke="rgba(255,255,255,0.95)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="37" cy="37" r="8" fill="rgba(255,255,255,0.9)"/>
+          </svg>
+        </div>
+      </div>
+      <div>
+        <div class="ds-label" style="margin-bottom:10px">#flashFab — Flash · <span class="ds-code">captureUnique()</span></div>
+        <div class="fab-sample fab-magenta">
+          <svg viewBox="0 0 74 74" fill="none" style="width:52px;height:52px;pointer-events:none">
+            <path d="M18 26V18h8" stroke="rgba(220,30,90,0.92)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M18 48v8h8" stroke="rgba(220,30,90,0.92)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M56 26V18h-8" stroke="rgba(220,30,90,0.92)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M56 48v8h-8" stroke="rgba(220,30,90,0.92)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="37" cy="37" r="8" fill="rgba(220,30,90,0.78)"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+    <div class="ds-note" style="margin-top:12px">
+      Les deux FABs ont le même SVG (cadrage caméra + cercle central). Couleur du cercle : blanc (Quête) ou magenta (Flash).
+      Mutuellement exclusifs — un seul visible selon <span class="ds-code">activeGameMode</span> ('fixed' → cyan, 'unique' → magenta).
+      Position : <span class="ds-code">fixed, centered, bottom 28px + env(safe-area-inset-bottom)</span>.
+    </div>
+  </section>
+
+  <!-- ══ NAV ════════════════════════════════════════════ -->
+  <section class="ds-section" id="nav">
+    <div class="ds-section-title">Navigation</div>
+
+    <div class="ds-note warn" style="margin-bottom:12px">4 onglets réels — pas 5. Icônes SVG inline, pas d'emoji. La boussole et le carnet ne sont PAS des onglets séparés.</div>
+
+    <div class="ds-label" style="margin-bottom:8px">Nav — prod (4 onglets)</div>
+    <div class="ds-nav" style="max-width:480px;margin-bottom:16px">
+      <button id="demoNavSerie" class="active" onclick="demoNav('serie')"
+        title="#navSerie — setGameMode('fixed')">
+        <span class="nav-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 9a2 2 0 0 1 2-2h1.2L6.8 5h8.4L16.8 7H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9z"/>
+            <circle cx="11" cy="13" r="3"/>
+          </svg>
+        </span>
+        <span class="nav-label">Quête</span>
+      </button>
+      <button id="demoNavDeclic" onclick="demoNav('declic')"
+        title="#navDeclic — setGameMode('unique')">
+        <span class="nav-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 2 6 13h6l-3 7 9-11h-6z"/>
+          </svg>
+        </span>
+        <span class="nav-label">Flash</span>
+      </button>
+      <button id="demoNavCompte" onclick="demoNav('compte')"
+        title="#navCompte — showTab('moi')">
+        <span class="nav-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="10" cy="7.5" r="3.5"/>
+            <path d="M2 20c0-4 3.58-7.5 8-7.5s8 3.5 8 7.5"/>
+            <circle cx="17.5" cy="4" r="2.2" fill="currentColor" stroke="none"/>
+          </svg>
+        </span>
+        <span class="nav-label">Compte</span>
+      </button>
+      <button id="demoNavScores" onclick="demoNav('scores')"
+        title="#navScores — showTab('scores')">
+        <span class="nav-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 3h8v7c0 2.76-1.79 5-4 5s-4-2.24-4-5V3z"/>
+            <path d="M7 6H4a2 2 0 0 0 0 4h3"/>
+            <path d="M15 6h3a2 2 0 0 1 0 4h-3"/>
+            <line x1="11" y1="15" x2="11" y2="18"/>
+            <path d="M7.5 18.5h7"/>
+          </svg>
+        </span>
+        <span class="nav-label">Scores</span>
+      </button>
+    </div>
+
+    <div class="ds-label" style="margin-bottom:8px">Structure des panneaux</div>
+    <table class="ds-token-table" style="margin-bottom:16px">
+      <thead><tr><th>Panel</th><th>ID</th><th>Contenu</th></tr></thead>
+      <tbody>
+        <tr><td>Quête / Flash</td><td>panelExplore</td><td>miniMap + compassCorner + nearestList</td></tr>
+        <tr><td>Compte</td><td>panelMoi</td><td>profil + balisesSection + carnetList (collection)</td></tr>
+        <tr><td>Scores</td><td>panelScores</td><td>lbTabs (Quête/Flash) + myCard + lbList</td></tr>
+      </tbody>
+    </table>
+
+    <div class="ds-note">
+      Mode Flash : barre teintée magenta (<span class="ds-code">body.flash-mode nav</span>), onglet Flash (<span class="ds-code">#navDeclic</span>) pulsé en magenta.
+    </div>
+  </section>
+
+  <!-- ══ FEEDBACK ══════════════════════════════════════ -->
+  <section class="ds-section" id="feedback">
+    <div class="ds-section-title">Feedback — Toasts & Radar</div>
+
+    <!-- Radar bar -->
+    <div class="ds-label" style="margin-bottom:10px">Radar bar — #radarBar (flottant sur la carte)</div>
+    <div class="ds-row" style="margin-bottom:20px;align-items:center">
+      <div class="radar-bar">📡 Aucun trésor proche</div>
+      <div class="radar-bar near">⚠ Trésor à 85 m</div>
+      <div class="radar-bar very-near">🎯 Dans le rayon !</div>
+    </div>
+
+    <!-- Toasts -->
+    <div class="ds-label" style="margin-bottom:10px">Toasts</div>
+    <div class="ds-row" style="margin-bottom:20px;flex-wrap:wrap;align-items:center">
+      <div class="toast-sample">✓ Bienvenue, SCOUT42 !</div>
+      <div class="toast-sample flash">⚡ Déjà pris par HUNTER_X</div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="ds-label" style="margin-bottom:8px">Barre de progression — #progressBar</div>
+    <div style="max-width:420px">
+      <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--ink-2);margin-bottom:6px;font-family:var(--mono)">
+        <span><strong style="color:var(--ink)">9</strong> / 12 trouvés</span>
+        <span style="color:#4ade80;font-weight:700">75%</span>
+      </div>
+      <div class="pb-track" style="margin-bottom:12px">
+        <div class="pb-fill" style="width:75%"></div>
+      </div>
+      <div class="pb-track">
+        <div class="pb-fill green" style="width:100%"></div>
+      </div>
+      <div style="font-size:0.72rem;color:#4ade80;font-family:var(--mono);margin-top:4px;text-align:right">Quête complète 🏆</div>
+    </div>
+
+    <!-- GPS loading card -->
+    <div class="ds-label" style="margin-bottom:8px;margin-top:20px">GPS loading — #gpsLoadingPanel</div>
+    <div class="gps-loading-card">
+      <div class="gps-loading-spinner"></div>
+      <div class="gps-loading-title">Localisation en cours</div>
+      <div class="gps-loading-copy">Autorise l'accès à la position dans les réglages de ton navigateur.</div>
+      <div class="gps-loading-note">Précision actuelle : ±60 m</div>
+    </div>
+  </section>
+
+  <!-- ══ ANIMATIONS ═════════════════════════════════════ -->
+  <section class="ds-section" id="animations">
+    <div class="ds-section-title">Animations — référence keyframes</div>
+
+    <table class="ds-token-table">
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Usage</th>
+          <th>Durée typique</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>slideUp</td>
+          <td>Bottom sheets, modals, menus</td>
+          <td>0.25–0.45s · cubic-bezier(.16,1,.3,1)</td>
+        </tr>
+        <tr>
+          <td>foundPop</td>
+          <td>Found modal / qc-box entrée</td>
+          <td>0.38s · cubic-bezier(.34,1.56,.64,1)</td>
+        </tr>
+        <tr>
+          <td>bounceIn</td>
+          <td>Icône trouvé dans le modal</td>
+          <td>0.5s · cubic-bezier(.34,1.56,.64,1) · delay 0.2s</td>
+        </tr>
+        <tr>
+          <td>pulse</td>
+          <td>GPS chip bad, radar bar very-near</td>
+          <td>0.8–1s · infinite</td>
+        </tr>
+        <tr>
+          <td>fadeInFast</td>
+          <td>Pause screen</td>
+          <td>0.3s</td>
+        </tr>
+        <tr>
+          <td>captureFabPulse</td>
+          <td>#captureFab glow breathing</td>
+          <td>1.35s · ease-in-out · infinite</td>
+        </tr>
+        <tr>
+          <td>flashFabPulse</td>
+          <td>#flashFab glow breathing</td>
+          <td>1.2s · ease-in-out · infinite</td>
+        </tr>
+        <tr>
+          <td>flashNavPulse</td>
+          <td>Onglet Déclic en mode Flash</td>
+          <td>1.4s · ease-in-out · infinite</td>
+        </tr>
+        <tr>
+          <td>gpsLoadingSpin</td>
+          <td>Spinner GPS</td>
+          <td>1s · linear · infinite</td>
+        </tr>
+        <tr>
+          <td>compassPulse</td>
+          <td>Bouton autorisation boussole</td>
+          <td>1.6s · infinite</td>
+        </tr>
+        <tr>
+          <td>foundFlashAnim</td>
+          <td>Flash blanc sur le modal trouvé</td>
+          <td>0.55s · ease-out · once</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ══ OVERLAYS ════════════════════════════════════════ -->
+  <section class="ds-section" id="overlays">
+    <div class="ds-section-title">Overlays & Bottom Sheets</div>
+
+    <div class="ds-label" style="margin-bottom:6px">#treasureSheet — bottom sheet au tap sur un marker</div>
+    <div class="ds-note" style="margin-bottom:16px">Structure : <span class="ds-code">.ts-backdrop</span> (ferme au clic) + <span class="ds-code">.ts-card</span> (slides depuis le bas) avec <span class="ds-code">.ts-handle</span> + <span class="ds-code">#tsBody</span> (contenu dynamique injecté par JS).</div>
+
+    <div class="ds-label" style="margin-bottom:6px">#qrOverlay — scanner QR / photo polaroid</div>
+    <div class="ds-note" style="margin-bottom:16px">Déclenché en mode Flash sur tap du FAB. Contient : <span class="ds-code">#qrReader</span> (caméra live), <span class="ds-code">#qrStatus</span>, <span class="ds-code">#qrTorchBtn</span> (lampe), <span class="ds-code">#qrPhotoBtn</span> (input file secours), <span class="ds-code">#qrCloseBtn</span>.</div>
+
+    <div class="ds-label" style="margin-bottom:6px">#quickTutorial — overlay tutoriel 30s</div>
+    <div class="ds-note" style="margin-bottom:16px">2 colonnes <span class="ds-code">.qt-card</span> (Quête / Flash) + 3 <span class="ds-code">.qt-btn</span> (primary, secondary, ghost) pour GPS, compas, jouer.</div>
+
+    <div class="ds-label" style="margin-bottom:6px">#photoViewer — plein écran photo trésor</div>
+    <div class="ds-note">Fond noir 92% + <span class="ds-code">img max-height:80vh</span> + bouton fermer. Ouvert par clic sur une photo dans le carnet ou le found-modal.</div>
+  </section>
+
+  <!-- ══ GAME MODES ══════════════════════════════════════ -->
+  <section class="ds-section" id="modes">
+    <div class="ds-section-title">Game Modes — différences visuelles</div>
+
+    <div class="ds-row" style="margin-bottom:20px">
+      <div class="ds-col">
+        <div class="ds-label" style="margin-bottom:8px">Mode Quête (activeGameMode = 'fixed')</div>
+        <div class="map-mode-box fixed-mode">minimap · teinte cyan</div>
+      </div>
+      <div class="ds-col">
+        <div class="ds-label" style="margin-bottom:8px">Mode Flash (activeGameMode = 'unique')</div>
+        <div class="map-mode-box flash-mode">minimap · teinte magenta</div>
+      </div>
+    </div>
+
+    <table class="ds-token-table">
+      <thead>
+        <tr><th>Élément</th><th>Quête (fixed)</th><th>Flash (unique)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Couleur dominante</td><td style="color:var(--cyan)">--cyan</td><td style="color:var(--magenta)">--magenta</td></tr>
+        <tr><td>FAB visible</td><td>#captureFab (cyan)</td><td>#flashFab (magenta)</td></tr>
+        <tr><td>body class</td><td>—</td><td>flash-mode</td></tr>
+        <tr><td>#miniMap class</td><td>mode-fixed</td><td>mode-flash</td></tr>
+        <tr><td>Nav active border</td><td>var(--magenta)</td><td>var(--magenta) + teinte magenta</td></tr>
+        <tr><td>Beacon marker</td><td>Cercle cyan</td><td>Icône magenta / gris si pris</td></tr>
+        <tr><td>Radar bar</td><td>vert / orange</td><td>magenta</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+</main>
+
+<script>
+  function setTheme(mode) {
+    if (mode === 'dark') {
+      document.body.classList.add('dark');
+      document.getElementById('btnDark').classList.add('active');
+      document.getElementById('btnLight').classList.remove('active');
+    } else {
+      document.body.classList.remove('dark');
+      document.getElementById('btnLight').classList.add('active');
+      document.getElementById('btnDark').classList.remove('active');
+    }
+  }
+
+  function demoNav(tab) {
+    ['serie','declic','compte','scores'].forEach(id => {
+      const el = document.getElementById('demoNav' + id.charAt(0).toUpperCase() + id.slice(1));
+      if (el) el.classList.toggle('active', id === tab);
+    });
+    const isFlash = tab === 'declic';
+    document.querySelector('.ds-nav').closest('section')
+      .querySelectorAll('.ds-nav')[0]
+      .classList.toggle('flash-mode-demo', isFlash);
+  }
+</script>
+</body>
+</html>

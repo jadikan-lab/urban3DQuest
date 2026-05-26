@@ -22,9 +22,13 @@ npm run lint
 
 ## Architecture
 
-**Everything lives in `index.html`** (~3100 lines). CSS, HTML, and all JavaScript are in a single file. There is no bundler, no modules, no transpilation. `admin.html` is a separate standalone admin dashboard.
+**`index.html`** (~330 lines) contains only HTML markup and script/link tags — no inline CSS, no inline JS logic. CSS is in `css/`, all JavaScript is in `js/` (11 modules). There is no bundler, no modules system, no transpilation. `admin.html` is in the separate `urban3DQuest-admin` repository.
 
-`appsscript.gs` is the legacy Google Sheets backend — it is no longer used. The current backend is **Supabase** (PostgreSQL + RLS + Storage).
+`appsscript.gs` is the legacy Google Sheets backend — no longer used. The current backend is **Supabase** (PostgreSQL + RLS + Storage).
+
+### Design system
+
+`css/design-tokens.css` is the source of truth for shared design tokens (colors, fonts, radii). `design/design-system.html` is the visual reference documenting all tokens, components, and patterns.
 
 ### Supabase schema
 
@@ -32,12 +36,12 @@ npm run lint
 
 - `treasures.type`: `'fixed'` (Quête) or `'unique'` (Flash)
 - `treasures.found_by`: for `unique`, single pseudo; for `fixed`, comma-separated pseudos CSV
-- `players.score`: sum of `duration_sec` values (lower = faster = better)
+- `players.score`: sum of `duration_sec` values (lower = faster = better); updated server-side by trigger `trg_events_sync_player_stats`
 - `players.session_token`: UUID replaced on each login; used to kick concurrent sessions
 - `config` table drives: `proximityRadius`, `gameActive`, `mapCenter`, `gameCode`, `fixedTotal`, `activeQuests`
-- `events` table is the source of truth for all finds (score/count are denormalized onto `players`)
+- `events` table is the source of truth for all finds (score/found_count denormalized to `players` via trigger)
 
-SQL files: `setup.sql` (initial schema, RLS off — dev only), `setup_secure_rls.sql` (production RLS baseline), `migration_add_auth.sql`.
+SQL files (`setup.sql`, `setup_secure_rls.sql`, `migration_*.sql`) are in the **`urban3DQuest-admin`** repository.
 
 ### Two environments
 
@@ -69,26 +73,21 @@ proximityR       // proximity radius in meters (from config, default 100)
 
 ### Key functions
 
-| Function | Role |
-|---|---|
-| `initGame()` | Entry point after login; loads config, treasures, starts GPS, renders UI |
-| `renderMarkers()` | Draws treasure markers on minimap — **must be called in `setGameMode()`** to filter by mode |
-| `updateRadar()` | Main proximity loop; fires on each GPS fix; updates radar bar, unlocks clues |
-| `captureFixed()` | Triggered by FAB (fixed mode); checks proximity then calls `_doCheckin()` |
-| `_doCheckin(t)` | Validates capture: proximity check (client-side), then `processFindById()` |
-| `processFindById(id)` | Writes to Supabase (`events` insert + `players` update + `treasures` update), shows found modal |
-| `setGameMode(mode)` | Switches between `'fixed'` and `'unique'`; must call `renderMarkers()` |
-| `loadLeaderboard()` | Fetches all events, recalculates scores client-side, renders leaderboard |
-| `startLbPolling()` | Polls `loadLeaderboard()` every 10s |
+| Function | File | Role |
+|---|---|---|
+| `initGame()` | `game-init.js` | Entry point after login; loads config, treasures, starts GPS, renders UI |
+| `renderMarkers()` | `map-init.js` | Draws treasure markers on minimap — must be called in `setGameMode()` to filter by mode |
+| `updateRadar()` | `gps.js` | Main proximity loop; fires on each GPS fix; updates radar bar, unlocks clues |
+| `captureFixed()` | `gps.js` | Proximity FAB trigger (fixed mode) |
+| `_doCheckin()` | `game-init.js` | QR checkin handler: GPS proximity check (client-side), then calls `processFindById()` |
+| `processFindById(id)` | `find.js` | Updates `treasures.found_by`, inserts `events` row; score/found_count updated server-side via trigger |
+| `setGameMode(mode)` | `game-init.js` | Switches between `'fixed'` and `'unique'`; calls `renderMarkers()` |
+| `loadLeaderboard()` | `leaderboard.js` | Fetches all events, recalculates scores client-side, renders leaderboard |
+| `startLbPolling()` | `leaderboard.js` | Polls `loadLeaderboard()` every 10s |
 
-### Known bugs (do not regress)
+### Known limitations
 
-- GPS proximity check is client-side only in `_doCheckin()`.
-
-### Resolved (do not reintroduce)
-
-- ~~Score is written to `players` directly from the client in `processFindById()`.~~ Fixed: `find.js` inserts only an `events` row; the trigger `trg_events_sync_player_stats` (see `migration_add_score_trigger.sql`) recalculates `score` and `found_count` server-side. The client reads back the updated values from `players` after the insert.
-- ~~`renderMarkers()` does not filter by `activeGameMode`.~~ Fixed: `map-init.js` filters by type+mode at the top of the `forEach`, and hides unfound fixed beacons in all modes.
+- GPS proximity check in `_doCheckin()` is client-side only (no server-side validation).
 
 ## Commit conventions
 
