@@ -293,7 +293,7 @@ function updateRadar() {
       bar.textContent = `${cStr} · 📷 Scanne-le maintenant !${accStr}`;
       bar.className = 'very-near';
       nearestUnique = nearestU.t;
-      flashFab.style.display = 'block';
+      flashFab.style.display = 'flex';
       if (nearestU.t.photo_url) showFlashHint(nearestU.t, 'Tu es dessus — scanne !');
       if (lastHapticZone !== 'unique-capture') { lastHapticZone = 'unique-capture'; haptic([100, 50, 100, 50, 200]); }
     } else if (uniqueDist <= FLASH_HINT_M) {
@@ -380,18 +380,7 @@ function updateRadar() {
       if (myPseudo) localStorage.setItem(`u3dq_clues_${myPseudo}`, JSON.stringify([...revealedFixedClues]));
       showFlashHint(t, 'Voilà ce que tu cherches — tu es dans la zone !', 'quest');
     }
-    if (activeTab === 'explore' && canCapture && gameMap) {
-      const mapEl = document.getElementById('miniMap');
-      const p = gameMap.latLngToContainerPoint([playerLat, playerLng]);
-      const margin = 44;
-      const x = Math.max(margin, Math.min(mapEl.offsetWidth - margin, p.x));
-      const y = Math.max(margin, Math.min(mapEl.offsetHeight - margin, p.y));
-      fab.style.left = x + 'px';
-      fab.style.top = y + 'px';
-      fab.style.display = 'block';
-    } else {
-      fab.style.display = 'none';
-    }
+    fab.style.display = (activeTab === 'explore' && canCapture) ? 'flex' : 'none';
     if (lastHapticZone !== 'capture') { lastHapticZone = 'capture'; haptic([100, 50, 100, 50, 200]); }
   }
 }
