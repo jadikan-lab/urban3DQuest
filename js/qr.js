@@ -9,6 +9,47 @@ let html5QrInst = null;
 let _nativeStream = null;
 let _nativePollId = null;
 let _nativeRefocusId = null;
+// Zoom state
+let _qrZoomMin = 1;
+let _qrZoomMax = 1;
+let _qrZoomStep = 0.5;
+let _qrZoomCurrent = 1;
+let _qrZoomApply = null; // async fn(zoom) — set when camera is live
+
+function _updateZoomUI() {
+  const label = document.getElementById('qrZoomLabel');
+  const outBtn = document.getElementById('qrZoomOutBtn');
+  const inBtn  = document.getElementById('qrZoomInBtn');
+  if (label) label.textContent = 'Zoom ' + _qrZoomCurrent.toFixed(1) + 'x';
+  if (outBtn) outBtn.disabled = _qrZoomCurrent <= _qrZoomMin;
+  if (inBtn)  inBtn.disabled  = _qrZoomCurrent >= _qrZoomMax;
+}
+
+async function adjustQRZoom(delta) {
+  if (!_qrZoomApply) return;
+  const next = Math.max(_qrZoomMin, Math.min(_qrZoomMax,
+    Math.round((_qrZoomCurrent + delta * _qrZoomStep) * 10) / 10));
+  if (next === _qrZoomCurrent) return;
+  _qrZoomCurrent = next;
+  await _qrZoomApply(next);
+  _updateZoomUI();
+}
+
+function _initZoomControls(min, max, initial, applyFn) {
+  _qrZoomMin = min;
+  _qrZoomMax = max;
+  _qrZoomCurrent = initial;
+  _qrZoomApply = applyFn;
+  const row = document.getElementById('qrZoomRow');
+  if (row) row.style.display = 'flex';
+  _updateZoomUI();
+}
+
+function _resetZoomControls() {
+  _qrZoomApply = null;
+  const row = document.getElementById('qrZoomRow');
+  if (row) row.style.display = 'none';
+}
 
 function openQRScanner(beaconId) {
   qrExpectedId = beaconId || null;
@@ -99,7 +140,17 @@ async function _startNativeScan(status, isStg, _qrLog) {
         const caps = track.getCapabilities ? track.getCapabilities() : {};
         const c = {};
         if (caps.focusMode && caps.focusMode.includes('continuous')) c.focusMode = 'continuous';
-        if (caps.zoom && caps.zoom.max >= 1.5) c.zoom = 1.5;
+        // Zoom auto : on part au max (≤ 2.5x) pour les petits QR codes
+        if (caps.zoom && caps.zoom.max > 1) {
+          const autoZoom = Math.min(2.5, caps.zoom.max);
+          c.zoom = autoZoom;
+          _initZoomControls(
+            caps.zoom.min || 1,
+            caps.zoom.max,
+            autoZoom,
+            async (z) => { try { await track.applyConstraints({ zoom: z }); } catch {} }
+          );
+        }
         if (Object.keys(c).length) await track.applyConstraints(c);
         if (caps.torch) document.getElementById('qrTorchBtn').style.display = 'flex';
         _qrLog('zoom:' + (c.zoom||1) + 'x focus:' + (c.focusMode||'n/a'));
@@ -193,11 +244,20 @@ async function _startHtml5Scan(status, isStg, _qrLog) {
         const caps = html5QrInst.getRunningTrackCapabilities();
         const constraints = {};
         if (caps && caps.focusMode && caps.focusMode.includes('continuous')) constraints.focusMode = 'continuous';
-        if (caps && caps.zoom) constraints.advanced = [{ zoom: Math.min(2.0, caps.zoom.max) }];
+        // Zoom auto : on part au max (≤ 2.5x) pour les petits QR codes
+        if (caps && caps.zoom && caps.zoom.max > 1) {
+          const autoZoom = Math.min(2.5, caps.zoom.max);
+          constraints.zoom = autoZoom;
+          _initZoomControls(
+            caps.zoom.min || 1,
+            caps.zoom.max,
+            autoZoom,
+            async (z) => { try { await html5QrInst.applyVideoConstraints({ zoom: z }); } catch {} }
+          );
+        }
         if (Object.keys(constraints).length) await html5QrInst.applyVideoConstraints(constraints);
         if (caps && caps.torch) document.getElementById('qrTorchBtn').style.display = 'flex';
-        const z = (constraints.advanced && constraints.advanced[0]) ? constraints.advanced[0].zoom : 1;
-        _qrLog('zoom:' + z + 'x focus:' + (constraints.focusMode||'n/a'));
+        _qrLog('zoom:' + (constraints.zoom||1) + 'x focus:' + (constraints.focusMode||'n/a'));
       } catch(e) {
         _qrLog('constraints ERR: ' + (e.message||'').slice(0,50));
       }
@@ -260,6 +320,7 @@ async function stopLiveQRScan() {
   const torchBtn = document.getElementById('qrTorchBtn');
   if (torchBtn) { torchBtn.style.display = 'none'; torchBtn.textContent = '💡 Lampe'; }
   qrTorchOn = false;
+  _resetZoomControls();
 }
 
 async function toggleQRTorch() {

@@ -302,6 +302,11 @@
     <div id="qrStatus">Vise le polaroid pour le révéler.</div>
     <div id="qrDebugLog" class="field-hidden"></div>
     <div id="qrReader"></div>
+    <div id="qrZoomRow" class="field-hidden" aria-label="Contrôles de zoom">
+      <button id="qrZoomOutBtn" onclick="adjustQRZoom(-1)" aria-label="Réduire le zoom">−</button>
+      <span id="qrZoomLabel">Zoom 1.0x</span>
+      <button id="qrZoomInBtn" onclick="adjustQRZoom(1)" aria-label="Augmenter le zoom">+</button>
+    </div>
     <button id="qrTorchBtn" onclick="toggleQRTorch()">💡 Lampe</button>
     <div id="qrPreviewWrap"><img id="qrPreviewImg" alt="preview"></div>
     <label id="qrPhotoBtn">

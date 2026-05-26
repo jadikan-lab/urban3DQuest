@@ -349,6 +349,9 @@
     #qrReader video{width:100%!important;display:block;max-height:50vh;object-fit:cover}
     #qrReader__header_message,#qrReader__status_span,#qrReader__filescan_input{display:none!important}
     #qrReader__scan_region{background:#000}
+    #qrZoomRow{display:none;align-items:center;justify-content:center;gap:12px;width:100%;padding:8px 0 2px}
+    #qrZoomRow button{width:44px;height:44px;border:none;border-radius:12px;background:#111827;color:#fff;font-size:1.5rem;font-weight:800;line-height:1;cursor:pointer}
+    #qrZoomLabel{min-width:110px;text-align:center;font-family:var(--mono);font-size:0.86rem;font-weight:700;color:var(--ink)}
     #qrPreviewWrap{width:100%;border-radius:14px;overflow:hidden;display:none;border:2px solid var(--line-2)}
     #qrPreviewImg{width:100%;display:block;max-height:50vh;object-fit:contain;background:var(--surface)}
     #qrTorchBtn{display:none;align-items:center;justify-content:center;gap:10px;padding:12px 0;background:linear-gradient(135deg,#374151,#111827);border:none;border-radius:12px;color:#fff;font-size:0.95rem;font-weight:700;cursor:pointer;width:100%;min-height:48px;letter-spacing:.02em;box-shadow:0 3px 16px rgba(17,24,39,.3);font-family:var(--display)}
