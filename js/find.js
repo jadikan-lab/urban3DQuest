@@ -3,6 +3,91 @@ let _processingFind = false;
 const _inFlightCaptures = new Set(); // protection double-scan par balise
 window._uniqueCaptureShareData = window._uniqueCaptureShareData || null;
 
+function _isMissingSecureFindRpcError(error) {
+  const code = String(error?.code || '');
+  const msg = String(error?.message || '');
+  return code === '42883' || /process_find_secure/i.test(msg);
+}
+
+async function _tryProcessFindSecure(t, foundCountBefore) {
+  const hasGps = Number.isFinite(playerLat) && Number.isFinite(playerLng);
+  const payload = {
+    p_pseudo: myPseudo,
+    p_session_token: myToken || null,
+    p_treasure_id: t.id,
+    p_player_lat: hasGps ? playerLat : null,
+    p_player_lng: hasGps ? playerLng : null,
+    p_proximity_m: Math.max(10, Number(proximityR) || 100)
+  };
+
+  const { data, error } = await db.rpc('process_find_secure', payload);
+  if (error) {
+    if (_isMissingSecureFindRpcError(error)) return false;
+    _checkinError('Révélation impossible pour le moment. Réessaie dans quelques secondes.');
+    return true;
+  }
+  if (!data || !data.status) return false;
+
+  if (data.status === 'not_found') { _checkinError('Polaroid introuvable — il a peut-être été retiré.'); return true; }
+  if (data.status === 'hidden')   { _checkinError('Ce polaroid n\'est pas encore actif.'); return true; }
+  if (data.status === 'no_gps')   { _checkinError('GPS requis pour valider cette capture.'); return true; }
+  if (data.status === 'invalid_session') {
+    _checkinError('Session expirée — reconnecte-toi puis réessaie.');
+    return true;
+  }
+  if (data.status === 'too_far') {
+    const dist = Math.round(Number(data.distance_m || 0));
+    _checkinError(`Tu es à ${dist}m de "${tLabel(t)}" — trop loin pour révéler.\nApproche-toi à moins de ${proximityR}m.`, t.id);
+    return true;
+  }
+  if (data.status === 'already') { showFoundResult('already', t); return true; }
+  if (data.status === 'taken')   { showFoundResult('taken', t); return true; }
+  if (data.status !== 'success') return false;
+
+  const durationSec = Math.max(0, Number(data.duration_sec || 0));
+  let durationSecHunt = null;
+  if (t.type === 'fixed') {
+    const firstFixedKey = `u3dq_first_fixed_at_${myPseudo}`;
+    if (foundCountBefore === 0) {
+      localStorage.setItem(firstFixedKey, String(Date.now()));
+      durationSecHunt = 0;
+    } else {
+      const firstFixedAt = Number(localStorage.getItem(firstFixedKey) || 0);
+      durationSecHunt = firstFixedAt ? Math.max(0, Math.round((Date.now() - firstFixedAt) / 1000)) : 0;
+    }
+  }
+
+  const { data: pFresh } = await db.from('players').select('score,found_count').eq('pseudo', myPseudo).single();
+  if (pFresh) {
+    myScore = pFresh.score || 0;
+    myFoundCount = pFresh.found_count || 0;
+  }
+
+  await loadTreasures();
+  renderMarkers();
+  updateHeader();
+  updateRadar();
+  updateProgressBar();
+
+  if (navigator.vibrate) navigator.vibrate([80, 40, 160]);
+
+  if (t.type === 'fixed' && t.quest) {
+    const questBeacons = treasures.filter(x => x.type === 'fixed' && x.quest === t.quest);
+    const allFound = questBeacons.every(x => {
+      const fl = (x.found_by || '').split(',').filter(Boolean);
+      return fl.includes(myPseudo);
+    });
+    if (allFound && questBeacons.length > 0) {
+      showFoundResult('success', t, durationSec, durationSecHunt);
+      setTimeout(() => showQuestComplete(t.quest, durationSecHunt, questBeacons.length), 2200);
+      return true;
+    }
+  }
+
+  showFoundResult('success', t, durationSec, durationSecHunt);
+  return true;
+}
+
 async function _rollbackFoundBy(treasure, previousFoundBy, expectedFoundBy) {
   const rollbackPayload = {
     found_by: previousFoundBy,
@@ -43,6 +128,9 @@ async function _doProcessFind(treasureId) {
 
   // Unique: check if taken
   if (t.type === 'unique' && foundList.length > 0) { showFoundResult('taken', t); return; }
+
+  // Preferred secure server path; falls back to legacy flow if RPC is not deployed yet.
+  if (await _tryProcessFindSecure(t, foundCountBefore)) return;
 
   // Server-side dedup: prevents double-write from multi-tab or rapid re-scan
   const { data: dupEvent } = await db.from('events').select('id').eq('pseudo', myPseudo).eq('treasure_id', t.id).maybeSingle();
