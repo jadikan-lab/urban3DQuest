@@ -1,8 +1,46 @@
 // ── Auth, game init, QR scanner, captures ───────────
 let bgMap = null;
+let accessGateRequired = false;
+let accessGateUnlocked = false;
 
 function normalizePseudo(raw) {
   return String(raw || '').trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+}
+
+function _setLoginFieldsVisibility(show) {
+  const pseudoInput = document.getElementById('pseudoInput');
+  const passInput = document.getElementById('passwordInput');
+  const guestBtn = document.getElementById('guestBtn');
+  if (pseudoInput) pseudoInput.style.display = show ? '' : 'none';
+  if (passInput) passInput.style.display = show ? '' : 'none';
+  if (guestBtn) guestBtn.style.display = show ? '' : 'none';
+}
+
+function showAccessGate() {
+  accessGateRequired = true;
+  accessGateUnlocked = false;
+  _setLoginFieldsVisibility(false);
+  const codeWrap = document.getElementById('gameCodeWrap');
+  const codeInput = document.getElementById('gameCodeInput');
+  const startBtn = document.getElementById('startBtn');
+  const subtitle = document.querySelector('.ps-sub');
+  if (codeWrap) codeWrap.style.display = 'block';
+  if (startBtn) startBtn.textContent = 'Entrer';
+  if (subtitle) subtitle.textContent = 'Entre le code d\'accès pour ouvrir le jeu';
+  if (codeInput) codeInput.focus();
+}
+
+function unlockAccessGate() {
+  accessGateUnlocked = true;
+  _setLoginFieldsVisibility(true);
+  const startBtn = document.getElementById('startBtn');
+  const subtitle = document.querySelector('.ps-sub');
+  const codeWrap = document.getElementById('gameCodeWrap');
+  if (startBtn) startBtn.textContent = 'Je cherche';
+  if (subtitle) subtitle.innerHTML = 'J\'ai caché des miniatures dans la ville.<br>C\'est à toi de les trouver.';
+  if (codeWrap) codeWrap.style.display = 'none';
+  const pseudoInput = document.getElementById('pseudoInput');
+  if (pseudoInput) pseudoInput.focus();
 }
 
 // SHA-256 via Web Crypto — no library needed
@@ -57,7 +95,7 @@ window.addEventListener('load', async () => {
     }
     if (cMap.gameCode) {
       gameCode = cMap.gameCode;
-      document.getElementById('gameCodeWrap').style.display = 'block';
+      if (!myPseudo) showAccessGate();
     }
     if (cMap.guestLandingUrl) guestLandingUrl = cMap.guestLandingUrl;
   }
@@ -135,6 +173,18 @@ async function startGame() {
   const pass      = (passInput && passInput.style.display !== 'none') ? passInput.value : '';
   const isStg      = SUPABASE_ENV.name === 'stg';
 
+  if (gameCode && accessGateRequired && !accessGateUnlocked) {
+    const entered = (document.getElementById('gameCodeInput').value || '').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
+    if (entered !== gameCode) {
+      err.textContent = 'Code d\'accès incorrect.';
+      err.style.display = 'block';
+      return;
+    }
+    err.style.display = 'none';
+    unlockAccessGate();
+    return;
+  }
+
   if (pseudo.length < 2) { err.textContent = 'Pseudo trop court (min 2 caractères)'; err.style.display = 'block'; return; }
   if (!isStg && pass.length < 4) { err.textContent = 'Mot de passe trop court (min 4 caractères)'; err.style.display = 'block'; return; }
 
@@ -194,6 +244,11 @@ async function startGame() {
 
 async function continueAsGuest() {
   const err = document.getElementById('pseudoErr');
+  if (gameCode && accessGateRequired && !accessGateUnlocked) {
+    err.textContent = 'Entre d\'abord le code d\'accès.';
+    err.style.display = 'block';
+    return;
+  }
   // Keep access-code protection if configured, even for guest browsing.
   if (gameCode) {
     const entered = (document.getElementById('gameCodeInput').value || '').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
