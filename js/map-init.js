@@ -165,15 +165,14 @@ function renderMarkers() {
       return;
     }
 
-    // Unique treasures already taken by another player: keep an archive point visible
-    // so players can see flash history on the map.
-    if (t.type === 'unique' && !isMine && isTaken) {
+    // Unique treasures already taken: keep only tiny archive points to avoid map clutter.
+    if (t.type === 'unique' && isTaken) {
       mapMarkers[t.id] = L.circleMarker([t.lat, t.lng], {
-        radius: 6,
-        color: '#334155',
-        weight: 2,
-        fillColor: '#94a3b8',
-        fillOpacity: 0.92,
+        radius: isMine ? 2.6 : 2.2,
+        color: isMine ? '#166534' : '#334155',
+        weight: 1,
+        fillColor: isMine ? '#22c55e' : '#94a3b8',
+        fillOpacity: 0.9,
         opacity: 0.95
       }).addTo(gameMap).on('click', () => openTreasureSheet(t));
       return;
@@ -191,7 +190,7 @@ function renderMarkers() {
       return;
     }
 
-    // All other cases (found uniques): luminous pin
+    // All other cases: luminous pin
     const icon = L.divIcon({
       html: `<div class="pin found"><div class="pin-halo"></div><div class="pin-core">✓</div></div>`,
       className: '', iconSize: [36, 36], iconAnchor: [18, 18]
