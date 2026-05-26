@@ -4,10 +4,8 @@
 
 function resolveSupabaseEnv() {
   const params = new URLSearchParams(location.search);
-  const requestedEnv = (params.get('env') || localStorage.getItem('u3dq_env') || 'prod').toLowerCase();
+  const requestedEnv = (params.get('env') || 'prod').toLowerCase();
   const activeEnv = SUPABASE_ENVS[requestedEnv] ? requestedEnv : 'prod';
-
-  if (params.get('env')) localStorage.setItem('u3dq_env', activeEnv);
 
   const config = SUPABASE_ENVS[activeEnv];
   if (!config.key) {

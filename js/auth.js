@@ -165,7 +165,7 @@ async function startGame() {
     return;
   }
   if (!authResult?.ok) {
-    err.textContent = authResult?.message || 'Connexion impossible.';
+    err.textContent = authResult?.message || (isStg ? 'Connexion impossible en STG. Ouvre le jeu en PROD avec ?env=prod.' : 'Connexion impossible. Vérifie ton pseudo, ton mot de passe et l\'état du backend.');
     err.style.display = 'block';
     document.getElementById('startBtn').disabled = false;
     document.getElementById('startBtn').textContent = '🚀 Rejoindre le jeu';
