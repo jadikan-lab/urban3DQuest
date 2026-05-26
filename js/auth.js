@@ -1,23 +1,8 @@
 // ── Auth, game init, QR scanner, captures ───────────
 let bgMap = null;
-let privateAccessEnabled = false;
-let privateAllowedPseudos = new Set();
 
 function normalizePseudo(raw) {
   return String(raw || '').trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '');
-}
-
-function setPrivateAllowList(rawList) {
-  const list = String(rawList || '')
-    .split(/[\s,;]+/)
-    .map(normalizePseudo)
-    .filter(p => p.length >= 2 && p.length <= 24);
-  privateAllowedPseudos = new Set(list);
-}
-
-function isPseudoAllowedForPrivateAccess(pseudo) {
-  if (!privateAccessEnabled) return true;
-  return privateAllowedPseudos.has(normalizePseudo(pseudo));
 }
 
 // SHA-256 via Web Crypto — no library needed
@@ -62,7 +47,7 @@ window.addEventListener('load', async () => {
   if (qrInput) qrInput.addEventListener('change', () => handleQRPhoto(qrInput));
 
   // Pre-fetch config to get mapCenter + gameCode for landing screen
-  const { data: cfgData } = await db.from('config').select('key,value').in('key',['mapCenter','gameCode','guestLandingUrl','privateAccessEnabled','privateAllowedPseudos']);
+  const { data: cfgData } = await db.from('config').select('key,value').in('key',['mapCenter','gameCode','guestLandingUrl']);
   let guestLandingUrl = 'https://jadikan.carrd.co/';
   if (cfgData) {
     const cMap = Object.fromEntries(cfgData.map(r => [r.key, r.value]));
@@ -75,12 +60,7 @@ window.addEventListener('load', async () => {
       document.getElementById('gameCodeWrap').style.display = 'block';
     }
     if (cMap.guestLandingUrl) guestLandingUrl = cMap.guestLandingUrl;
-    privateAccessEnabled = cMap.privateAccessEnabled === 'true';
-    setPrivateAllowList(cMap.privateAllowedPseudos || '');
   }
-
-  const guestBtn = document.getElementById('guestBtn');
-  if (guestBtn && privateAccessEnabled) guestBtn.style.display = 'none';
 
   const params    = new URLSearchParams(location.search);
   const foundId   = params.get('found');
@@ -95,18 +75,6 @@ window.addEventListener('load', async () => {
 
   // Returning user: verify session token then skip landing
   if (myPseudo) {
-    if (!isPseudoAllowedForPrivateAccess(myPseudo)) {
-      localStorage.removeItem('u3dq_pseudo');
-      localStorage.removeItem('u3dq_token');
-      myPseudo = ''; myToken = '';
-      const errEl = document.getElementById('pseudoErr');
-      if (errEl) {
-        errEl.textContent = 'Accès privé activé : ce pseudo n\'est pas autorisé pour cette session de test.';
-        errEl.style.display = 'block';
-      }
-      return;
-    }
-
     if (SUPABASE_ENV.name === 'stg') {
       // STG : on fait confiance au localStorage, pas de vérification session
       const { data: p } = await db.from('players').select('score,found_count').eq('pseudo', myPseudo).single();
@@ -175,11 +143,6 @@ async function startGame() {
     const entered = (document.getElementById('gameCodeInput').value || '').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
     if (entered !== gameCode) { err.textContent = 'Code d\'accès incorrect.'; err.style.display = 'block'; return; }
   }
-  if (!isPseudoAllowedForPrivateAccess(pseudo)) {
-    err.textContent = 'Accès privé activé : ce pseudo n\'est pas autorisé.';
-    err.style.display = 'block';
-    return;
-  }
   err.style.display = 'none';
 
   document.getElementById('startBtn').disabled = true;
@@ -231,11 +194,6 @@ async function startGame() {
 
 async function continueAsGuest() {
   const err = document.getElementById('pseudoErr');
-  if (privateAccessEnabled) {
-    err.textContent = 'Accès privé activé : connexion requise avec un pseudo autorisé.';
-    err.style.display = 'block';
-    return;
-  }
   // Keep access-code protection if configured, even for guest browsing.
   if (gameCode) {
     const entered = (document.getElementById('gameCodeInput').value || '').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
