@@ -91,9 +91,9 @@ async function _startNativeScan(status, isStg, _qrLog) {
     video.srcObject = _nativeStream;
     await video.play();
     status.className = '';
-    status.textContent = '📷 Vise le QR du polaroid';
+    status.textContent = '📷 Vise le QR · appuie sur l\'image pour la mise au point';
 
-    // Focus + zoom directs sur le track (1.5x, pas 2x qui peut gêner le macro)
+    // Focus + zoom directs sur le track
     setTimeout(async () => {
       try {
         const caps = track.getCapabilities ? track.getCapabilities() : {};
@@ -106,38 +106,50 @@ async function _startNativeScan(status, isStg, _qrLog) {
       } catch(e) {
         _qrLog('constraints ERR: ' + (e.message||'').slice(0,50));
       }
-    }, 1000);
+    }, 800);
 
-    // Refocus forcé toutes les 4s : single-shot → continuous
-    // Compense l'autofocus qui se bloque sur Android WebRTC
+    // Tap-to-focus : single-shot → continuous (aide sur iOS et Android)
+    video.addEventListener('click', async () => {
+      try {
+        const caps = track.getCapabilities ? track.getCapabilities() : {};
+        if (caps.focusMode && caps.focusMode.includes('single-shot')) {
+          await track.applyConstraints({ focusMode: 'single-shot' });
+          await new Promise(r => setTimeout(r, 500));
+          if (caps.focusMode.includes('continuous'))
+            await track.applyConstraints({ focusMode: 'continuous' });
+        }
+      } catch {}
+    });
+
+    // Refocus forcé toutes les 2s : single-shot → continuous
     _nativeRefocusId = setInterval(async () => {
       if (!_nativeStream) return;
       try {
         const caps = track.getCapabilities ? track.getCapabilities() : {};
         if (caps.focusMode && caps.focusMode.includes('single-shot'))
           await track.applyConstraints({ focusMode: 'single-shot' });
-        await new Promise(r => setTimeout(r, 400));
+        await new Promise(r => setTimeout(r, 350));
         if (caps.focusMode && caps.focusMode.includes('continuous'))
           await track.applyConstraints({ focusMode: 'continuous' });
       } catch {}
-    }, 4000);
+    }, 2000);
 
     const detector = new BarcodeDetector({ formats: ['qr_code'] });
     const canvas = document.createElement('canvas');
-    canvas.width = 640; canvas.height = 640;
+    canvas.width = 800; canvas.height = 800;
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     let frameCount = 0;
     _nativePollId = setInterval(async () => {
       if (!_nativeStream || video.readyState < 2 || !video.videoWidth) return;
       frameCount++;
       try {
-        // Crop carré central 70% du min(w,h) → scale 640×640
-        // → QR occupe beaucoup plus de pixels, ML Kit le lit mieux
+        // Crop carré central 50% du min(w,h) → scale 800×800
+        // Zone plus serrée = QR code occupe plus de pixels dans le canvas
         const minDim = Math.min(video.videoWidth, video.videoHeight);
-        const size = minDim * 0.7;
+        const size = minDim * 0.5;
         const sx = (video.videoWidth  - size) / 2;
         const sy = (video.videoHeight - size) / 2;
-        ctx.drawImage(video, sx, sy, size, size, 0, 0, 640, 640);
+        ctx.drawImage(video, sx, sy, size, size, 0, 0, 800, 800);
         const codes = await detector.detect(canvas);
         if (frameCount % 20 === 0) _qrLog('f' + frameCount + ' crop:' + Math.round(size) + 'px → ' + codes.length + ' QR');
         if (codes.length > 0) {
@@ -165,7 +177,7 @@ async function _startHtml5Scan(status, isStg, _qrLog) {
     document.getElementById('qrReader').style.display = 'block';
     await html5QrInst.start(
       { facingMode: 'environment' },
-      { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0,
+      { fps: 10, qrbox: { width: 180, height: 180 }, aspectRatio: 1.0,
         videoConstraints: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } } },
       async (decodedText) => {
         await stopLiveQRScan();
@@ -173,7 +185,7 @@ async function _startHtml5Scan(status, isStg, _qrLog) {
       },
       () => {}
     );
-    status.className = ''; status.textContent = '📷 Vise le QR du polaroid';
+    status.className = ''; status.textContent = '📷 Vise le QR · appuie sur l\'image pour la mise au point';
     _qrLog('ZXing start OK');
     setTimeout(async () => {
       if (!html5QrInst) return;
@@ -189,7 +201,38 @@ async function _startHtml5Scan(status, isStg, _qrLog) {
       } catch(e) {
         _qrLog('constraints ERR: ' + (e.message||'').slice(0,50));
       }
-    }, 1500);
+
+      // Tap-to-focus sur l'élément vidéo html5-qrcode
+      const qrVideo = document.querySelector('#qrReader video');
+      if (qrVideo) {
+        qrVideo.addEventListener('click', async () => {
+          if (!html5QrInst) return;
+          try {
+            const caps2 = html5QrInst.getRunningTrackCapabilities();
+            if (caps2 && caps2.focusMode && caps2.focusMode.includes('single-shot')) {
+              await html5QrInst.applyVideoConstraints({ focusMode: 'single-shot' });
+              await new Promise(r => setTimeout(r, 500));
+              if (caps2.focusMode.includes('continuous'))
+                await html5QrInst.applyVideoConstraints({ focusMode: 'continuous' });
+            }
+          } catch {}
+        });
+      }
+
+      // Refocus forcé toutes les 2s
+      _nativeRefocusId = setInterval(async () => {
+        if (!html5QrInst) return;
+        try {
+          const caps3 = html5QrInst.getRunningTrackCapabilities();
+          if (caps3 && caps3.focusMode && caps3.focusMode.includes('single-shot')) {
+            await html5QrInst.applyVideoConstraints({ focusMode: 'single-shot' });
+            await new Promise(r => setTimeout(r, 350));
+            if (caps3.focusMode.includes('continuous'))
+              await html5QrInst.applyVideoConstraints({ focusMode: 'continuous' });
+          }
+        } catch {};
+      }, 2000);
+    }, 1000);
   } catch(err) {
     html5QrInst = null;
     _qrLog('ZXing start ERR: ' + (err.message||err).toString().slice(0,60));
