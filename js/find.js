@@ -3,6 +3,24 @@ let _processingFind = false;
 const _inFlightCaptures = new Set(); // protection double-scan par balise
 window._uniqueCaptureShareData = window._uniqueCaptureShareData || null;
 
+async function _getFixedHuntDurationSec(pseudo) {
+  if (!pseudo) return 0;
+  try {
+    const { data, error } = await db.from('events')
+      .select('created_at')
+      .eq('pseudo', pseudo)
+      .eq('treasure_type', 'fixed')
+      .order('created_at', { ascending: true });
+    if (error || !data || data.length <= 1) return 0;
+    const firstAt = new Date(data[0].created_at).getTime();
+    const lastAt = new Date(data[data.length - 1].created_at).getTime();
+    if (!Number.isFinite(firstAt) || !Number.isFinite(lastAt)) return 0;
+    return Math.max(0, Math.round((lastAt - firstAt) / 1000));
+  } catch {
+    return 0;
+  }
+}
+
 function _isMissingSecureFindRpcError(error) {
   const code = String(error?.code || '');
   const msg = String(error?.message || '');
@@ -47,14 +65,7 @@ async function _tryProcessFindSecure(t, foundCountBefore) {
   const durationSec = Math.max(0, Number(data.duration_sec || 0));
   let durationSecHunt = null;
   if (t.type === 'fixed') {
-    const firstFixedKey = `u3dq_first_fixed_at_${myPseudo}`;
-    if (foundCountBefore === 0) {
-      localStorage.setItem(firstFixedKey, String(Date.now()));
-      durationSecHunt = 0;
-    } else {
-      const firstFixedAt = Number(localStorage.getItem(firstFixedKey) || 0);
-      durationSecHunt = firstFixedAt ? Math.max(0, Math.round((Date.now() - firstFixedAt) / 1000)) : 0;
-    }
+    durationSecHunt = await _getFixedHuntDurationSec(myPseudo);
   }
 
   const { data: pFresh } = await db.from('players').select('score,found_count').eq('pseudo', myPseudo).single();
@@ -176,14 +187,7 @@ async function _doProcessFind(treasureId) {
 
   let durationSecHunt = null;
   if (t.type === 'fixed') {
-    const firstFixedKey = `u3dq_first_fixed_at_${myPseudo}`;
-    if (foundCountBefore === 0) {
-      localStorage.setItem(firstFixedKey, String(Date.now()));
-      durationSecHunt = 0;
-    } else {
-      const firstFixedAt = Number(localStorage.getItem(firstFixedKey) || 0);
-      durationSecHunt = firstFixedAt ? Math.max(0, Math.round((Date.now() - firstFixedAt) / 1000)) : 0;
-    }
+    durationSecHunt = await _getFixedHuntDurationSec(myPseudo);
   }
 
   // Score/found_count are server-managed from events (trigger-side).
