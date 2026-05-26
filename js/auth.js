@@ -145,12 +145,25 @@ async function startGame() {
   const hash  = isStg ? null : await sha256(pass);
   const token = crypto.randomUUID();
 
-  const { data: authResult } = await db.rpc('authenticate_player', {
+  const { data: authResult, error: authError } = await db.rpc('authenticate_player', {
     p_pseudo: pseudo,
     p_password_hash: hash,
     p_session_token: token,
     p_is_stg: isStg
   });
+  if (authError) {
+    const rawMsg = String(authError.message || '').trim();
+    const quota = /quota|egress/i.test(rawMsg);
+    if (isStg && quota) {
+      err.textContent = 'Connexion refusée en STG (quota). Ouvre le jeu en PROD: ?env=prod';
+    } else {
+      err.textContent = rawMsg || 'Connexion impossible.';
+    }
+    err.style.display = 'block';
+    document.getElementById('startBtn').disabled = false;
+    document.getElementById('startBtn').textContent = '🚀 Rejoindre le jeu';
+    return;
+  }
   if (!authResult?.ok) {
     err.textContent = authResult?.message || 'Connexion impossible.';
     err.style.display = 'block';
