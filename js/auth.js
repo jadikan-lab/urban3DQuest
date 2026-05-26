@@ -43,7 +43,8 @@ window.addEventListener('load', async () => {
   if (qrInput) qrInput.addEventListener('change', () => handleQRPhoto(qrInput));
 
   // Pre-fetch config to get mapCenter + gameCode for landing screen
-  const { data: cfgData } = await db.from('config').select('key,value').in('key',['mapCenter','gameCode']);
+  const { data: cfgData } = await db.from('config').select('key,value').in('key',['mapCenter','gameCode','guestLandingUrl']);
+  let guestLandingUrl = 'https://jadikan.carrd.co/';
   if (cfgData) {
     const cMap = Object.fromEntries(cfgData.map(r => [r.key, r.value]));
     if (cMap.mapCenter) {
@@ -54,6 +55,7 @@ window.addEventListener('load', async () => {
       gameCode = cMap.gameCode;
       document.getElementById('gameCodeWrap').style.display = 'block';
     }
+    if (cMap.guestLandingUrl) guestLandingUrl = cMap.guestLandingUrl;
   }
 
   const params    = new URLSearchParams(location.search);
@@ -63,7 +65,7 @@ window.addEventListener('load', async () => {
 
   // QR balise scanné par un non-joueur → carte de visite
   if (checkin && !myPseudo) {
-    window.location.replace('https://jadikan.carrd.co/');
+    window.location.replace(guestLandingUrl);
     return;
   }
 
@@ -195,8 +197,9 @@ async function continueAsGuest() {
   }
   err.style.display = 'none';
   hideLanding();
+  const pending = sessionStorage.getItem('pendingFound');
   sessionStorage.removeItem('pendingFound');
   sessionStorage.removeItem('pendingCheckin');
   history.replaceState({}, '', location.pathname);
-  initGame(null);
+  initGame(pending);
 }

@@ -112,6 +112,40 @@ async function _rollbackFoundBy(treasure, previousFoundBy, expectedFoundBy) {
   return !error;
 }
 
+async function _tryGuestUniqueCapture(treasure) {
+  if (myPseudo) return false;
+  if (!treasure || treasure.type !== 'unique') return false;
+
+  const foundList = (treasure.found_by || '').split(',').filter(Boolean);
+  if (foundList.length > 0) {
+    showFoundResult('taken', treasure);
+    return true;
+  }
+
+  const updatePayload = { found_by: 'INVITE', found_at: new Date().toISOString() };
+  const { data: updatedRows, error } = await db.from('treasures')
+    .update(updatePayload)
+    .eq('id', treasure.id)
+    .eq('found_by', '')
+    .select('id');
+
+  if (error || !updatedRows || !updatedRows.length) {
+    showFoundResult('taken', treasure);
+    return true;
+  }
+
+  await loadTreasures();
+  renderMarkers();
+  updateHeader();
+  updateRadar();
+  updateProgressBar();
+
+  if (navigator.vibrate) navigator.vibrate([80, 40, 160]);
+  const durationSec = Math.max(0, Math.round((Date.now() - new Date(treasure.placed_at).getTime()) / 1000));
+  showFoundResult('success', treasure, durationSec, null);
+  return true;
+}
+
 async function processFindById(treasureId) {
   if (_processingFind) return;
   if (_inFlightCaptures.has(treasureId)) return;
@@ -126,12 +160,17 @@ async function processFindById(treasureId) {
 }
 
 async function _doProcessFind(treasureId) {
-  if (!myPseudo) { _checkinError('Mode invité : connecte-toi pour révéler des polaroids.'); return; }
   const foundCountBefore = myFoundCount;
   // Fetch treasure fresh from DB
   const { data: t, error } = await db.from('treasures').select('*').eq('id', treasureId).single();
   if (error || !t) { _checkinError('Polaroid introuvable — il a peut-être été retiré.'); return; }
   if (!t.visible)  { _checkinError('Ce polaroid n\'est pas encore actif.'); return; }
+
+  if (!myPseudo) {
+    if (await _tryGuestUniqueCapture(t)) return;
+    _checkinError('Mode invité : connecte-toi pour révéler des polaroids.');
+    return;
+  }
 
   // Check if already found by me
   const foundList = (t.found_by || '').split(',').filter(Boolean);
