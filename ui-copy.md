@@ -2,6 +2,7 @@
 
 > **Comment utiliser ce fichier**
 > Modifie les valeurs ci-dessous, puis dis "applique ui-copy.md".
+> Les clés de ce fichier sont lues par `js/ui-copy.js`.
 > Les clés (ex: `LOGIN_SOUS_TITRE`) ne doivent pas être renommées — c'est ce qui permet de retrouver chaque texte dans le code.
 > `{N}` = variable dynamique (nombre), `{PSEUDO}` = pseudo du joueur — ne pas supprimer.
 
@@ -118,7 +119,7 @@ QUETE_FIRST_DESC:   Le chrono est lancé. Révèle les {N} autres polaroids le p
 
 ```
 MID_1_LABEL:   RÉVÉLÉ
-MID_1_TITRE:   Polaroid révélé.
+MID_1_TITRE:   Balise révélé.
 MID_1_DESC:    Continue, il t'en reste {N}.
 
 MID_2_LABEL:   EN ROUTE
@@ -127,7 +128,7 @@ MID_2_DESC:    {N} polaroids t'attendent encore.
 
 MID_3_LABEL:   TROUVÉ
 MID_3_TITRE:   Tu as l'œil.
-MID_3_DESC:    Plus que {N} dans ce quartier.
+MID_3_DESC:    Plus que {N} en attente.
 
 MID_4_LABEL:   MARQUÉ
 MID_4_TITRE:   Dans la boîte.
@@ -153,9 +154,9 @@ QUETE_2_DESC:    Tu y es presque. Ne lâche rien.
 
 QUETE_1_LABEL:   PRESQUE !
 QUETE_1_TITRE:   Plus qu'un !
-QUETE_1_DESC:    Un seul polaroid te sépare de la fin. Tout se joue maintenant.
+QUETE_1_DESC:    Une seule Balise te sépare de la fin. Tout se joue maintenant.
 
-QUETE_0_LABEL:   POLAROID RÉVÉLÉ
+QUETE_0_LABEL:   BALISE TROUVÉE
 QUETE_0_TITRE:   Polaroid révélé !
 QUETE_0_DESC:    Incroyable ! Ta quête est complète !
 ```
@@ -167,8 +168,7 @@ QUETE_0_DESC:    Incroyable ! Ta quête est complète !
 ```
 FLASH_WIN_LABEL:   CAPTURÉ
 FLASH_WIN_TITRE:   Trésor unique capturé
-FLASH_WIN_DESC:    (vide)
-
+FLASH_WIN_DESC:    Trésor unique validé. Tu peux partager ta trouvaille ou poursuivre la chasse.
 FLASH_PRIS_LABEL:  TROP TARD
 FLASH_PRIS_TITRE:  Trop tard !
 FLASH_PRIS_DESC:   Trop tard. Ce trésor Flash a déjà été pris.
@@ -179,13 +179,23 @@ FLASH_PRIS_DESC:   Trop tard. Ce trésor Flash a déjà été pris.
 ## SCANNER QR (mode photo)
 
 ```
+QR_STATUS_SCAN:   Vise le QR pour le révéler.
 QR_STATUS_FIXED:   Tu as trouvé la balise, prends une photo du QR code pour continuer le jeu.
-QR_STATUS_FLASH:   Tu as trouvé le trésor, prends une photo du QR code pour continuer le jeu.
+QR_STATUS_FLASH:   Tu as trouvé la miniature, prends une photo du QR code pour valider ta cueillette.
+QR_STATUS_ANALYZING: 🔍 Révélation en cours…
+QR_STATUS_BAD_PHOTO: ❌ Polaroid non reconnu — réessaie en te rapprochant et en éclairant bien le polaroid
+QR_STATUS_NOT_GAME: ⚠️ Ce code n'appartient pas au jeu — cherche le bon polaroid !
+QR_STATUS_WRONG_TREASURE: ⚠️ Mauvais polaroid — cherche le bon !
+QR_STATUS_CAPTURED: ✅ Polaroid révélé !
+QR_STATUS_CAMERA_BLOCKED: ⚠️ Caméra bloquée. Autorise la caméra puis utilise la photo de secours.
 QR_TARGET_FIXED:   Balise {N} de la quête
 QR_TARGET_FLASH:   Trésor unique
 QR_TARGET_FLASH_REF: QR-00X
 QR_PHOTO_CTA:      📷 Prendre la photo
 QR_TIPS:           Astuce : rapproche-toi du QR code, évite les reflets et assure-toi qu'il occupe bien l'image.
+
+FLASH_TAKEN_TOAST_ONE:   ⚡ {PSEUDO} vient de prendre le trésor !
+FLASH_TAKEN_TOAST_MULTI:  ⚡ {N} trésors viennent d'être pris !
 ```
 
 ---

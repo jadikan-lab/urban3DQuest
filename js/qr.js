@@ -13,6 +13,7 @@ let _qrZoomMax = 1;
 let _qrZoomStep = 0.5;
 let _qrZoomCurrent = 1;
 let _qrZoomApply = null; // async fn(zoom) — set when camera is live
+const _copy = (key, fallback = '') => (window.u3dqCopyText ? window.u3dqCopyText(key, fallback) : fallback);
 
 function _updateZoomUI() {
   const label = document.getElementById('qrZoomLabel');
@@ -81,7 +82,7 @@ function openQRScanner(beaconId) {
   qrExpectedId = beaconId || null;
   const status = document.getElementById('qrStatus');
   status.className = '';
-  status.textContent = 'Tu as trouve l\'objet, prends une photo du QR code pour valider ta cueillette.';
+  status.textContent = _copy('QR_STATUS_SCAN', 'Vise le QR pour le révéler.');
   document.getElementById('qrPreviewWrap').style.display = 'none';
   document.getElementById('qrReader').style.display = 'none';
   document.getElementById('qrTips').style.display = 'none';
@@ -105,7 +106,7 @@ function openQRScanner(beaconId) {
         nameSpan.textContent = beaconIndex ? `Balise ${beaconIndex} de la quête` : 'Balise de la quête';
         questSpan.textContent = '';
         questSpan.style.display = 'none';
-        status.textContent = 'Tu as trouvé la balise, prends une photo du QR code pour continuer le jeu.';
+        status.textContent = _copy('QR_STATUS_FIXED', 'Tu as trouvé la balise, prends une photo du QR code pour continuer le jeu.');
         if (photoEl) {
           photoEl.src = '';
           photoEl.style.display = 'none';
@@ -115,7 +116,7 @@ function openQRScanner(beaconId) {
         nameSpan.textContent = 'Trésor unique';
         questSpan.textContent = _formatUniqueTreasureRef(t);
         questSpan.style.display = 'block';
-        status.textContent = 'Tu as trouvé le trésor, prends une photo du QR code pour continuer le jeu.';
+        status.textContent = _copy('QR_STATUS_FLASH', 'Tu as trouvé la miniature, prends une photo du QR code pour valider ta cueillette.');
         if (photoEl) {
           const photoUrl = safeImgUrl(getPhotoUrls(t.photo_url)[0]);
           if (photoUrl) {
@@ -189,7 +190,7 @@ async function startLiveQRScan() {
 
     await _qrScannerInst.start();
     status.className = '';
-    status.textContent = '📷 Vise le QR · appuie sur l\'image pour la mise au point';
+    status.textContent = _copy('QR_STATUS_LIVE', '📷 Vise le QR · appuie sur l\'image pour la mise au point');
     _qrLog('Nimiq QrScanner démarré');
 
     // Zoom 1.5x + focus continu après démarrage caméra
@@ -230,7 +231,7 @@ async function startLiveQRScan() {
 
   } catch(err) {
     _qrLog('QrScanner ERR: ' + (err.message || err).toString().slice(0, 60));
-    status.textContent = '⚠️ Caméra bloquée. Autorise la caméra puis utilise la photo de secours.';
+    status.textContent = _copy('QR_STATUS_CAMERA_BLOCKED', '⚠️ Caméra bloquée. Autorise la caméra puis utilise la photo de secours.');
     status.className = 'qr-err';
     document.getElementById('qrTips').style.display = 'block';
   }
@@ -279,7 +280,7 @@ async function handleQRPhoto(input) {
   await stopLiveQRScan();
   const status = document.getElementById('qrStatus');
   status.className = '';
-  status.textContent = '🔍 Révélation en cours…';
+  status.textContent = _copy('QR_STATUS_ANALYZING', '🔍 Révélation en cours…');
   document.getElementById('qrTips').style.display = 'none';
   const file = input.files[0];
   const url = URL.createObjectURL(file);
@@ -291,7 +292,7 @@ async function handleQRPhoto(input) {
     await _qrHandleResult(result.data);
   } catch {
     URL.revokeObjectURL(url);
-    status.textContent = '❌ Polaroid non reconnu — réessaie en te rapprochant et en éclairant bien le polaroid';
+    status.textContent = _copy('QR_STATUS_BAD_PHOTO', '❌ Polaroid non reconnu — réessaie en te rapprochant et en éclairant bien le polaroid');
     status.className = 'qr-err';
     haptic([80, 60, 80]);
     document.getElementById('qrTips').style.display = 'block';
@@ -304,7 +305,7 @@ async function _qrHandleResult(raw) {
   const status = document.getElementById('qrStatus');
   const match  = raw.match(/[?&](?:checkin|found)=([^&\s]+)/);
   if (!match) {
-    status.textContent = '⚠️ Ce code n\'appartient pas au jeu — cherche le bon polaroid !';
+    status.textContent = _copy('QR_STATUS_NOT_GAME', '⚠️ Ce code n\'appartient pas au jeu — cherche le bon polaroid !');
     status.className = 'qr-err';
     haptic([80, 60, 80]);
     qrDecodeLocked = false;
@@ -313,14 +314,14 @@ async function _qrHandleResult(raw) {
   const scannedId = decodeURIComponent(match[1]);
 
   if (qrExpectedId && scannedId !== qrExpectedId) {
-    status.textContent = '⚠️ Mauvais polaroid — cherche le bon !';
+    status.textContent = _copy('QR_STATUS_WRONG_TREASURE', '⚠️ Mauvais polaroid — cherche le bon !');
     status.className = 'qr-err';
     haptic([80, 60, 80]);
     qrDecodeLocked = false;
     // Nimiq continue de scanner — pas besoin de redémarrer
     _resetQRInput(); // permettre de retenter via photo
   } else {
-    status.textContent = '✅ Polaroid révélé !';
+    status.textContent = _copy('QR_STATUS_CAPTURED', '✅ Polaroid révélé !');
     status.className = 'qr-ok';
     haptic([80, 40, 160]);
     await new Promise(r => setTimeout(r, 400));

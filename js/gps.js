@@ -239,6 +239,7 @@ function updateRadar() {
   if (activeTab !== 'explore') { bar.style.display = 'none'; return; }
   bar.style.display = 'block';
   const fab = document.getElementById('captureFab');
+  const copy = (key, fallback = '') => (window.u3dqCopyText ? window.u3dqCopyText(key, fallback) : fallback);
 
   const flashFabEl = document.getElementById('flashFab');
   if (!myPseudo) {
@@ -265,8 +266,8 @@ function updateRadar() {
 
     if (!uniqueLeft.length) {
       const guideText = document.getElementById('modeGuideText');
-      if (guideText) guideText.textContent = 'Aucune miniature disponible pour le moment';
-      bar.textContent = '✅ Toutes les miniatures ont été cueillies, reviens plus tard !';
+      if (guideText) guideText.textContent = copy('GUIDE_FLASH_SOUS_ZERO', 'Aucune miniature disponible pour le moment');
+      bar.textContent = copy('FLASH_RADAR_ZERO', '✅ Toutes les miniatures ont été cueillies, reviens plus tard !');
       bar.className = '';
       fab.style.display = 'none';
       nearestFixed = null;
@@ -284,15 +285,15 @@ function updateRadar() {
     // Update guide bar count
     const guideText = document.getElementById('modeGuideText');
     if (guideText) guideText.textContent = available === 1
-      ? 'il reste 1 miniature, dépèche toi'
-      : `${available} miniatures à cueillir · sois le premier !`;
+      ? copy('GUIDE_FLASH_SOUS_SOLO', 'Plus qu\'une miniature à trouver')
+      : copy('GUIDE_FLASH_SOUS_MULTI', '{N} miniatures à cueillir · sois le premier !').replace('{N}', String(available));
 
     const uniqueDist = Math.round(nearestU.d);
     const flashFab = document.getElementById('flashFab');
 
     if (uniqueDist <= FLASH_CAPTURE_M) {
       // Palier 3 — < 20m : FAB + hint + "scanne maintenant"
-      bar.textContent = `${cStr} · 📷 Prends le QR code en photo pour valider !${accStr}`;
+      bar.textContent = `${cStr} · ${copy('FLASH_RADAR_TRES_PROCHE', '📷 Prends le QR code en photo pour valider !').replace('{N}', String(available))}${accStr}`;
       bar.className = 'very-near';
       nearestUnique = nearestU.t;
       flashFab.style.display = 'flex';
@@ -300,7 +301,7 @@ function updateRadar() {
       if (lastHapticZone !== 'unique-capture') { lastHapticZone = 'unique-capture'; haptic([100, 50, 100, 50, 200]); }
     } else if (uniqueDist <= FLASH_HINT_M) {
       // Palier 2 — < 50m : photo indice révélée, pas encore de FAB
-      bar.textContent = `${cStr} · Cherche bien, il n'est pas loin !${accStr}`;
+      bar.textContent = `${cStr} · ${copy('FLASH_RADAR_PROCHE', 'Tu es tout près !').replace('{N}', String(available))}${accStr}`;
       bar.className = 'very-near';
       nearestUnique = null;
       flashFab.style.display = 'none';
@@ -310,8 +311,8 @@ function updateRadar() {
     } else if (uniqueDist <= proximityR * 5) {
       // Palier 1 — < 500m : "tu chauffes", rien de révélé
       bar.textContent = uniqueDist <= proximityR
-        ? `${cStr} · Tu chauffes !${accStr}`
-        : `${cStr} · Un polaroid se cache dans ce quartier…${accStr}`;
+        ? `${cStr} · ${copy('FLASH_RADAR_LOIN', 'Tu te rapproches !').replace('{N}', String(available))}${accStr}`
+        : `${cStr} · ${copy('FLASH_RADAR_TRES_LOIN', 'Un polaroid se cache dans ce quartier…').replace('{N}', String(available))}${accStr}`;
       bar.className = uniqueDist <= proximityR ? 'near' : '';
       nearestUnique = null;
       flashFab.style.display = 'none';
@@ -322,7 +323,7 @@ function updateRadar() {
         if (lastHapticZone !== 'unique-far') { lastHapticZone = 'unique-far'; }
       }
     } else {
-      bar.textContent = `${cStr} · Un polaroid se cache dans ce quartier…${accStr}`;
+      bar.textContent = `${cStr} · ${copy('FLASH_RADAR_TRES_LOIN', 'Un polaroid se cache dans ce quartier…').replace('{N}', String(available))}${accStr}`;
       bar.className = '';
       nearestUnique = null;
       flashFab.style.display = 'none';

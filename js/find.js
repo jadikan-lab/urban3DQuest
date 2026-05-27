@@ -2,6 +2,7 @@
 let _processingFind = false;
 const _inFlightCaptures = new Set(); // protection double-scan par balise
 window._uniqueCaptureShareData = window._uniqueCaptureShareData || null;
+const _copy = (key, fallback = '') => (window.u3dqCopyText ? window.u3dqCopyText(key, fallback) : fallback);
 
 async function _getFixedHuntDurationSec(pseudo) {
   if (!pseudo) return 0;
@@ -308,7 +309,7 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
         dur.textContent = '';
       } else if (remaining === 0) {
         setFoundIcon('camera', 'teal');
-        label.textContent = 'POLAROID RÉVÉLÉ';
+        label.textContent = 'BALISE TROUVÉE';
         title.textContent = 'Polaroid révélé !';
         dur.textContent = durationSec != null ? formatDuration(durationSec) + ' depuis le début' : '';
         desc.textContent = 'Incroyable ! Ta quete est complete !';
@@ -322,7 +323,7 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
         setFoundIcon('check', 'success');
         label.textContent = 'PRESQUE !';
         title.textContent = 'Plus qu\'un !';
-        desc.textContent = 'Un seul polaroid te sépare de la fin. Tout se joue maintenant.';
+        desc.textContent = 'Une seule Balise te sépare de la fin. Tout se joue maintenant.';
         dur.textContent = durationSecHunt != null ? formatDuration(durationSecHunt) : '';
       } else if (remaining === 2) {
         setFoundIcon('flash', 'flash');
@@ -338,9 +339,9 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
         dur.textContent = durationSecHunt != null ? formatDuration(durationSecHunt) : '';
       } else {
         const midMessages = [
-          { icon: 'camera', className: 'teal', label: 'RÉVÉLÉ', title: 'Polaroid révélé.', desc: `Continue, il t'en reste ${remaining}.` },
+          { icon: 'camera', className: 'teal', label: 'RÉVÉLÉ', title: 'Balise révélé.', desc: `Continue, il t'en reste ${remaining}.` },
           { icon: 'gps', className: 'teal', label: 'EN ROUTE', title: 'Belle trouvaille.', desc: `${remaining} polaroids t'attendent encore.` },
-          { icon: 'check', className: 'success', label: 'TROUVÉ', title: 'Tu as l\'œil.', desc: `Plus que ${remaining} dans ce quartier.` },
+          { icon: 'check', className: 'success', label: 'TROUVÉ', title: 'Tu as l\'œil.', desc: `Plus que ${remaining} en attente.` },
           { icon: 'gps', className: 'warn', label: 'MARQUÉ', title: 'Dans la boîte.', desc: `${remaining} restants. Ne ralentis pas.` },
           { icon: 'flash', className: 'flash', label: 'EN CHASSE', title: 'La quête avance.', desc: `${remaining} polaroids à révéler.` }
         ];
@@ -353,10 +354,10 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
       }
     } else {
       setFoundIcon('flash', 'flash');
-      label.textContent = 'CAPTURÉ';
-      title.textContent = 'Trésor unique capturé';
+      label.textContent = _copy('FLASH_WIN_LABEL', 'CAPTURÉ');
+      title.textContent = _copy('FLASH_WIN_TITRE', 'Trésor unique capturé');
       dur.textContent   = formatDuration(durationSec);
-      desc.textContent  = '';
+      desc.textContent  = _copy('FLASH_WIN_DESC', 'Trésor unique validé. Tu peux partager ta trouvaille ou poursuivre la chasse.');
       window._uniqueCaptureShareData = {
         id: t.id,
         label: tLabel(t),
@@ -371,16 +372,16 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
     }
   } else if (status === 'already') {
     setFoundIcon('refresh', 'warn');
-    label.textContent = 'DÉJÀ FLASHÉ';
-    title.textContent = 'Tu as déjà flashé ce polaroid.';
+    label.textContent = _copy('FLASH_ALREADY_LABEL', 'DÉJÀ FLASHÉ');
+    title.textContent = _copy('FLASH_ALREADY_TITRE', 'Tu as déjà flashé ce polaroid.');
     dur.textContent   = '';
     desc.textContent  = '';
   } else {
     setFoundIcon('lock', 'danger');
-    label.textContent = 'TROP TARD';
-    title.textContent = 'Trop tard !';
+    label.textContent = _copy('FLASH_PRIS_LABEL', 'TROP TARD');
+    title.textContent = _copy('FLASH_PRIS_TITRE', 'Trop tard !');
     dur.textContent   = '';
-    desc.textContent  = 'Trop tard. Ce flash trésor a déjà été pris.';
+    desc.textContent  = _copy('FLASH_PRIS_DESC', 'Trop tard. Ce trésor Flash a déjà été pris.');
   }
   modal.classList.add('open');
   // Flash overlay on success

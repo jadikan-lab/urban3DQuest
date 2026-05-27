@@ -204,6 +204,7 @@ function updateModeUI() {
   const guideTitle = document.getElementById('modeGuideTitle');
   const guideText = document.getElementById('modeGuideText');
   const miniMap = document.getElementById('miniMap');
+  const copy = (key, fallback = '') => (window.u3dqCopyText ? window.u3dqCopyText(key, fallback) : fallback);
 
   if (pbLabel) {
     pbLabel.textContent = activeGameMode === 'fixed'
@@ -218,11 +219,20 @@ function updateModeUI() {
 
   if (guideTitle && guideText) {
     if (activeGameMode === 'fixed') {
-      guideTitle.textContent = 'Mode Quête';
-      guideText.textContent = 'Approche toi pour trouver les balises fixes';
+      guideTitle.textContent = copy('GUIDE_QUETE_TITRE', 'Mode Quête');
+      guideText.textContent = copy('GUIDE_QUETE_SOUS', 'Approche-toi pour révéler les balises fixes');
     } else {
-      guideTitle.textContent = 'Mode Flash';
-      guideText.textContent = 'Trésor unique: trouve l\'objet en premier.';
+      guideTitle.textContent = copy('GUIDE_FLASH_TITRE', 'Mode Flash');
+      const flashCount = Array.isArray(treasures)
+        ? treasures.filter(x => x.type === 'unique' && !(x.found_by && x.found_by.length > 0) && !(myPseudo && (x.found_by || '').split(',').includes(myPseudo))).length
+        : 0;
+      if (flashCount <= 0) {
+        guideText.textContent = copy('GUIDE_FLASH_SOUS_ZERO', 'Aucune miniature disponible pour le moment');
+      } else if (flashCount === 1) {
+        guideText.textContent = copy('GUIDE_FLASH_SOUS_SOLO', 'Plus qu\'une miniature à trouver');
+      } else {
+        guideText.textContent = copy('GUIDE_FLASH_SOUS_MULTI', '{N} miniatures à cueillir · sois le premier !').replace('{N}', String(flashCount));
+      }
     }
   }
 }
@@ -373,11 +383,12 @@ async function loadTreasures() {
 function showFlashTakenToast(taken) {
   const el = document.getElementById('flashTakenToast');
   if (!el) return;
+  const copy = (key, fallback = '') => (window.u3dqCopyText ? window.u3dqCopyText(key, fallback) : fallback);
   if (taken.length === 1) {
     const who = taken[0].found_by || '?';
-    el.textContent = `⚡ ${who} vient de prendre le trésor !`;
+    el.textContent = copy('FLASH_TAKEN_TOAST_ONE', '⚡ {PSEUDO} vient de prendre le trésor !').replace('{PSEUDO}', who);
   } else {
-    el.textContent = `⚡ ${taken.length} trésors viennent d'être pris !`;
+    el.textContent = copy('FLASH_TAKEN_TOAST_MULTI', '⚡ {N} trésors viennent d\'être pris !').replace('{N}', String(taken.length));
   }
   el.classList.add('show');
   clearTimeout(el._hideTimer);
