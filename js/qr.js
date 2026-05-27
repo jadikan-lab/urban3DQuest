@@ -75,7 +75,16 @@ function openQRScanner(beaconId) {
     }
   }
   document.getElementById('qrOverlay').classList.add('open');
-  startLiveQRScan();
+  // Photo-first : pas de live scan, le bouton photo est l'action principale
+  const status = document.getElementById('qrStatus');
+  status.className = '';
+  status.textContent = '📸 Prends une photo du QR code pour le révéler';
+  document.getElementById('qrTips').style.display = 'none';
+  document.getElementById('qrReader').style.display = 'none';
+  document.getElementById('qrZoomRow').style.display = 'none';
+  // Tente d'ouvrir l'appareil photo directement (même geste utilisateur que le FAB)
+  const fileInput = document.getElementById('qrFileInput');
+  if (fileInput) fileInput.click();
 }
 
 async function startLiveQRScan() {
