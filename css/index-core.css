@@ -2,7 +2,7 @@
     /* Tokens partagés (accents, typo, radius, glow) : css/design-tokens.css */
     :root{
       --bg:#f4f1ec;--bg-2:#ede9e3;--surface:#ffffff;--surface-2:#f8f5f0;
-      --ink:#1a1826;--ink-2:#5a5568;--ink-3:#9d97a8;
+      --ink:#1a1826;--ink-2:#433e53;--ink-3:#6f687e;
       --line:rgba(26,24,38,0.07);--line-2:rgba(26,24,38,0.14);
       --map-bg:#f0ede8;--map-stroke:rgba(26,24,38,0.07);--map-water:#e8e4dc;--map-ink:rgba(26,24,38,0.55);
     }
@@ -33,7 +33,9 @@
     .brand-tag{flex:1;min-width:0;text-align:center;font-family:var(--mono);font-size:0.72rem;letter-spacing:.04em;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .brand-tag a{color:var(--magenta);font-weight:700;text-decoration:none}
     .brand-tag a:active{opacity:.8}
-    .pseudo-chip{background:rgba(0,229,255,0.12);color:var(--cyan);padding:2px 7px;border-radius:12px;font-size:0.75rem;font-weight:700;font-family:var(--mono)}
+    .pseudo-chip{background:#0f766e;color:#f0fdfa;border:1px solid #115e59;padding:2px 7px;border-radius:12px;font-size:0.75rem;font-weight:700;font-family:var(--mono);text-shadow:0 1px 0 rgba(0,0,0,.15);box-shadow:0 1px 8px rgba(15,118,110,.18)}
+    .pseudo-chip.clickable{cursor:pointer}
+    .pseudo-chip.clickable:active{transform:translateY(1px)}
     /* ── GPS chip — point de statut ── */
     #gpsChip{display:flex;align-items:center;gap:5px;padding:1px 7px;border-radius:12px;font-size:0.75rem;font-weight:700;background:var(--surface);border:1px solid var(--line-2);color:var(--ink-2);cursor:default;transition:all 0.4s;font-family:var(--mono);min-height:24px}
     #gpsDot{width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:inherit;transition:color 0.4s,filter 0.4s}
