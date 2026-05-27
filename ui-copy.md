@@ -12,10 +12,10 @@
 ```
 LOGIN_LOGO:         Jadikan · Urban 3D Quest
 LOGIN_TITRE:        Urban 3D Quest
-LOGIN_SOUS_TITRE:   J'ai caché des miniatures dans la ville.
-                    C'est à toi de les trouver.
+LOGIN_SOUS_TITRE:   Des miniatures sont cachées dans la ville.
+                    À toi de toutes les retrouver.
 LOGIN_PLACEHOLDER:  Ton pseudo
-LOGIN_CTA:          Je cherche
+LOGIN_CTA:          Je participe
 LOGIN_INVITÉ:       Juste regarder d'abord
 ```
 
@@ -43,10 +43,11 @@ NAV_SCORES:         Scores
 
 ```
 GUIDE_QUETE_TITRE:       Mode Quête
-GUIDE_QUETE_SOUS:        Approche toi pour trouver les balises fixes
+GUIDE_QUETE_SOUS:        Approche-toi pour révéler les balises fixes
 
 GUIDE_FLASH_TITRE:       Mode Flash
-GUIDE_FLASH_SOUS_SOLO:   il reste 1 miniature, dépèche toi
+GUIDE_FLASH_SOUS_ZERO:   Aucune miniature disponible pour le moment
+GUIDE_FLASH_SOUS_SOLO:   Plus qu'une miniature à trouver
 GUIDE_FLASH_SOUS_MULTI:  {N} miniatures à cueillir · sois le premier !
 ```
 
@@ -64,8 +65,8 @@ TUTO_QUETE_DESC:    Balises fixes dans la ville.
                     Objectif : toutes les trouver.
 
 TUTO_FLASH_NOM:     Mode Flash
-TUTO_FLASH_SOUS:    Trouves les petits Polaroids qui apparaissent dans la ville
-TUTO_FLASH_DESC:    Des Polaroids apparaissent aléatoirement en ville.
+TUTO_FLASH_SOUS:    Trouve les miniatures Flash qui apparaissent en ville
+TUTO_FLASH_DESC:    Des polaroids apparaissent aléatoirement en ville.
                     Chacun ne peut être cueilli qu'une seule fois.
                     
 
@@ -82,7 +83,7 @@ TUTO_ASTUCE:        Active GPS + compas avant de démarrer pour une meilleure fl
 QUETE_RADAR_TRES_LOIN:    Un polaroid se cache dans ce quartier…
 QUETE_RADAR_LOIN:         Tu chauffes — il est tout près.
 QUETE_RADAR_PROCHE:       Cherche bien, il est là.
-QUETE_RADAR_COMPLETE:     ✅ Ta quete est complete !
+QUETE_RADAR_COMPLETE:     ✅ Ta quête est complète !
 ```
 
 ---
@@ -93,9 +94,10 @@ QUETE_RADAR_COMPLETE:     ✅ Ta quete est complete !
 
 ```
 FLASH_RADAR_TRES_LOIN:    {N} trésor(s) dispo · Un polaroid se cache dans ce quartier…
-FLASH_RADAR_LOIN:         {N} trésor(s) dispo · Tu chauffes !
-FLASH_RADAR_PROCHE:       {N} trésor(s) dispo · Cherche bien, il n'est pas loin !
-FLASH_RADAR_TRES_PROCHE:  {N} trésor(s) dispo · 📷 Scanne-le maintenant !
+FLASH_RADAR_LOIN:         {N} trésor(s) dispo · Tu te rapproches !
+FLASH_RADAR_PROCHE:       {N} trésor(s) dispo · Tu es tout près !
+FLASH_RADAR_TRES_PROCHE:  {N} trésor(s) dispo · 📷 Prends le QR en photo pour valider !
+FLASH_RADAR_ZERO:         ✅ Tous les flashs ont été pris !
 ```
 
 ---
@@ -105,7 +107,7 @@ FLASH_RADAR_TRES_PROCHE:  {N} trésor(s) dispo · 📷 Scanne-le maintenant !
 ```
 QUETE_FIRST_LABEL:  PREMIÈRE RÉVÉLATION
 QUETE_FIRST_TITRE:  La chasse commence !
-QUETE_FIRST_DESC:   Le chrono est lancé. Trouve les {N} autres polaroids le plus vite possible.
+QUETE_FIRST_DESC:   Le chrono est lancé. Révèle les {N} autres polaroids le plus vite possible.
 ```
 
 ---
@@ -155,7 +157,7 @@ QUETE_1_DESC:    Un seul polaroid te sépare de la fin. Tout se joue maintenant.
 
 QUETE_0_LABEL:   POLAROID RÉVÉLÉ
 QUETE_0_TITRE:   Polaroid révélé !
-QUETE_0_DESC:    Incroyable ! Ta quete est complete !
+QUETE_0_DESC:    Incroyable ! Ta quête est complète !
 ```
 
 ---
@@ -163,13 +165,13 @@ QUETE_0_DESC:    Incroyable ! Ta quete est complete !
 ## MODAL DE RÉSULTAT — Flash
 
 ```
-FLASH_WIN_LABEL:   Félicitation !
-FLASH_WIN_TITRE:   Tu es le premier à l'avoir trouvé
+FLASH_WIN_LABEL:   Félicitations !
+FLASH_WIN_TITRE:   Bravo, tu peux garder le souvenir !
 FLASH_WIN_DESC:    (vide)
 
 FLASH_PRIS_LABEL:  TROP TARD
 FLASH_PRIS_TITRE:  Trop tard !
-FLASH_PRIS_DESC:   Trop tard. Ce flash trésor a déjà été pris.
+FLASH_PRIS_DESC:   Trop tard. Ce trésor Flash a déjà été pris.
 ```
 
 ---
@@ -213,7 +215,7 @@ PROGRES_LABEL:    📷 Balises trouvées
 ```
 COMPTE_COLLECTION_TITRE:  Ma collection
 COMPTE_COLLECTION_SOUS:   📷 Polaroids trouvés
-COMPTE_VIDE:              Aucun polaroid trouvés pour l'instant
+COMPTE_VIDE:              Aucun polaroid trouvé pour l'instant
 ```
 
 ---
