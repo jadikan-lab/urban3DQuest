@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "lint": "eslint *.js *.mjs",
+    "idee": "node scripts/devtools/add-idea.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
