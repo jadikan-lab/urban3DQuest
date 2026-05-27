@@ -752,7 +752,6 @@ async function loadMoi() {
       <div class="moi-tile"><div class="moi-tile-val">${myFixed + myUnique}</div><div class="moi-tile-lbl">Total révélé</div></div>
       <div class="moi-tile"><div class="moi-tile-val">${rank}</div><div class="moi-tile-lbl">Classement</div></div>
     </div>
-    ${myPseudo ? `<button class="moi-bsaver${batterySaverMode ? ' active' : ''}" id="bsaverBtn" onclick="toggleBatterySaver()">${batterySaverMode ? '⚡ Désactiver mode éco' : '🔋 Mode économie batterie'}</button>` : ''}
     ${myPseudo ? `<button class="moi-calib" id="calibBtn" onclick="resetCompassCalibration()">🧭 Recalibrer le compas</button>` : ''}
     ${myPseudo ? `<button class="moi-logout" id="logoutBtn">Se déconnecter</button>` : ''}
   `;
