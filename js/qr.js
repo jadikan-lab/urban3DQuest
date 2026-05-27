@@ -53,9 +53,13 @@ function openQRScanner(beaconId) {
   qrExpectedId = beaconId || null;
   const status = document.getElementById('qrStatus');
   status.className = '';
-  status.textContent = 'Révélation en cours…';
+  status.textContent = 'Tu as trouve l\'objet, prends une photo du QR code pour valider ta cueillette.';
   document.getElementById('qrPreviewWrap').style.display = 'none';
+  document.getElementById('qrReader').style.display = 'none';
+  document.getElementById('qrTips').style.display = 'none';
   document.getElementById('qrTorchBtn').style.display = 'none';
+  document.getElementById('qrDebugLog').style.display = 'none';
+  _resetZoomControls();
   qrDecodeLocked = false;
   _resetQRInput();
   // Show target beacon name so player confirms they're scanning the right object
@@ -73,7 +77,11 @@ function openQRScanner(beaconId) {
     }
   }
   document.getElementById('qrOverlay').classList.add('open');
-  startLiveQRScan();
+  // Flux photo-first : ouvre directement l'appareil photo natif.
+  const fileInput = document.getElementById('qrFileInput');
+  if (fileInput) {
+    try { fileInput.click(); } catch {}
+  }
 }
 
 async function startLiveQRScan() {
