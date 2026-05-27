@@ -209,7 +209,7 @@ function startLbPolling() {
   loadLeaderboard();
   loadTreasures();
   if (lbInterval) clearInterval(lbInterval);
-  lbInterval = setInterval(() => { loadLeaderboard(); loadTreasures(); }, 60000);
+  lbInterval = setInterval(() => { loadLeaderboard(); loadTreasures(); }, 120000);
 }
 
 let _lbActiveTab = 'quete';

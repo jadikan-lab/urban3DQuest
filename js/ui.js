@@ -554,7 +554,7 @@ function startConfigRefreshPolling() {
     } catch {
       _setOfflineBanner(true);
     }
-  }, 60000);
+  }, 120000);
 }
 
 // ── Periodic refresh (treasures + config) ────────────
