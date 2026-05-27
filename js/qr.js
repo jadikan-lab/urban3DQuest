@@ -103,6 +103,25 @@ function _extractScannedTreasureId(raw) {
 
 function openQRScanner(beaconId) {
   qrExpectedId = beaconId || null;
+
+function _resolveExpectedUniqueAlias(scannedId, expectedId) {
+  if (!scannedId || !expectedId || scannedId === expectedId) return scannedId;
+  const expected = treasures.find(x => x.id === expectedId);
+  if (!expected || expected.type !== 'unique') return scannedId;
+  if (treasures.some(x => x.id === scannedId)) return scannedId;
+
+  const scannedNorm = String(scannedId).trim().toLowerCase();
+  const expectedRef = _formatUniqueTreasureRef(expected).toLowerCase();
+  if (scannedNorm === expectedRef) return expectedId;
+
+  const scannedNum = _extractLastNumber(scannedNorm);
+  const expectedNum = _extractLastNumber(expected.id)
+    ?? _extractLastNumber(expected.label)
+    ?? _extractLastNumber(expectedRef);
+  if (scannedNum !== null && expectedNum !== null && scannedNum === expectedNum) return expectedId;
+
+  return scannedId;
+}
   const status = document.getElementById('qrStatus');
   const photoBtnText = document.getElementById('qrPhotoBtnText');
   status.className = '';
@@ -328,14 +347,15 @@ async function _qrHandleResult(raw) {
   if (qrDecodeLocked) return;
   qrDecodeLocked = true;
   const status = document.getElementById('qrStatus');
-  const scannedId = _extractScannedTreasureId(raw);
-  if (!scannedId) {
+  const parsedId = _extractScannedTreasureId(raw);
+  if (!parsedId) {
     status.textContent = _copy('QR_STATUS_NOT_GAME', '⚠️ Ce code n\'appartient pas au jeu — cherche le bon polaroid !');
     status.className = 'qr-err';
     haptic([80, 60, 80]);
     qrDecodeLocked = false;
     return;
   }
+  const scannedId = _resolveExpectedUniqueAlias(parsedId, qrExpectedId);
 
   if (qrExpectedId && scannedId !== qrExpectedId) {
     const expectedLabel = _formatTreasureForScanFeedback(qrExpectedId);

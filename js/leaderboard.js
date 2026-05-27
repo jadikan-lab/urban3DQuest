@@ -1,6 +1,19 @@
 // ── Leaderboard, tabs, panels ───────────────────────
 let _lbShareData = null;
 
+function _lbIcon(name, className) {
+  if (typeof uiIcon === 'function') return uiIcon(name, className);
+  const fallback = {
+    camera: '📷',
+    flash: '⚡',
+    trophy: '🏆',
+    clock: '⏱',
+    check: '✅',
+    gps: '📍'
+  };
+  return `<span class="ui-icon ${className || ''}" aria-hidden="true">${fallback[name] || ''}</span>`;
+}
+
 async function _fetchLeaderboardData() {
   let evQuery = db.from('events').select('pseudo,treasure_id,treasure_type,duration_sec,created_at').order('created_at', { ascending: true });
   if (gameStart) evQuery = evQuery.gte('created_at', gameStart.toISOString());
@@ -95,16 +108,16 @@ function _renderLeaderboard({ rows, flashRows, totalFixed, rewardMsg, myData, my
     const pct       = totalFixed > 0 ? Math.round((myData.fixedCount / totalFixed) * 100) : 0;
     const rankLabel = myRankNum <= 3 ? medals[myRankNum-1] : `#${myRankNum}`;
     const fillClass = myData.allFixed ? 'my-card-done' : 'my-card-fill';
-    const timeTxt   = myData.allFixed && myData.fixedDuration !== null ? `<span style="display:inline-flex;align-items:center;gap:5px">${uiIcon('clock', 'success')}${formatDuration(myData.fixedDuration)}</span>` : '';
-    const uniqTxt   = myData.uniqueEvents.length ? `<span style="display:inline-flex;align-items:center;gap:5px">${uiIcon('flash', 'flash')}${myData.uniqueEvents.length} flash${myData.uniqueEvents.length>1?'s':''}</span>` : '';
-    const doneTxt   = myData.allFixed ? `<span style="color:#4ade80;font-size:0.78rem;font-weight:700;display:inline-flex;align-items:center;gap:5px">${uiIcon('check', 'success')}Toutes les balises fixes</span>` : '';
-    const rewardTxt = myData.allFixed && rewardMsg ? `<div style="margin-top:8px;font-size:0.75rem;color:#4ade80;padding:6px 10px;background:#0d2218;border-radius:8px;border:1px solid #16a34a;display:flex;align-items:center;gap:6px">${uiIcon('gps', 'success')}${safeRewardMsg}</div>` : '';
+    const timeTxt   = myData.allFixed && myData.fixedDuration !== null ? `<span style="display:inline-flex;align-items:center;gap:5px">${_lbIcon('clock', 'success')}${formatDuration(myData.fixedDuration)}</span>` : '';
+    const uniqTxt   = myData.uniqueEvents.length ? `<span style="display:inline-flex;align-items:center;gap:5px">${_lbIcon('flash', 'flash')}${myData.uniqueEvents.length} flash${myData.uniqueEvents.length>1?'s':''}</span>` : '';
+    const doneTxt   = myData.allFixed ? `<span style="color:#4ade80;font-size:0.78rem;font-weight:700;display:inline-flex;align-items:center;gap:5px">${_lbIcon('check', 'success')}Toutes les balises fixes</span>` : '';
+    const rewardTxt = myData.allFixed && rewardMsg ? `<div style="margin-top:8px;font-size:0.75rem;color:#4ade80;padding:6px 10px;background:#0d2218;border-radius:8px;border:1px solid #16a34a;display:flex;align-items:center;gap:6px">${_lbIcon('gps', 'success')}${safeRewardMsg}</div>` : '';
     myCardEl.innerHTML = `<div class="my-card">
       <div class="my-card-rank">${rankLabel}</div>
       <div class="my-card-pseudo">${escHtml(myPseudo)}</div>
       <div class="my-card-sub">Ma progression</div>
       <div class="my-card-stats">
-        <strong>${uiIcon('camera', 'teal')}${myData.fixedCount}${totalFixed?'/'+totalFixed:''}</strong>
+        <strong>${_lbIcon('camera', 'teal')}${myData.fixedCount}${totalFixed?'/'+totalFixed:''}</strong>
         ${timeTxt ? `<span>${timeTxt}</span>` : ''}
         ${uniqTxt ? `<span>${uniqTxt}</span>` : ''}
         ${doneTxt}
@@ -126,7 +139,7 @@ function _renderLeaderboard({ rows, flashRows, totalFixed, rewardMsg, myData, my
   if (!rows.length) {
     html = '<p style="color:#475569;text-align:center;padding:50px 20px">Pas encore de scores<br><span style="font-size:0.8rem">Sois le premier à trouver un trésor !</span></p>';
   } else {
-    html += `<div class="lb-divider">${uiIcon('trophy', 'warn')}<span>Classement · ${rows.length} joueur${rows.length > 1 ? 's' : ''}</span></div>`;
+    html += `<div class="lb-divider">${_lbIcon('trophy', 'warn')}<span>Classement · ${rows.length} joueur${rows.length > 1 ? 's' : ''}</span></div>`;
     rows.forEach((p, i) => {
       const myRankInList = rows.findIndex(r => r.pseudo === myPseudo);
       if (i >= 10 && i !== myRankInList) return;
@@ -138,13 +151,13 @@ function _renderLeaderboard({ rows, flashRows, totalFixed, rewardMsg, myData, my
       const pct        = totalFixed > 0 ? Math.round((p.fixedCount / totalFixed) * 100) : 0;
       const barColor   = p.allFixed ? '#4ade80' : i === 0 ? '#fbbf24' : '#3b82f6';
       const timeBadge  = p.allFixed && p.fixedDuration !== null
-        ? `<span class="lb-time">${uiIcon('clock', 'success')}<span>${formatDuration(p.fixedDuration)}</span></span>` : '';
+        ? `<span class="lb-time">${_lbIcon('clock', 'success')}<span>${formatDuration(p.fixedDuration)}</span></span>` : '';
       const uniqBadge  = p.uniqueEvents.length
-        ? `<span class="lb-badge">${uiIcon('flash', 'flash')}<span>×${p.uniqueEvents.length}</span></span>` : '';
+        ? `<span class="lb-badge">${_lbIcon('flash', 'flash')}<span>×${p.uniqueEvents.length}</span></span>` : '';
       const doneBadge  = p.allFixed
-        ? `<span class="lb-badge lb-badge-done">${uiIcon('check', 'success')}<span>Quête complète</span></span>` : '';
+        ? `<span class="lb-badge lb-badge-done">${_lbIcon('check', 'success')}<span>Quête complète</span></span>` : '';
       const rewardLine = p.allFixed && rewardMsg
-        ? `<div style="margin-top:5px;font-size:0.75rem;color:#4ade80;padding:5px 8px;background:#0d2218;border-radius:6px;border:1px solid #16a34a;display:flex;align-items:center;gap:6px">${uiIcon('gps', 'success')}${safeRewardMsg}</div>` : '';
+        ? `<div style="margin-top:5px;font-size:0.75rem;color:#4ade80;padding:5px 8px;background:#0d2218;border-radius:6px;border:1px solid #16a34a;display:flex;align-items:center;gap:6px">${_lbIcon('gps', 'success')}${safeRewardMsg}</div>` : '';
 
       html += `<div class="lb-row${isMe ? ' lb-me' : ''}${extraClass ? ' '+extraClass : ''}">
         <div class="lb-rank">${rankIcon}</div>
@@ -152,7 +165,7 @@ function _renderLeaderboard({ rows, flashRows, totalFixed, rewardMsg, myData, my
         <div class="lb-body">
           <div class="lb-name">${escHtml(p.pseudo)}</div>
           <div class="lb-score">
-            <strong>${uiIcon('camera', 'teal')}${p.fixedCount}${totalFixed ? '/'+totalFixed : ''}</strong>
+            <strong>${_lbIcon('camera', 'teal')}${p.fixedCount}${totalFixed ? '/'+totalFixed : ''}</strong>
             ${timeBadge}${uniqBadge}${doneBadge}
           </div>
           ${totalFixed > 0 ? `<div class="lb-pbar"><div class="lb-pfill" style="width:${pct}%;background:${barColor}"></div></div>` : ''}
@@ -170,7 +183,7 @@ function _renderLeaderboard({ rows, flashRows, totalFixed, rewardMsg, myData, my
   if (!flashRows.length) {
     flashHtml = '<p style="color:#475569;text-align:center;padding:50px 20px">Aucun score Flash pour le moment</p>';
   } else {
-    flashHtml += `<div class="lb-divider">${uiIcon('flash', 'flash')}<span>Classement Flash · ${flashRows.length} joueur${flashRows.length > 1 ? 's' : ''}</span></div>`;
+    flashHtml += `<div class="lb-divider">${_lbIcon('flash', 'flash')}<span>Classement Flash · ${flashRows.length} joueur${flashRows.length > 1 ? 's' : ''}</span></div>`;
     flashRows.forEach((p, i) => {
       const rankIcon = i < 3 ? medals[i] : `<span style="font-size:0.85rem;color:#475569;font-weight:700">${i+1}</span>`;
       const isMe = p.pseudo === myPseudo;
@@ -179,7 +192,7 @@ function _renderLeaderboard({ rows, flashRows, totalFixed, rewardMsg, myData, my
         <div class="lb-avatar" style="background:${pseudoGradient(p.pseudo)}">${escHtml(p.pseudo[0].toUpperCase())}</div>
         <div class="lb-body">
           <div class="lb-name">${escHtml(p.pseudo)}</div>
-          <div class="lb-score"><strong>${uiIcon('flash', 'flash')}${p.flashCount} flash${p.flashCount > 1 ? 's' : ''}</strong></div>
+          <div class="lb-score"><strong>${_lbIcon('flash', 'flash')}${p.flashCount} flash${p.flashCount > 1 ? 's' : ''}</strong></div>
         </div>
       </div>`;
     });
