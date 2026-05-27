@@ -61,13 +61,13 @@ TUTO_ACCROCHE:      Deux façons de jouer.
 TUTO_QUETE_NOM:     Mode Quête
 TUTO_QUETE_SOUS:    Des balises à trouver
 TUTO_QUETE_DESC:    Balises fixes dans la ville.
-                    Approche-toi, scanne, collectionne.
+                    Approche-toi pour scanner les QR code
                     Objectif : toutes les trouver.
 
 TUTO_FLASH_NOM:     Mode Flash
 TUTO_FLASH_SOUS:    Trouve les miniatures Flash qui apparaissent en ville
-TUTO_FLASH_DESC:    Des polaroids apparaissent aléatoirement en ville.
-                    Chacun ne peut être cueilli qu'une seule fois.
+TUTO_FLASH_DESC:    Trouves les petits Polaroids qui apparaissent sur la carte
+                    Objectif: les cueillir avant les autres
                     
 
 TUTO_ASTUCE:        Active GPS + compas avant de démarrer pour une meilleure fluidité.
@@ -179,7 +179,11 @@ FLASH_PRIS_DESC:   Trop tard. Ce trésor Flash a déjà été pris.
 ## SCANNER QR (mode photo)
 
 ```
-QR_STATUS_INFO:    Tu as trouve l'objet, prends une photo du QR code pour valider ta cueillette.
+QR_STATUS_FIXED:   Tu as trouvé la balise, prends une photo du QR code pour continuer le jeu.
+QR_STATUS_FLASH:   Tu as trouvé le trésor, prends une photo du QR code pour continuer le jeu.
+QR_TARGET_FIXED:   Balise {N} de la quête
+QR_TARGET_FLASH:   Trésor unique
+QR_TARGET_FLASH_REF: QR-00X
 QR_PHOTO_CTA:      📷 Prendre la photo
 QR_TIPS:           Astuce : rapproche-toi du QR code, évite les reflets et assure-toi qu'il occupe bien l'image.
 ```

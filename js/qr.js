@@ -49,6 +49,34 @@ function _resetZoomControls() {
   if (row) row.style.display = 'none';
 }
 
+function _extractLastNumber(str) {
+  const m = String(str || '').match(/(\d+)(?!.*\d)/);
+  return m ? Number(m[1]) : null;
+}
+
+function _fixedBeaconIndexInQuest(t) {
+  const sameQuest = treasures
+    .filter(x => x.type === 'fixed' && (x.quest || '') === (t.quest || ''))
+    .slice()
+    .sort((a, b) => {
+      const an = _extractLastNumber(a.id) ?? Number.MAX_SAFE_INTEGER;
+      const bn = _extractLastNumber(b.id) ?? Number.MAX_SAFE_INTEGER;
+      if (an !== bn) return an - bn;
+      return String(a.id || '').localeCompare(String(b.id || ''));
+    });
+  const idx = sameQuest.findIndex(x => x.id === t.id);
+  return idx >= 0 ? idx + 1 : null;
+}
+
+function _formatUniqueTreasureRef(t) {
+  const idStr = String(t && t.id ? t.id : '');
+  const qrMatch = idStr.match(/qr[-_ ]?(\d{1,4})/i);
+  if (qrMatch) return 'QR-' + qrMatch[1].padStart(3, '0');
+  const n = _extractLastNumber(idStr) ?? _extractLastNumber(t && t.label ? t.label : '');
+  if (n !== null) return 'QR-' + String(n).padStart(3, '0');
+  return 'QR-000';
+}
+
 function openQRScanner(beaconId) {
   qrExpectedId = beaconId || null;
   const status = document.getElementById('qrStatus');
@@ -66,13 +94,45 @@ function openQRScanner(beaconId) {
   const targetEl = document.getElementById('qrTarget');
   if (targetEl) {
     const t = beaconId ? treasures.find(x => x.id === beaconId) : null;
+    const lblSpan = targetEl.querySelector('.qrt-lbl');
+    const nameSpan = targetEl.querySelector('.qrt-name');
+    const questSpan = targetEl.querySelector('.qrt-quest');
+    const photoEl = document.getElementById('qrTargetPhoto');
     if (t) {
-      targetEl.querySelector('.qrt-name').textContent = tLabel(t);
-      const questSpan = targetEl.querySelector('.qrt-quest');
-      questSpan.textContent = t.quest ? t.quest : '';
-      questSpan.style.display = t.quest ? 'block' : 'none';
+      if (t.type === 'fixed') {
+        const beaconIndex = _fixedBeaconIndexInQuest(t);
+        lblSpan.textContent = 'Tu as trouvé la balise';
+        nameSpan.textContent = beaconIndex ? `Balise ${beaconIndex} de la quête` : 'Balise de la quête';
+        questSpan.textContent = '';
+        questSpan.style.display = 'none';
+        status.textContent = 'Tu as trouvé la balise, prends une photo du QR code pour continuer le jeu.';
+        if (photoEl) {
+          photoEl.src = '';
+          photoEl.style.display = 'none';
+        }
+      } else {
+        lblSpan.textContent = 'Tu cherches';
+        nameSpan.textContent = 'Trésor unique';
+        questSpan.textContent = _formatUniqueTreasureRef(t);
+        questSpan.style.display = 'block';
+        status.textContent = 'Tu as trouvé le trésor, prends une photo du QR code pour continuer le jeu.';
+        if (photoEl) {
+          const photoUrl = safeImgUrl(getPhotoUrls(t.photo_url)[0]);
+          if (photoUrl) {
+            photoEl.src = photoUrl;
+            photoEl.style.display = 'block';
+          } else {
+            photoEl.src = '';
+            photoEl.style.display = 'none';
+          }
+        }
+      }
       targetEl.style.display = 'block';
     } else {
+      if (photoEl) {
+        photoEl.src = '';
+        photoEl.style.display = 'none';
+      }
       targetEl.style.display = 'none';
     }
   }

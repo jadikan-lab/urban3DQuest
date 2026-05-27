@@ -51,8 +51,10 @@ Selected via `?env=stg` URL param or `localStorage('u3dq_env')`:
 
 ### Environment workflow rule (team)
 
-- Until game launch: work and validate directly in `PROD` first.
-- After first launch validation: copy current state to `STG` (preprod), then continue iterative changes in `STG` before promoting again.
+- Policy version: ENV-POLICY-2026-05-27-v1.
+- Effective date: 2026-05-27.
+- Work and validate in `PROD` by default.
+- `STG` is paused until explicit contrary instruction.
 - If this rule conflicts with older notes or habits, this section is the source of truth.
 
 ### Repository policy (team)

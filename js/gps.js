@@ -264,6 +264,8 @@ function updateRadar() {
       .filter(t => !(t.found_by && t.found_by.split(',').includes(myPseudo)));
 
     if (!uniqueLeft.length) {
+      const guideText = document.getElementById('modeGuideText');
+      if (guideText) guideText.textContent = 'Aucun flash dispo pour le moment';
       bar.textContent = '✅ Tous les flashs ont été pris !';
       bar.className = '';
       fab.style.display = 'none';

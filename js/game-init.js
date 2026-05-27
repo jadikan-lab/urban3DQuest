@@ -1,6 +1,11 @@
 
 // ── Init game ────────────────────────────────────────
 async function initGame(pendingFoundId) {
+  // Landing defaults to Quest tab; enforce matching mode to avoid Quest/Flash mismatch.
+  if (activeGameMode !== 'fixed') {
+    activeGameMode = 'fixed';
+    localStorage.setItem('u3dq_game_mode', 'fixed');
+  }
   updateHeader();
   updateModeUI();
   updateGpsLoadingPanel();
