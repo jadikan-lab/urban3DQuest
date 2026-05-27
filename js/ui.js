@@ -680,7 +680,6 @@ function loadBalises() {
     groups[q].push(t);
   });
 
-  const numColors = ['#6366f1','#ec4899','#f59e0b','#10b981','#3b82f6'];
   const questNames = Object.keys(groups).sort((a, b) => {
     if (!a && b) return 1;
     if (a && !b) return -1;
@@ -707,7 +706,7 @@ function loadBalises() {
     items.forEach((t, i) => {
       const isMine = t.found_by && t.found_by.split(',').includes(myPseudo);
       const distStr = t._dist === Infinity ? '' : t._dist < 1000 ? Math.round(t._dist) + 'm' : (t._dist / 1000).toFixed(1) + 'km';
-      const bg = isMine ? '#22c55e' : numColors[i % numColors.length];
+      const bg = isMine ? '#22c55e' : '#6b7280';
       const tid = escHtml(t.id);
       html += `<div class="bl-item${isMine ? ' found' : ''}" onclick="openTreasureSheet(treasures.find(x=>x.id==='${tid}'))">
         <div class="bl-num" style="background:${bg}">${isMine ? '✓' : i + 1}</div>
