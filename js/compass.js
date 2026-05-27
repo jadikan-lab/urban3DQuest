@@ -355,18 +355,6 @@ function updateCompass() {
         s.style.left = cx + 'px';
         s.style.top = cy + 'px';
       });
-      // Cardinal indicators stay in map/world coordinates.
-      // The shared world rotation is applied in applyMapHeadingRotation().
-      const cardinals = { N: 0, E: 90, S: 180, O: 270 };
-      const cardinalEls = mapElC.querySelectorAll('.radar-cardinal');
-      cardinalEls.forEach((el) => {
-        const dir = el.dataset.dir;
-        const base = cardinals[dir];
-        if (base === undefined) return;
-        const rad = base * Math.PI / 180;
-        el.style.left = (cx + R * 0.87 * Math.sin(rad)) + 'px';
-        el.style.top = (cy - R * 0.87 * Math.cos(rad)) + 'px';
-      });
 
       if (compassArrowMode && activeGameMode === 'fixed') {
         const fixedPlaced = treasures

@@ -49,13 +49,6 @@ function initMap() {
   [1, 2, 3].forEach(() => { const r = document.createElement('div'); r.className = 'radar-ring'; radarBg.appendChild(r); });
   const dot = document.createElement('div'); dot.id = 'radarCenterDot'; radarBg.appendChild(dot);
   const centerLabel = document.createElement('div'); centerLabel.id = 'radarCenterLabel'; centerLabel.textContent = 'VOUS'; radarBg.appendChild(centerLabel);
-  ['N', 'E', 'S', 'O'].forEach((dir) => {
-    const el = document.createElement('div');
-    el.className = 'radar-cardinal';
-    el.dataset.dir = dir;
-    el.textContent = dir;
-    radarBg.appendChild(el);
-  });
   mapEl.appendChild(radarBg);
   const ov = document.createElement('div');
   ov.id = 'arrowOverlay';

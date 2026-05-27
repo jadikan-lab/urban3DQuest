@@ -272,13 +272,19 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
   const dur    = document.getElementById('foundDuration');
   const desc   = document.getElementById('foundDesc');
   const sharePanel = document.getElementById('foundSharePanel');
+  const shareKicker = sharePanel ? sharePanel.querySelector('.found-share-kicker') : null;
+  const shareTitle = sharePanel ? sharePanel.querySelector('.found-share-title') : null;
+  const shareText = sharePanel ? sharePanel.querySelector('.found-share-text') : null;
   const shareBtn = document.getElementById('foundShareCaptureBtn');
   const inviteBtn = document.getElementById('foundInviteBtn');
 
   window._uniqueCaptureShareData = null;
   if (sharePanel) sharePanel.classList.add('field-hidden');
-  if (shareBtn) shareBtn.textContent = 'Partager ma capture';
-  if (inviteBtn) inviteBtn.textContent = 'Inviter mes amis';
+  if (shareKicker) shareKicker.textContent = _copy('FLASH_SHARE_KICKER', 'FLASH CAPTURÉ');
+  if (shareTitle) shareTitle.textContent = _copy('FLASH_SHARE_TITLE', 'Fais-le voir ou invite du renfort.');
+  if (shareText) shareText.textContent = _copy('FLASH_SHARE_TEXT', 'Choisis entre une image prête à partager et un lien d\'invitation pour faire venir d\'autres joueurs.');
+  if (shareBtn) shareBtn.textContent = _copy('FLASH_SHARE_CAPTURE_CTA', 'Partager ma capture');
+  if (inviteBtn) inviteBtn.textContent = _copy('FLASH_SHARE_INVITE_CTA', 'Inviter mes amis');
 
   // Show photos if available and found
   const photoStrip = document.getElementById('foundPhotoStrip');

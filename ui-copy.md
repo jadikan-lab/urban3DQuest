@@ -172,6 +172,11 @@ FLASH_WIN_DESC:    Trésor unique validé. Tu peux partager ta trouvaille ou pou
 FLASH_PRIS_LABEL:  TROP TARD
 FLASH_PRIS_TITRE:  Trop tard !
 FLASH_PRIS_DESC:   Trop tard. Ce trésor Flash a déjà été pris.
+FLASH_SHARE_KICKER:      FLASH CAPTURÉ
+FLASH_SHARE_TITLE:       Fais-le voir ou invite du renfort.
+FLASH_SHARE_TEXT:        Choisis entre une image prête à partager et un lien d'invitation pour faire venir d'autres joueurs.
+FLASH_SHARE_CAPTURE_CTA: Partager ma capture
+FLASH_SHARE_INVITE_CTA:  Inviter mes amis
 ```
 
 ---
@@ -186,6 +191,7 @@ QR_STATUS_ANALYZING: 🔍 Révélation en cours…
 QR_STATUS_BAD_PHOTO: ❌ Polaroid non reconnu — réessaie en te rapprochant et en éclairant bien le polaroid
 QR_STATUS_NOT_GAME: ⚠️ Ce code n'appartient pas au jeu — cherche le bon polaroid !
 QR_STATUS_WRONG_TREASURE: ⚠️ Mauvais polaroid — cherche le bon !
+QR_STATUS_WRONG_TREASURE_DETAIL: ⚠️ Mauvais QR: détecté {SCANNED}. Cherche {EXPECTED}.
 QR_STATUS_CAPTURED: ✅ Polaroid révélé !
 QR_STATUS_CAMERA_BLOCKED: ⚠️ Caméra bloquée. Autorise la caméra puis utilise la photo de secours.
 QR_TARGET_FIXED:   Balise {N} de la quête

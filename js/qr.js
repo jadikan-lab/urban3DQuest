@@ -78,11 +78,36 @@ function _formatUniqueTreasureRef(t) {
   return 'QR-000';
 }
 
+function _formatTreasureForScanFeedback(id) {
+  const t = treasures.find(x => x.id === id);
+  if (!t) return `ID ${id}`;
+  if (t.type === 'fixed') {
+    const beaconIndex = _fixedBeaconIndexInQuest(t);
+    return beaconIndex ? `Balise ${beaconIndex}` : 'Balise de quête';
+  }
+  return _formatUniqueTreasureRef(t);
+}
+
+function _extractScannedTreasureId(raw) {
+  const txt = String(raw || '').trim();
+  if (!txt) return null;
+  const direct = txt.match(/(?:^|[?&#\s])(checkin|found)=([^&\s#]+)/i);
+  if (direct) return decodeURIComponent(direct[2]);
+  try {
+    const u = new URL(txt);
+    const v = u.searchParams.get('checkin') || u.searchParams.get('found');
+    if (v) return decodeURIComponent(v);
+  } catch {}
+  return null;
+}
+
 function openQRScanner(beaconId) {
   qrExpectedId = beaconId || null;
   const status = document.getElementById('qrStatus');
+  const photoBtnText = document.getElementById('qrPhotoBtnText');
   status.className = '';
   status.textContent = _copy('QR_STATUS_SCAN', 'Vise le QR pour le révéler.');
+  if (photoBtnText) photoBtnText.textContent = _copy('QR_PHOTO_CTA', '📷 Prendre la photo');
   document.getElementById('qrPreviewWrap').style.display = 'none';
   document.getElementById('qrReader').style.display = 'none';
   document.getElementById('qrTips').style.display = 'none';
@@ -303,18 +328,21 @@ async function _qrHandleResult(raw) {
   if (qrDecodeLocked) return;
   qrDecodeLocked = true;
   const status = document.getElementById('qrStatus');
-  const match  = raw.match(/[?&](?:checkin|found)=([^&\s]+)/);
-  if (!match) {
+  const scannedId = _extractScannedTreasureId(raw);
+  if (!scannedId) {
     status.textContent = _copy('QR_STATUS_NOT_GAME', '⚠️ Ce code n\'appartient pas au jeu — cherche le bon polaroid !');
     status.className = 'qr-err';
     haptic([80, 60, 80]);
     qrDecodeLocked = false;
     return;
   }
-  const scannedId = decodeURIComponent(match[1]);
 
   if (qrExpectedId && scannedId !== qrExpectedId) {
-    status.textContent = _copy('QR_STATUS_WRONG_TREASURE', '⚠️ Mauvais polaroid — cherche le bon !');
+    const expectedLabel = _formatTreasureForScanFeedback(qrExpectedId);
+    const scannedLabel = _formatTreasureForScanFeedback(scannedId);
+    status.textContent = _copy('QR_STATUS_WRONG_TREASURE_DETAIL', '⚠️ Mauvais QR: détecté {SCANNED}. Cherche {EXPECTED}.')
+      .replace('{SCANNED}', scannedLabel)
+      .replace('{EXPECTED}', expectedLabel);
     status.className = 'qr-err';
     haptic([80, 60, 80]);
     qrDecodeLocked = false;
