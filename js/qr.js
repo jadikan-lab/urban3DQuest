@@ -91,13 +91,32 @@ function _formatTreasureForScanFeedback(id) {
 function _extractScannedTreasureId(raw) {
   const txt = String(raw || '').trim();
   if (!txt) return null;
-  const direct = txt.match(/(?:^|[?&#\s])(checkin|found)=([^&\s#]+)/i);
-  if (direct) return decodeURIComponent(direct[2]);
+
+  // 1) Full URL payload (most common) — prefer found over checkin.
   try {
     const u = new URL(txt);
-    const v = u.searchParams.get('checkin') || u.searchParams.get('found');
+    const found = u.searchParams.get('found');
+    const checkin = u.searchParams.get('checkin');
+    const v = found || checkin;
     if (v) return decodeURIComponent(v);
   } catch {}
+
+  // 2) Raw query-like text — again prefer found over checkin.
+  const foundMatch = txt.match(/(?:^|[?&#\s])found=([^&\s#]+)/i);
+  if (foundMatch) return decodeURIComponent(foundMatch[1]);
+  const checkinMatch = txt.match(/(?:^|[?&#\s])checkin=([^&\s#]+)/i);
+  if (checkinMatch) return decodeURIComponent(checkinMatch[1]);
+
+  // 3) Some generators nest a URL string in a decoded value; unwrap once.
+  try {
+    const decoded = decodeURIComponent(txt);
+    if (decoded !== txt) {
+      const nested = decoded.match(/(?:^|[?&#\s])found=([^&\s#]+)/i)
+        || decoded.match(/(?:^|[?&#\s])checkin=([^&\s#]+)/i);
+      if (nested) return decodeURIComponent(nested[1]);
+    }
+  } catch {}
+
   return null;
 }
 
