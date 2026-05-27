@@ -165,13 +165,23 @@ QUETE_0_DESC:    Incroyable ! Ta quête est complète !
 ## MODAL DE RÉSULTAT — Flash
 
 ```
-FLASH_WIN_LABEL:   Félicitations !
-FLASH_WIN_TITRE:   Bravo, tu peux garder le souvenir !
+FLASH_WIN_LABEL:   CAPTURÉ
+FLASH_WIN_TITRE:   Trésor unique capturé
 FLASH_WIN_DESC:    (vide)
 
 FLASH_PRIS_LABEL:  TROP TARD
 FLASH_PRIS_TITRE:  Trop tard !
 FLASH_PRIS_DESC:   Trop tard. Ce trésor Flash a déjà été pris.
+```
+
+---
+
+## SCANNER QR (mode photo)
+
+```
+QR_STATUS_INFO:    Tu as trouve l'objet, prends une photo du QR code pour valider ta cueillette.
+QR_PHOTO_CTA:      📷 Prendre la photo
+QR_TIPS:           Astuce : rapproche-toi du QR code, évite les reflets et assure-toi qu'il occupe bien l'image.
 ```
 
 ---

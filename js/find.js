@@ -354,9 +354,9 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
     } else {
       setFoundIcon('flash', 'flash');
       label.textContent = 'CAPTURÉ';
-      title.textContent = 'Trésor unique capturé !';
+      title.textContent = 'Trésor unique capturé';
       dur.textContent   = formatDuration(durationSec);
-      desc.textContent  = 'Partage la capture ou invite d’autres joueurs à rejoindre la chasse.';
+      desc.textContent  = '';
       window._uniqueCaptureShareData = {
         id: t.id,
         label: tLabel(t),

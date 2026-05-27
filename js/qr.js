@@ -77,11 +77,6 @@ function openQRScanner(beaconId) {
     }
   }
   document.getElementById('qrOverlay').classList.add('open');
-  // Flux photo-first : ouvre directement l'appareil photo natif.
-  const fileInput = document.getElementById('qrFileInput');
-  if (fileInput) {
-    try { fileInput.click(); } catch {}
-  }
 }
 
 async function startLiveQRScan() {
