@@ -414,19 +414,46 @@ function hideFlashHint() {
 
 async function captureFixed() {
   if (!myPseudo) { _checkinError('Mode invité : connecte-toi pour révéler des polaroids.'); return; }
-  if (!nearestFixed) return;
+  let target = nearestFixed;
+  if (!target && playerLat !== null) {
+    const fixedLeft = treasures
+      .filter(t => t.type === 'fixed')
+      .filter(t => !(t.found_by && t.found_by.split(',').includes(myPseudo)));
+    const nearest = fixedLeft
+      .map(t => ({ t, d: haversine(playerLat, playerLng, t.lat, t.lng) }))
+      .sort((a, b) => a.d - b.d)[0];
+    if (nearest && nearest.d <= proximityR) target = nearest.t;
+  }
+  if (!target) {
+    _checkinError('Approche-toi du polaroid pour capturer (zone GPS requise).');
+    return;
+  }
   haptic([50, 30, 50]);
-  openQRScanner(nearestFixed.id);
+  openQRScanner(target.id);
 }
 
 async function captureUnique() {
   if (!myPseudo) { _checkinError('Mode invité : connecte-toi pour jouer.'); return; }
-  if (!nearestUnique) return;
-  if (nearestUnique.found_by && nearestUnique.found_by.length > 0) {
+  let target = nearestUnique;
+  if (!target && playerLat !== null) {
+    const uniqueLeft = treasures
+      .filter(t => t.type === 'unique')
+      .filter(t => !(t.found_by && t.found_by.length > 0))
+      .filter(t => !(t.found_by && t.found_by.split(',').includes(myPseudo)));
+    const nearest = uniqueLeft
+      .map(t => ({ t, d: haversine(playerLat, playerLng, t.lat, t.lng) }))
+      .sort((a, b) => a.d - b.d)[0];
+    if (nearest && nearest.d <= FLASH_CAPTURE_M) target = nearest.t;
+  }
+  if (!target) {
+    _checkinError('Approche-toi davantage pour scanner ce trésor Flash.');
+    return;
+  }
+  if (target.found_by && target.found_by.length > 0) {
     _checkinError('Ce trésor vient d\'être pris — trop tard ! 😅'); return;
   }
   haptic([50, 30, 50]);
-  openQRScanner(nearestUnique.id);
+  openQRScanner(target.id);
 }
 
 // ── Compass orientation ───────────────────────────────
