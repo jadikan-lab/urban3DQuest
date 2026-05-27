@@ -265,8 +265,8 @@ function updateRadar() {
 
     if (!uniqueLeft.length) {
       const guideText = document.getElementById('modeGuideText');
-      if (guideText) guideText.textContent = 'Aucun flash dispo pour le moment';
-      bar.textContent = '✅ Tous les flashs ont été pris !';
+      if (guideText) guideText.textContent = 'Aucune miniature disponible pour le moment';
+      bar.textContent = '✅ Toutes les miniatures ont été cueillies, reviens plus tard !';
       bar.className = '';
       fab.style.display = 'none';
       nearestFixed = null;
@@ -292,7 +292,7 @@ function updateRadar() {
 
     if (uniqueDist <= FLASH_CAPTURE_M) {
       // Palier 3 — < 20m : FAB + hint + "scanne maintenant"
-      bar.textContent = `${cStr} · 📷 Scanne-le maintenant !${accStr}`;
+      bar.textContent = `${cStr} · 📷 Prends le QR code en photo pour valider !${accStr}`;
       bar.className = 'very-near';
       nearestUnique = nearestU.t;
       flashFab.style.display = 'flex';

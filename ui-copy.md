@@ -96,8 +96,8 @@ QUETE_RADAR_COMPLETE:     ✅ Ta quête est complète !
 FLASH_RADAR_TRES_LOIN:    {N} trésor(s) dispo · Un polaroid se cache dans ce quartier…
 FLASH_RADAR_LOIN:         {N} trésor(s) dispo · Tu te rapproches !
 FLASH_RADAR_PROCHE:       {N} trésor(s) dispo · Tu es tout près !
-FLASH_RADAR_TRES_PROCHE:  {N} trésor(s) dispo · 📷 Prends le QR en photo pour valider !
-FLASH_RADAR_ZERO:         ✅ Tous les flashs ont été pris !
+FLASH_RADAR_TRES_PROCHE:  {N} trésor(s) dispo · 📷 Prends le QR code en photo pour valider !
+FLASH_RADAR_ZERO:         ✅ Toutes les miniatures ont été cueillies, reviens plus tard !
 ```
 
 ---
