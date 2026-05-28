@@ -300,7 +300,11 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
   if (sharePanel) sharePanel.classList.add('field-hidden');
   if (shareKicker) shareKicker.textContent = _findCopy('FLASH_SHARE_KICKER', 'FLASH CAPTURÉ');
   if (shareTitle) shareTitle.textContent = _findCopy('FLASH_SHARE_TITLE', 'Partage ou invite.');
-  if (shareText) shareText.textContent = _findCopy('FLASH_SHARE_TEXT', 'Choisis: image de capture ou lien d\'invitation.');
+  if (shareText) {
+    const helper = _findCopy('FLASH_SHARE_TEXT', '').trim();
+    shareText.textContent = helper;
+    shareText.classList.toggle('field-hidden', !helper);
+  }
   if (shareBtn) shareBtn.textContent = _findCopy('FLASH_SHARE_CAPTURE_CTA', 'Partager');
   if (inviteBtn) inviteBtn.textContent = _findCopy('FLASH_SHARE_INVITE_CTA', 'Inviter');
 
@@ -381,7 +385,7 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
       label.textContent = _findCopy('FLASH_WIN_LABEL', 'CAPTURÉ');
       title.textContent = _findCopy('FLASH_WIN_TITRE', 'Trésor unique capturé');
       dur.textContent   = formatDuration(durationSec);
-      desc.textContent  = _findCopy('FLASH_WIN_DESC', 'Trésor validé. Partage ta capture ou continue la chasse.');
+      desc.textContent  = _findCopy('FLASH_WIN_DESC', 'Trésor validé. Partage ta capture et continue la chasse.');
       _lastUniqueSuccessModal = { id: t.id, at: Date.now() };
       window._uniqueCaptureShareData = {
         id: t.id,

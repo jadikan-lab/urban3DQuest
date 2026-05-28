@@ -274,14 +274,23 @@ function _buildUniqueCaptureCanvas(data) {
     ctx.fillText(line, 84, 260 + (index * 82));
   });
 
+  const sharePseudo = _escapeCanvasText(data.pseudo || myPseudo || 'Joueur');
   ctx.fillStyle = 'rgba(255,255,255,0.9)';
   ctx.font = '500 28px Space Grotesk, sans-serif';
-  const subLines = _wrapCanvasText(ctx, `Par ${_escapeCanvasText(data.pseudo || myPseudo || 'un joueur')} · ${_escapeCanvasText(data.durationText || '')}`, 900);
+  const subLines = _wrapCanvasText(ctx, `Par ${sharePseudo} · ${_escapeCanvasText(data.durationText || '')}`, 900);
   subLines.forEach((line, index) => ctx.fillText(line, 84, 440 + (index * 38)));
 
   ctx.fillStyle = 'rgba(255,255,255,0.8)';
   ctx.font = '700 24px JetBrains Mono, monospace';
   ctx.fillText(_escapeCanvasText(data.quest ? `QUÊTE ${data.quest}` : 'CAPTURE UNIQUE'), 84, 520);
+
+  // Player badge stays highly visible in the exported image.
+  ctx.fillStyle = 'rgba(0,0,0,0.24)';
+  roundRect(ctx, 770, 80, 226, 56, 16);
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '800 22px JetBrains Mono, monospace';
+  ctx.fillText(`JOUEUR ${sharePseudo.toUpperCase()}`, 792, 115);
 
   const cardX = 84;
   const cardY = 586;
@@ -299,15 +308,15 @@ function _buildUniqueCaptureCanvas(data) {
   ctx.stroke();
 
   ctx.fillStyle = 'rgba(255,61,138,0.14)';
-  roundRect(ctx, 124, 626, 196, 52, 18);
+  roundRect(ctx, 124, 626, 250, 52, 18);
   ctx.fill();
   ctx.fillStyle = '#ff6aa8';
   ctx.font = '800 20px JetBrains Mono, monospace';
-  ctx.fillText('INVITEZ-VOUS', 156, 659);
+  ctx.fillText(`CAPTURE DE ${sharePseudo.toUpperCase()}`, 144, 659);
 
   ctx.fillStyle = '#fff';
   ctx.font = '800 46px Space Grotesk, sans-serif';
-  _wrapCanvasText(ctx, 'Partage la chasse avant qu’elle ne disparaisse.', 760).forEach((line, index) => {
+  _wrapCanvasText(ctx, 'Partage ta capture et continue la chasse.', 760).forEach((line, index) => {
     ctx.fillText(line, 124, 742 + (index * 52));
   });
 
