@@ -743,9 +743,7 @@ async function loadMoi() {
   }
 
   const pseudo = myPseudo || 'Invité';
-  const grad = pseudoGradient(pseudo);
   el.innerHTML = `
-    <div class="moi-avatar" style="background:${grad}">${escHtml(pseudo.charAt(0))}</div>
     <div class="moi-pseudo">${escHtml(pseudo)}</div>
     <div class="moi-grid">
       <div class="moi-tile"><div class="moi-tile-val">${myFixed}</div><div class="moi-tile-lbl">Quête</div></div>

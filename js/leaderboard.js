@@ -121,6 +121,7 @@ function _renderLeaderboard({ rows, totalFixed, myData, myRankNum }) {
     html = '<p style="color:#475569;text-align:center;padding:50px 20px">Pas encore de scores<br><span style="font-size:0.8rem">Sois le premier à marquer des points !</span></p>';
   } else {
     html += `<div class="lb-divider">${_lbIcon('trophy', 'warn')}<span>Classement global · ${rows.length} joueur${rows.length > 1 ? 's' : ''}</span></div>`;
+    html += `<div class="lb-help">⭐ Score global = 1 point par Quête + 2 points par Flash. En cas d'égalité: plus de Flash, puis plus de Quête, puis meilleur temps Quête.</div>`;
     const myRankInList = rows.findIndex(r => r.pseudo === myPseudo);
     rows.forEach((p, i) => {
       if (i >= 12 && i !== myRankInList) return;
@@ -133,7 +134,6 @@ function _renderLeaderboard({ rows, totalFixed, myData, myRankNum }) {
 
       html += `<div class="lb-row${isMe ? ' lb-me' : ''}">
         <div class="lb-rank">${rankIcon}</div>
-        <div class="lb-avatar" style="background:${pseudoGradient(p.pseudo)}">${escHtml(p.pseudo[0].toUpperCase())}</div>
         <div class="lb-body">
           <div class="lb-name">${escHtml(p.pseudo)}</div>
           <div class="lb-score">
