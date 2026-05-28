@@ -118,6 +118,16 @@ function _extractScannedTreasureId(raw) {
     }
   } catch {}
 
+  // 4) Legacy plain tokens: "checkin:...", "found:...", UUID or numeric-only payloads.
+  const legacyKeyed = txt.match(/^(?:checkin|found)\s*[:=]\s*(.+)$/i);
+  if (legacyKeyed && legacyKeyed[1]) return legacyKeyed[1].trim();
+
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(txt)) {
+    return txt;
+  }
+
+  if (/^\d{1,6}$/.test(txt)) return txt;
+
   return null;
 }
 
