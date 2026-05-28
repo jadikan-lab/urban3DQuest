@@ -2,6 +2,7 @@
 let _processingFind = false;
 const _inFlightCaptures = new Set(); // protection double-scan par balise
 window._uniqueCaptureShareData = window._uniqueCaptureShareData || null;
+let _lastUniqueSuccessModal = { id: null, at: 0 };
 const _copy = (key, fallback = '') => (window.u3dqCopyText ? window.u3dqCopyText(key, fallback) : fallback);
 
 async function _getFixedHuntDurationSec(pseudo) {
@@ -266,6 +267,11 @@ async function _doProcessFind(treasureId) {
 }
 
 function showFoundResult(status, t, durationSec, durationSecHunt) {
+  if (t && t.type === 'unique' && status !== 'success') {
+    const ageMs = Date.now() - (_lastUniqueSuccessModal.at || 0);
+    if (_lastUniqueSuccessModal.id === t.id && ageMs < 8000) return;
+  }
+
   const modal = document.getElementById('foundModal');
   const label  = document.getElementById('foundLabel');
   const title  = document.getElementById('foundTitle');
@@ -364,6 +370,7 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
       title.textContent = _copy('FLASH_WIN_TITRE', 'Trésor unique capturé');
       dur.textContent   = formatDuration(durationSec);
       desc.textContent  = _copy('FLASH_WIN_DESC', 'Trésor unique validé. Tu peux partager ta trouvaille ou poursuivre la chasse.');
+      _lastUniqueSuccessModal = { id: t.id, at: Date.now() };
       window._uniqueCaptureShareData = {
         id: t.id,
         label: tLabel(t),

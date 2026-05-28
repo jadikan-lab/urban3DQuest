@@ -360,7 +360,7 @@ function updateCompass() {
         const fixedPlaced = treasures
           .filter(t => t.type === 'fixed')
           .filter(t => Number.isFinite(t.lat) && Number.isFinite(t.lng))
-          .filter(t => !!t.placed_at)
+          .filter(t => t.visible !== false)
           .filter(t => !(t.found_by && t.found_by.split(',').includes(myPseudo)))
           .map(t => ({ ...t, dist: haversine(playerLat, playerLng, t.lat, t.lng) }))
           .sort((a, b) => a.dist - b.dist)

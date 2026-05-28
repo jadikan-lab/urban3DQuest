@@ -13,6 +13,7 @@ let _qrZoomMax = 1;
 let _qrZoomStep = 0.5;
 let _qrZoomCurrent = 1;
 let _qrZoomApply = null; // async fn(zoom) — set when camera is live
+let _qrHistoryPushed = false;
 const _copy = (key, fallback = '') => (window.u3dqCopyText ? window.u3dqCopyText(key, fallback) : fallback);
 
 function _updateZoomUI() {
@@ -139,6 +140,23 @@ function _resolveExpectedUniqueAlias(scannedId, expectedId) {
   return scannedId;
 }
 
+function _resolveExpectedFixedAlias(scannedId, expectedId) {
+  if (!scannedId || !expectedId || scannedId === expectedId) return scannedId;
+  const expected = treasures.find(x => x.id === expectedId);
+  if (!expected || expected.type !== 'fixed') return scannedId;
+
+  const norm = String(scannedId).trim().toLowerCase();
+  if (norm === '1' || norm === 'checkin' || norm === 'legacy') return expectedId;
+
+  if (treasures.some(x => x.id === scannedId)) return scannedId;
+
+  const scannedNum = _extractLastNumber(norm);
+  const expectedNum = _extractLastNumber(expected.id) ?? _extractLastNumber(expected.label);
+  if (scannedNum !== null && expectedNum !== null && scannedNum === expectedNum) return expectedId;
+
+  return scannedId;
+}
+
 function _setRetryPhotoVisible(show) {
   const btn = document.getElementById('qrRetryPhotoBtn');
   if (!btn) return;
@@ -216,6 +234,10 @@ function openQRScanner(beaconId) {
     }
   }
   document.getElementById('qrOverlay').classList.add('open');
+  if (!_qrHistoryPushed) {
+    history.pushState({ ...(history.state || {}), _u3dqQrOverlay: true }, '', location.href);
+    _qrHistoryPushed = true;
+  }
 }
 
 async function startLiveQRScan() {
@@ -392,7 +414,8 @@ async function _qrHandleResult(raw) {
     _setRetryPhotoVisible(true);
     return;
   }
-  const scannedId = _resolveExpectedUniqueAlias(parsedId, qrExpectedId);
+  let scannedId = _resolveExpectedUniqueAlias(parsedId, qrExpectedId);
+  scannedId = _resolveExpectedFixedAlias(scannedId, qrExpectedId);
 
   if (qrExpectedId && scannedId !== qrExpectedId) {
     const expectedLabel = _formatTreasureForScanFeedback(qrExpectedId);
@@ -422,7 +445,23 @@ function closeQRScanner() {
   _setRetryPhotoVisible(false);
   qrExpectedId = null;
   qrDecodeLocked = false;
+  if (_qrHistoryPushed) {
+    _qrHistoryPushed = false;
+    history.back();
+  }
 }
+
+window.addEventListener('popstate', () => {
+  const overlay = document.getElementById('qrOverlay');
+  if (overlay && overlay.classList.contains('open')) {
+    stopLiveQRScan();
+    overlay.classList.remove('open');
+    _setRetryPhotoVisible(false);
+    qrExpectedId = null;
+    qrDecodeLocked = false;
+    _qrHistoryPushed = false;
+  }
+});
 
 async function captureFixedById(id) {
   openQRScanner(id);
