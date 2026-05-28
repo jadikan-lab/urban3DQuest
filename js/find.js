@@ -29,6 +29,14 @@ function _isMissingSecureFindRpcError(error) {
   return code === '42883' || /process_find_secure/i.test(msg);
 }
 
+function _isTreasureAllowedInActiveScope(treasure) {
+  if (!treasure) return false;
+  if (!Array.isArray(activeQuests) || activeQuests.length === 0) return true;
+  const quest = String(treasure.quest || '').trim();
+  // Keep unassigned treasures available across instances, same rule as loadTreasures().
+  return !quest || activeQuests.includes(quest);
+}
+
 async function _tryProcessFindSecure(t, foundCountBefore) {
   const hasGps = Number.isFinite(playerLat) && Number.isFinite(playerLng);
   const payload = {
@@ -167,6 +175,10 @@ async function _doProcessFind(treasureId) {
   const { data: t, error } = await db.from('treasures').select('*').eq('id', treasureId).single();
   if (error || !t) { _checkinError('Polaroid introuvable — il a peut-être été retiré.'); return; }
   if (!t.visible)  { _checkinError('Ce polaroid n\'est pas encore actif.'); return; }
+  if (!_isTreasureAllowedInActiveScope(t)) {
+    _checkinError('Cette balise n\'est pas active dans cette partie. Scanne une balise de la quête en cours.');
+    return;
+  }
 
   if (!myPseudo) {
     if (await _tryGuestUniqueCapture(t)) return;

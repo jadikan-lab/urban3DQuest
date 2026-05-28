@@ -511,7 +511,14 @@ async function _qrHandleResult(raw) {
     haptic([80, 40, 160]);
     await new Promise(r => setTimeout(r, 400));
     closeQRScanner();
-    await processFindById(scannedId);
+    try {
+      await processFindById(scannedId);
+    } catch (err) {
+      console.error('QR capture processing failed:', err);
+      if (typeof _checkinError === 'function') {
+        _checkinError('Révélation impossible pour le moment. Réessaie dans quelques secondes.');
+      }
+    }
   }
 }
 
