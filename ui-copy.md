@@ -84,6 +84,11 @@ TUTO_ASTUCE:        Active GPS + compas avant de démarrer pour une meilleure fl
 QUETE_RADAR_TRES_LOIN:    Un polaroid se cache dans ce quartier…
 QUETE_RADAR_LOIN:         Tu chauffes — il est tout près.
 QUETE_RADAR_PROCHE:       Cherche bien, il est là.
+QUETE_RADAR_ZONE_RECHERCHE: Zone de recherche: ouvre l'œil autour de toi.
+QUETE_RADAR_FINALE:       Tu es tout près. Repère l'objet réel et son QR.
+QUETE_RADAR_SCAN:         Tu es dans la bonne zone: prends le QR en photo.
+QUETE_RADAR_GPS_INSTABLE: ⚠️ GPS instable (±{A}m), avance en zone dégagée.
+QUETE_RADAR_INDICE:       Voilà ce que tu cherches — tu es dans la zone !
 QUETE_RADAR_COMPLETE:     ✅ Ta quête est complète !
 ```
 

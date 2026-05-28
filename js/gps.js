@@ -233,6 +233,33 @@ function haptic(pattern) {
   if (navigator.vibrate) navigator.vibrate(pattern);
 }
 
+let fixedQuestZoneState = null;
+
+function _computeFixedQuestZone(dist, radius, previousZone) {
+  const r = Math.max(1, Number(radius) || 100);
+  const scanIn = 0.15 * r;
+  const finalIn = 0.45 * r;
+  const searchIn = 1.2 * r;
+  const approachIn = 2.5 * r;
+
+  const outMul = 1.10;
+  const scanOut = scanIn * outMul;
+  const finalOut = finalIn * outMul;
+  const searchOut = searchIn * outMul;
+  const approachOut = approachIn * outMul;
+
+  if (previousZone === 'scan' && dist <= scanOut) return 'scan';
+  if ((previousZone === 'scan' || previousZone === 'final') && dist <= finalOut) return 'final';
+  if ((previousZone === 'scan' || previousZone === 'final' || previousZone === 'search') && dist <= searchOut) return 'search';
+  if ((previousZone === 'scan' || previousZone === 'final' || previousZone === 'search' || previousZone === 'approach') && dist <= approachOut) return 'approach';
+
+  if (dist <= scanIn) return 'scan';
+  if (dist <= finalIn) return 'final';
+  if (dist <= searchIn) return 'search';
+  if (dist <= approachIn) return 'approach';
+  return 'far';
+}
+
 function updateRadar() {
   if (playerLat === null) return;
   const bar = document.getElementById('radarBar');
@@ -358,33 +385,60 @@ function updateRadar() {
     .sort((a, b) => a.d - b.d)[0];
 
   const dist = Math.round(nearestF.d);
+  const gpsAcc = Math.round(playerAccuracy || 999);
+  const gpsWeakForFixed = gpsAcc > 35;
+  const gpsVeryWeakForFixed = gpsAcc > 50;
 
-  if (dist > proximityR * 5) {
-    bar.textContent = `Un polaroid se cache dans ce quartier…${accStr}`;
-    bar.className = gpsWeak ? 'near' : '';
+  let zone = _computeFixedQuestZone(dist, proximityR, fixedQuestZoneState);
+  if (gpsVeryWeakForFixed && (zone === 'scan' || zone === 'final')) zone = 'search';
+
+  const zoneChanged = zone !== fixedQuestZoneState;
+  fixedQuestZoneState = zone;
+
+  const t = nearestF.t;
+  const canScanNow = zone === 'scan' && !gpsVeryWeakForFixed;
+  const unstableMsg = gpsWeakForFixed ? ` ${copy('QUETE_RADAR_GPS_INSTABLE', '⚠️ GPS instable (±{A}m), avance en zone dégagée.').replace('{A}', String(gpsAcc))}` : '';
+
+  if ((zone === 'search' || zone === 'final' || zone === 'scan') && t.photo_url && !revealedFixedClues.has(t.id)) {
+    revealedFixedClues.add(t.id);
+    if (myPseudo) localStorage.setItem(`u3dq_clues_${myPseudo}`, JSON.stringify([...revealedFixedClues]));
+    showFlashHint(t, copy('QUETE_RADAR_INDICE', 'Voilà ce que tu cherches — tu es dans la zone !'), 'quest');
+  }
+
+  if (zone === 'far') {
+    bar.textContent = `${copy('QUETE_RADAR_TRES_LOIN', 'Un polaroid se cache dans ce quartier…')}${accStr}`;
+    bar.className = '';
     fab.style.display = 'none';
     nearestFixed = null;
     if (lastHapticZone !== 'far') { lastHapticZone = 'far'; }
-  } else if (dist > proximityR) {
-    bar.textContent = `Tu chauffes — il est tout près.${accStr}`;
+  } else if (zone === 'approach') {
+    bar.textContent = `${copy('QUETE_RADAR_LOIN', 'Tu chauffes — il est tout près.')}${accStr}`;
     bar.className = 'near';
     fab.style.display = 'none';
     nearestFixed = null;
-    if (lastHapticZone !== 'near') { lastHapticZone = 'near'; haptic([80, 60, 80]); }
-  } else {
-    const canCapture = !gpsWeak || playerAccuracy < proximityR * 1.5;
-    bar.textContent = `Cherche bien, il est là.${gpsWeak ? ' ⚠️ GPS faible' : ''}${accStr}`;
+    if (zoneChanged) haptic([80, 60, 80]);
+    if (lastHapticZone !== 'approach') lastHapticZone = 'approach';
+  } else if (zone === 'search') {
+    bar.textContent = `${copy('QUETE_RADAR_ZONE_RECHERCHE', 'Zone de recherche: ouvre l\'œil autour de toi.')}${accStr}${unstableMsg}`;
+    bar.className = 'near';
+    fab.style.display = 'none';
+    nearestFixed = null;
+    if (zoneChanged) haptic([80, 60, 80]);
+    if (lastHapticZone !== 'search') lastHapticZone = 'search';
+  } else if (zone === 'final') {
+    bar.textContent = `${copy('QUETE_RADAR_FINALE', 'Tu es tout près. Repère l\'objet réel et son QR.')}${accStr}${unstableMsg}`;
     bar.className = 'very-near';
-    nearestFixed = canCapture ? nearestF.t : null;
-    // Révélation photo unique à la première entrée dans la zone
-    const t = nearestF.t;
-    if (t.photo_url && !revealedFixedClues.has(t.id)) {
-      revealedFixedClues.add(t.id);
-      if (myPseudo) localStorage.setItem(`u3dq_clues_${myPseudo}`, JSON.stringify([...revealedFixedClues]));
-      showFlashHint(t, 'Voilà ce que tu cherches — tu es dans la zone !', 'quest');
-    }
-    fab.style.display = (activeTab === 'explore' && canCapture) ? 'flex' : 'none';
-    if (lastHapticZone !== 'capture') { lastHapticZone = 'capture'; haptic([100, 50, 100, 50, 200]); }
+    fab.style.display = 'none';
+    nearestFixed = null;
+    if (zoneChanged) haptic([100, 50, 100]);
+    if (lastHapticZone !== 'final') lastHapticZone = 'final';
+  } else {
+    bar.textContent = `${copy('QUETE_RADAR_SCAN', 'Tu es dans la bonne zone: prends le QR en photo.')}${accStr}`;
+    bar.className = 'very-near';
+    nearestFixed = canScanNow ? t : null;
+    fab.style.display = (activeTab === 'explore' && canScanNow) ? 'flex' : 'none';
+    if (zoneChanged) haptic([100, 50, 100, 50, 200]);
+    if (lastHapticZone !== 'scan') lastHapticZone = 'scan';
   }
 }
 
@@ -425,7 +479,8 @@ async function captureFixed() {
     const nearest = fixedLeft
       .map(t => ({ t, d: haversine(playerLat, playerLng, t.lat, t.lng) }))
       .sort((a, b) => a.d - b.d)[0];
-    if (nearest && nearest.d <= proximityR) target = nearest.t;
+    const scanRadius = Math.max(8, (Number(proximityR) || 100) * 0.15);
+    if (nearest && nearest.d <= scanRadius) target = nearest.t;
   }
   if (!target) {
     _checkinError('Approche-toi du polaroid pour capturer (zone GPS requise).');
