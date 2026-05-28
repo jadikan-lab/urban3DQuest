@@ -298,8 +298,15 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
 
   window._uniqueCaptureShareData = null;
   if (sharePanel) sharePanel.classList.add('field-hidden');
-  if (shareKicker) shareKicker.textContent = _findCopy('FLASH_SHARE_KICKER', 'FLASH CAPTURÉ');
-  if (shareTitle) shareTitle.textContent = _findCopy('FLASH_SHARE_TITLE', 'Partage ou invite.');
+  if (shareKicker) {
+    const kickerTpl = _findCopy('FLASH_SHARE_KICKER', 'FLASH CAPTURÉ · {PSEUDO}');
+    shareKicker.textContent = kickerTpl.replace('{PSEUDO}', myPseudo || 'JOUEUR');
+  }
+  if (shareTitle) {
+    const shareHeadline = _findCopy('FLASH_SHARE_TITLE', '').trim();
+    shareTitle.textContent = shareHeadline;
+    shareTitle.classList.toggle('field-hidden', !shareHeadline);
+  }
   if (shareText) {
     const helper = _findCopy('FLASH_SHARE_TEXT', '').trim();
     shareText.textContent = helper;

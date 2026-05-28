@@ -254,8 +254,8 @@
     <p id="foundDesc"></p>
     <div id="foundSharePanel" class="found-share field-hidden">
       <div class="found-share-kicker">FLASH CAPTURÉ</div>
-      <div class="found-share-title">Fais-le voir ou invite du renfort.</div>
-      <div class="found-share-text">Choisis entre une image prête à partager et un lien d'invitation pour faire venir d'autres joueurs.</div>
+      <div class="found-share-title field-hidden"></div>
+      <div class="found-share-text field-hidden"></div>
       <div class="found-share-actions">
         <button class="btn-primary" id="foundShareCaptureBtn" onclick="shareUniqueCapture()">Partager ma capture</button>
         <button class="btn-ghost found-share-link" id="foundInviteBtn" onclick="inviteFriendsFromCapture()">Inviter mes amis</button>
@@ -263,7 +263,7 @@
     </div>
     <hr class="lp-line">
     <button class="btn-main btn-ghost-success field-hidden" id="foundRetryBtn" onclick="_retryCheckin()">Réessayer</button>
-    <button class="btn-primary" aria-label="Continuer le jeu" onclick="closeFound()">Continuer</button>
+    <button class="btn-primary" aria-label="Retour au jeu" onclick="closeFound()">Retour au jeu</button>
   </div>
 </div>
 

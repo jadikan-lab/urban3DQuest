@@ -373,19 +373,19 @@ async function shareUniqueCapture() {
     }
   }
 
-  if (blob) {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `urban3dquest-${data.id}.png`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 3000);
-    _setShareButtonState('foundShareCaptureBtn', '✓ Image téléchargée');
-  } else if (navigator.clipboard && navigator.clipboard.writeText) {
+  if (blob && navigator.clipboard && window.ClipboardItem) {
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      _setShareButtonState('foundShareCaptureBtn', '✓ Image copiée');
+      return;
+    } catch {
+      // fall through
+    }
+  }
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
     await navigator.clipboard.writeText(shareText);
-    _setShareButtonState('foundShareCaptureBtn', '✓ Texte copié');
+    _setShareButtonState('foundShareCaptureBtn', '✓ Lien copié');
   }
 }
 
