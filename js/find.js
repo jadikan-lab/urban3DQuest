@@ -5,6 +5,15 @@ window._uniqueCaptureShareData = window._uniqueCaptureShareData || null;
 let _lastUniqueSuccessModal = { id: null, at: 0 };
 const _findCopy = (key, fallback = '') => (window.u3dqCopyText ? window.u3dqCopyText(key, fallback) : fallback);
 
+function _getUniqueDurationFromLastActivationSec(treasure) {
+  if (!treasure) return 0;
+  const anchorIso = treasure.activated_at || treasure.placed_at;
+  if (!anchorIso) return 0;
+  const anchor = new Date(anchorIso).getTime();
+  if (!Number.isFinite(anchor)) return 0;
+  return Math.max(0, Math.round((Date.now() - anchor) / 1000));
+}
+
 async function _getFixedHuntDurationSec(pseudo) {
   if (!pseudo) return 0;
   try {
@@ -72,7 +81,11 @@ async function _tryProcessFindSecure(t, foundCountBefore) {
   if (data.status === 'taken')   { showFoundResult('taken', t); return true; }
   if (data.status !== 'success') return false;
 
-  const durationSec = Math.max(0, Number(data.duration_sec || 0));
+  let durationSec = Math.max(0, Number(data.duration_sec || 0));
+  if (t.type === 'unique') {
+    // Product rule: Flash timer starts from the latest activation of that Flash.
+    durationSec = _getUniqueDurationFromLastActivationSec(t);
+  }
   let durationSecHunt = null;
   if (t.type === 'fixed') {
     durationSecHunt = await _getFixedHuntDurationSec(myPseudo);
@@ -151,7 +164,7 @@ async function _tryGuestUniqueCapture(treasure) {
   updateProgressBar();
 
   haptic([80, 40, 160]);
-  const durationSec = Math.max(0, Math.round((Date.now() - new Date(treasure.placed_at).getTime()) / 1000));
+  const durationSec = _getUniqueDurationFromLastActivationSec(treasure);
   showFoundResult('success', treasure, durationSec, null);
   return true;
 }
@@ -200,10 +213,13 @@ async function _doProcessFind(treasureId) {
   const { data: dupEvent } = await db.from('events').select('id').eq('pseudo', myPseudo).eq('treasure_id', t.id).maybeSingle();
   if (dupEvent) { showFoundResult('already', t); return; }
 
-  // Calculate duration from max(gameStart, activation time) to now
+  // Duration rule:
+  // - Flash (unique): from latest activation timestamp.
+  // - Quete (fixed): from max(gameStart, activation/placement timestamp).
   const activationTime = t.activated_at ? new Date(t.activated_at) : new Date(t.placed_at);
-  const refTime = gameStart && gameStart > activationTime ? gameStart : activationTime;
-  const durationSec = Math.max(0, Math.round((Date.now() - refTime.getTime()) / 1000));
+  const durationSec = t.type === 'unique'
+    ? _getUniqueDurationFromLastActivationSec(t)
+    : Math.max(0, Math.round((Date.now() - (gameStart && gameStart > activationTime ? gameStart : activationTime).getTime()) / 1000));
 
   // Update treasure found_by
   const newFoundBy = t.type === 'unique' ? myPseudo : [...foundList, myPseudo].join(',');
