@@ -259,7 +259,7 @@ COMPTE_VIDE:              Aucun polaroid trouvé pour l'instant
 ## MESSAGES DE RETOUR (toast bienvenue)
 
 ```
-RETOUR_MESSAGE:   Bon retour {PSEUDO} ! Il te reste {N} balises(s) à trouver.
+RETOUR_MESSAGE:   Bon retour {PSEUDO} ! Il te reste {N} balise{S} à trouver.
 ```
 
 ---

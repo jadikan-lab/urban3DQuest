@@ -106,7 +106,11 @@ async function initGame(pendingFoundId) {
     if (remaining > 0) {
       const wt = document.getElementById('welcomeToast');
       if (wt) {
-        wt.textContent = `Bon retour ${myPseudo} ! Il te reste ${remaining} polaroid${remaining > 1 ? 's' : ''} à trouver.`;
+        const copy = (key, fallback = '') => (window.u3dqCopyText ? window.u3dqCopyText(key, fallback) : fallback);
+        wt.textContent = copy('RETOUR_MESSAGE', 'Bon retour {PSEUDO} ! Il te reste {N} balise{S} à trouver.')
+          .replace('{PSEUDO}', myPseudo)
+          .replace('{N}', String(remaining))
+          .replace('{S}', remaining > 1 ? 's' : '');
         wt.classList.add('show');
         setTimeout(() => wt.classList.remove('show'), 4000);
       }
