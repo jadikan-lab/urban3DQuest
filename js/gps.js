@@ -343,7 +343,7 @@ function updateRadar() {
       flashCaptureStickyId = nearestU.t.id;
       nearestUnique = nearestU.t;
       flashFab.style.display = 'flex';
-      if (nearestU.t.photo_url) showFlashHint(nearestU.t, 'Tu es dans la zone — scanne !');
+      if (nearestU.t.photo_url) showFlashHint(nearestU.t, 'Scanne le QR pour valider.');
       if (lastHapticZone !== 'unique-capture') { lastHapticZone = 'unique-capture'; haptic([100, 50, 100, 50, 200]); }
     } else if (uniqueEdgeDist <= FLASH_HINT_M) {
       // Palier 2 — close to the displayed search circle, no FAB yet
@@ -473,8 +473,19 @@ function showFlashHint(t, sub, mode) {
   if (url) {
     photoEl.src = url;
     photoEl.style.display = 'block';
+    photoEl.style.pointerEvents = 'auto';
+    photoEl.style.cursor = 'zoom-in';
+    photoEl.onclick = (ev) => {
+      ev.stopPropagation();
+      openPhotoViewer(url);
+    };
+    photoEl.alt = `Aperçu de ${tLabel(t)} (toucher pour agrandir)`;
   } else {
     photoEl.style.display = 'none';
+    photoEl.style.pointerEvents = 'none';
+    photoEl.style.cursor = 'default';
+    photoEl.onclick = null;
+    photoEl.alt = '';
   }
   subEl.textContent = sub;
   hint.classList.toggle('quest-mode', mode === 'quest');
