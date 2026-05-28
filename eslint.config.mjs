@@ -101,7 +101,6 @@ const projectGlobals = {
   formatDuration: 'readonly', pseudoGradient: 'readonly',
   // leaderboard.js
   loadLeaderboard: 'readonly', startLbPolling: 'readonly',
-  _lbActiveTab: 'writable', switchLbTab: 'readonly',
   // ui.js
   showTab: 'readonly', toggleMoreMenu: 'readonly', _fmtDuration: 'readonly',
   _qcData: 'writable', showQuestComplete: 'readonly', closeQuestComplete: 'readonly',

@@ -147,55 +147,159 @@ function shareScoreResult() {
   const d = _lbShareData;
   if (!d || !myPseudo) return;
   const playUrl = location.origin + location.pathname;
-  let text = '';
-  if (d.hasData) {
-    const rankTxt = d.rank && d.totalPlayers ? `#${d.rank}/${d.totalPlayers}` : '—';
-    const fixedTxt = d.totalFixed > 0 ? `${d.fixedCount}/${d.totalFixed}` : `${d.fixedCount}`;
-    const flashTxt = d.flashCount;
-    const timeTxt = d.allFixed && d.fixedDuration !== null ? ` · ⏱ ${formatDuration(d.fixedDuration)}` : '';
-    text = `🏙 Urban 3D Quest\n👤 ${d.pseudo}\n🏅 Rang Quête: ${rankTxt}\n📷 Balises fixes: ${fixedTxt}${timeTxt}\n⚡ Flash: ${flashTxt}\n\nViens jouer : ${playUrl}`;
-  } else {
-    text = `🏙 Je joue à Urban 3D Quest !\nRejoins-moi pour trouver les polaroids dans la ville.\n\n${playUrl}`;
-  }
-
-  if (navigator.share) {
-    navigator.share({ title: 'Urban 3D Quest — Mon score', text }).catch(() => {});
+  if (!d.hasData) {
+    const text = `🏙 Je joue à Urban3DQuest !\nRejoins-moi pour trouver les polaroids dans la ville.\n\n${playUrl}`;
+    if (navigator.share) {
+      navigator.share({ title: 'Urban3DQuest — Rejoins la chasse', text, url: playUrl }).catch(() => {});
+      return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        _setShareButtonState('scoreShareBtn', '✓ Lien copié');
+      }).catch(() => {});
+    }
     return;
   }
 
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(() => {
-      const btn = document.getElementById('scoreShareBtn');
-      if (btn) {
-        const original = btn.textContent;
-        btn.textContent = '✓ Copié !';
-        setTimeout(() => {
-          btn.textContent = original && original.indexOf('Inviter') >= 0 ? '📤 Inviter mes amis' : '📤 Partager mon score';
-        }, 2000);
-      }
-    }).catch(() => {});
-  }
+  const rankTxt = d.rank && d.totalPlayers ? `#${d.rank}/${d.totalPlayers}` : '—';
+  const fixedTxt = d.totalFixed > 0 ? `${d.fixedCount}/${d.totalFixed}` : `${d.fixedCount}`;
+  const timeTxt = d.allFixed && d.fixedDuration !== null ? formatDuration(d.fixedDuration) : '—';
+  const text = `🏙 Urban3DQuest\n👤 ${d.pseudo}\n🏅 Rang global ${rankTxt}\n⭐ Score ${d.globalScore || 0}\n📷 Quête ${fixedTxt}\n⚡ Flash ${d.flashCount}\n⏱ Temps quête ${timeTxt}\n\nViens jouer : ${playUrl}`;
+
+  const cardModel = {
+    kicker: 'SCORE JOUEUR',
+    title: d.pseudo,
+    subtitle: `Rang global ${rankTxt}`,
+    accent: 'score',
+    metrics: [
+      { label: 'Score', value: String(d.globalScore || 0) },
+      { label: 'Quête', value: fixedTxt },
+      { label: 'Flash', value: String(d.flashCount || 0) }
+    ],
+    footer: `Temps quête: ${timeTxt}`,
+    shareUrl: playUrl
+  };
+
+  _shareCaptureCard({
+    model: cardModel,
+    buttonId: 'scoreShareBtn',
+    shareTitle: 'Urban3DQuest — Mon score',
+    shareText: text,
+    shareUrl: playUrl
+  }).catch(() => {});
 }
 
-function _escapeCanvasText(value) {
-  return String(value || '').replace(/\s+/g, ' ').trim();
-}
-
-function _wrapCanvasText(ctx, text, maxWidth) {
-  const words = _escapeCanvasText(text).split(' ');
-  const lines = [];
-  let line = '';
-  words.forEach(word => {
-    const testLine = line ? `${line} ${word}` : word;
-    if (ctx.measureText(testLine).width > maxWidth && line) {
-      lines.push(line);
-      line = word;
-    } else {
-      line = testLine;
-    }
+let _html2CanvasLoader = null;
+function _ensureHtml2Canvas() {
+  if (window.html2canvas) return Promise.resolve(window.html2canvas);
+  if (_html2CanvasLoader) return _html2CanvasLoader;
+  _html2CanvasLoader = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+    script.async = true;
+    script.onload = () => resolve(window.html2canvas);
+    script.onerror = () => reject(new Error('html2canvas load failed'));
+    document.head.appendChild(script);
   });
-  if (line) lines.push(line);
-  return lines;
+  return _html2CanvasLoader;
+}
+
+function _getShareCaptureStage() {
+  let stage = document.getElementById('shareCaptureStage');
+  if (stage) return stage;
+  stage = document.createElement('div');
+  stage.id = 'shareCaptureStage';
+  stage.innerHTML = `
+    <div class="share-capture-card share-capture-flash">
+      <div class="share-capture-kicker"></div>
+      <div class="share-capture-title"></div>
+      <div class="share-capture-subtitle"></div>
+      <div class="share-capture-metrics"></div>
+      <div class="share-capture-footer"></div>
+      <div class="share-capture-url"></div>
+    </div>
+  `;
+  document.body.appendChild(stage);
+  return stage;
+}
+
+function _renderShareCaptureCard(model) {
+  const stage = _getShareCaptureStage();
+  const card = stage.querySelector('.share-capture-card');
+  const kicker = stage.querySelector('.share-capture-kicker');
+  const title = stage.querySelector('.share-capture-title');
+  const subtitle = stage.querySelector('.share-capture-subtitle');
+  const metrics = stage.querySelector('.share-capture-metrics');
+  const footer = stage.querySelector('.share-capture-footer');
+  const shareUrl = stage.querySelector('.share-capture-url');
+
+  card.classList.toggle('share-capture-flash', model.accent !== 'score');
+  card.classList.toggle('share-capture-score', model.accent === 'score');
+  kicker.textContent = model.kicker || 'URBAN3DQUEST';
+  title.textContent = model.title || 'Urban3DQuest';
+  subtitle.textContent = model.subtitle || '';
+  footer.textContent = model.footer || '';
+  shareUrl.textContent = model.shareUrl || (location.origin + location.pathname);
+
+  metrics.innerHTML = (model.metrics || []).map(m => `
+    <div class="share-metric">
+      <div class="share-metric-value">${escHtml(String(m.value || '—'))}</div>
+      <div class="share-metric-label">${escHtml(String(m.label || ''))}</div>
+    </div>
+  `).join('');
+
+  return card;
+}
+
+async function _captureShareCardBlob(model) {
+  const html2canvas = await _ensureHtml2Canvas();
+  const card = _renderShareCaptureCard(model);
+  const canvas = await html2canvas(card, {
+    backgroundColor: null,
+    scale: Math.min(3, window.devicePixelRatio ? window.devicePixelRatio * 1.5 : 2),
+    useCORS: true
+  });
+  return new Promise(resolve => canvas.toBlob(resolve, 'image/png', 0.95));
+}
+
+async function _shareCaptureCard({ model, buttonId, shareTitle, shareText, shareUrl }) {
+  const blob = await _captureShareCardBlob(model).catch(() => null);
+  const file = blob ? new File([blob], `urban3dquest-${Date.now()}.png`, { type: 'image/png' }) : null;
+
+  if (file && navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+    try {
+      await navigator.share({ title: shareTitle, text: shareText, files: [file] });
+      _setShareButtonState(buttonId, '✓ Partage ouvert');
+      return;
+    } catch {
+      // fall through
+    }
+  }
+
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: shareTitle, text: shareText, url: shareUrl });
+      _setShareButtonState(buttonId, '✓ Partage ouvert');
+      return;
+    } catch {
+      // fall through
+    }
+  }
+
+  if (blob && navigator.clipboard && window.ClipboardItem) {
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      _setShareButtonState(buttonId, '✓ Image copiée');
+      return;
+    } catch {
+      // fall through
+    }
+  }
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    await navigator.clipboard.writeText(shareText);
+    _setShareButtonState(buttonId, '✓ Lien copié');
+  }
 }
 
 function _setShareButtonState(buttonId, label) {
@@ -207,186 +311,32 @@ function _setShareButtonState(buttonId, label) {
   setTimeout(() => { btn.textContent = btn.dataset.originalLabel || original; }, 2200);
 }
 
-function roundRect(ctx, x, y, width, height, radius) {
-  const r = Math.min(radius, width / 2, height / 2);
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + width, y, x + width, y + height, r);
-  ctx.arcTo(x + width, y + height, x, y + height, r);
-  ctx.arcTo(x, y + height, x, y, r);
-  ctx.arcTo(x, y, x + width, y, r);
-  ctx.closePath();
-}
-
-function _buildUniqueCaptureCanvas(data) {
-  const canvas = document.createElement('canvas');
-  canvas.width = 1080;
-  canvas.height = 1350;
-  const ctx = canvas.getContext('2d');
-  const bg = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-  bg.addColorStop(0, '#150818');
-  bg.addColorStop(0.5, '#251033');
-  bg.addColorStop(1, '#09131f');
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  const glow = ctx.createRadialGradient(290, 270, 40, 290, 270, 460);
-  glow.addColorStop(0, 'rgba(255,61,138,0.42)');
-  glow.addColorStop(1, 'rgba(255,61,138,0)');
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  const glow2 = ctx.createRadialGradient(820, 190, 30, 820, 190, 360);
-  glow2.addColorStop(0, 'rgba(0,229,255,0.24)');
-  glow2.addColorStop(1, 'rgba(0,229,255,0)');
-  ctx.fillStyle = glow2;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-  ctx.lineWidth = 2;
-  for (let y = 160; y < canvas.height; y += 120) {
-    ctx.beginPath();
-    ctx.moveTo(84, y);
-    ctx.lineTo(canvas.width - 84, y);
-    ctx.stroke();
-  }
-
-  ctx.fillStyle = 'rgba(255,255,255,0.08)';
-  for (let i = 0; i < 18; i++) {
-    const x = 120 + (i * 53) % 860;
-    const y = 100 + (i * 97) % 1120;
-    ctx.beginPath();
-    ctx.arc(x, y, i % 3 === 0 ? 4 : 2.4, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  ctx.fillStyle = 'rgba(255,255,255,0.95)';
-  ctx.font = '700 34px JetBrains Mono, monospace';
-  ctx.fillText('URBAN 3D QUEST', 84, 92);
-
-  ctx.fillStyle = '#ff3d8a';
-  ctx.font = '800 22px JetBrains Mono, monospace';
-  ctx.fillText('FLASH CAPTURÉ', 84, 142);
-
-  ctx.fillStyle = '#ffffff';
-  ctx.font = '800 74px Space Grotesk, sans-serif';
-  _wrapCanvasText(ctx, _escapeCanvasText(data.label || 'Trésor unique'), 912).forEach((line, index) => {
-    ctx.fillText(line, 84, 260 + (index * 82));
-  });
-
-  const sharePseudo = _escapeCanvasText(data.pseudo || myPseudo || 'Joueur');
-  ctx.fillStyle = 'rgba(255,255,255,0.9)';
-  ctx.font = '500 28px Space Grotesk, sans-serif';
-  const subLines = _wrapCanvasText(ctx, `Par ${sharePseudo} · ${_escapeCanvasText(data.durationText || '')}`, 900);
-  subLines.forEach((line, index) => ctx.fillText(line, 84, 440 + (index * 38)));
-
-  ctx.fillStyle = 'rgba(255,255,255,0.8)';
-  ctx.font = '700 24px JetBrains Mono, monospace';
-  ctx.fillText(_escapeCanvasText(data.quest ? `QUÊTE ${data.quest}` : 'CAPTURE UNIQUE'), 84, 520);
-
-  // Player badge stays highly visible in the exported image.
-  ctx.fillStyle = 'rgba(0,0,0,0.24)';
-  roundRect(ctx, 770, 80, 226, 56, 16);
-  ctx.fill();
-  ctx.fillStyle = '#ffffff';
-  ctx.font = '800 22px JetBrains Mono, monospace';
-  ctx.fillText(`JOUEUR ${sharePseudo.toUpperCase()}`, 792, 115);
-
-  const cardX = 84;
-  const cardY = 586;
-  const cardW = 912;
-  const cardH = 520;
-  const cardGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
-  cardGrad.addColorStop(0, 'rgba(255,255,255,0.14)');
-  cardGrad.addColorStop(1, 'rgba(255,255,255,0.06)');
-  ctx.fillStyle = cardGrad;
-  roundRect(ctx, cardX, cardY, cardW, cardH, 42);
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(255,255,255,0.16)';
-  ctx.lineWidth = 2;
-  roundRect(ctx, cardX, cardY, cardW, cardH, 42);
-  ctx.stroke();
-
-  ctx.fillStyle = 'rgba(255,61,138,0.14)';
-  roundRect(ctx, 124, 626, 250, 52, 18);
-  ctx.fill();
-  ctx.fillStyle = '#ff6aa8';
-  ctx.font = '800 20px JetBrains Mono, monospace';
-  ctx.fillText(`CAPTURE DE ${sharePseudo.toUpperCase()}`, 144, 659);
-
-  ctx.fillStyle = '#fff';
-  ctx.font = '800 46px Space Grotesk, sans-serif';
-  _wrapCanvasText(ctx, 'Partage ta capture et continue la chasse.', 760).forEach((line, index) => {
-    ctx.fillText(line, 124, 742 + (index * 52));
-  });
-
-  ctx.fillStyle = 'rgba(255,255,255,0.82)';
-  ctx.font = '500 28px Space Grotesk, sans-serif';
-  const inviteText = _wrapCanvasText(ctx, 'Un trésor unique a été capturé. Rejoins Urban 3D Quest pour retrouver les prochains.', 760);
-  inviteText.forEach((line, index) => ctx.fillText(line, 124, 850 + (index * 38)));
-
-  ctx.fillStyle = '#8cecff';
-  ctx.font = '700 24px JetBrains Mono, monospace';
-  ctx.fillText(_escapeCanvasText(data.shareUrl || location.origin + location.pathname), 124, 956);
-
-  ctx.fillStyle = '#fff';
-  ctx.font = '700 20px JetBrains Mono, monospace';
-  ctx.fillText('Invite d’autres joueurs à se joindre à la chasse.', 124, 1034);
-
-  return canvas;
-}
-
 async function shareUniqueCapture() {
   const data = window._uniqueCaptureShareData;
   if (!data) return;
-  const canvas = _buildUniqueCaptureCanvas(data);
-  const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', 0.95));
   const shareUrl = data.shareUrl || location.origin + location.pathname;
   const shareText = `J'ai capturé "${data.label}" sur Urban 3D Quest. Rejoins la chasse : ${shareUrl}`;
-  const file = blob ? new File([blob], `urban3dquest-${data.id}.png`, { type: 'image/png' }) : null;
+  const cardModel = {
+    kicker: 'FLASH CAPTURÉ',
+    title: data.label || 'Polaroid unique',
+    subtitle: `Par ${data.pseudo || myPseudo || 'Joueur'} · ${data.durationText || ''}`,
+    accent: 'flash',
+    metrics: [
+      { label: 'Durée', value: data.durationText || '—' },
+      { label: 'Mode', value: 'Flash' },
+      { label: 'Joueur', value: data.pseudo || myPseudo || '—' }
+    ],
+    footer: data.quest ? `Quête ${data.quest}` : 'Capture unique validée',
+    shareUrl
+  };
 
-  if (file && navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
-    try {
-      await navigator.share({
-        title: 'Urban 3D Quest — Flash capturé',
-        text: shareText,
-        files: [file]
-      });
-      _setShareButtonState('foundShareCaptureBtn', '✓ Image prête');
-      return;
-    } catch {
-      // fall through
-    }
-  }
-
-  if (navigator.share) {
-    try {
-      await navigator.share({
-        title: 'Urban 3D Quest — Flash capturé',
-        text: shareText,
-        url: shareUrl
-      });
-      _setShareButtonState('foundShareCaptureBtn', '✓ Partage ouvert');
-      return;
-    } catch {
-      // fall through
-    }
-  }
-
-  if (blob && navigator.clipboard && window.ClipboardItem) {
-    try {
-      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-      _setShareButtonState('foundShareCaptureBtn', '✓ Image copiée');
-      return;
-    } catch {
-      // fall through
-    }
-  }
-
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    await navigator.clipboard.writeText(shareText);
-    _setShareButtonState('foundShareCaptureBtn', '✓ Lien copié');
-  }
+  await _shareCaptureCard({
+    model: cardModel,
+    buttonId: 'foundShareCaptureBtn',
+    shareTitle: 'Urban3DQuest — Flash capturé',
+    shareText,
+    shareUrl
+  });
 }
 
 async function inviteFriendsFromCapture() {
