@@ -3,7 +3,7 @@ let _processingFind = false;
 const _inFlightCaptures = new Set(); // protection double-scan par balise
 window._uniqueCaptureShareData = window._uniqueCaptureShareData || null;
 let _lastUniqueSuccessModal = { id: null, at: 0 };
-const _copy = (key, fallback = '') => (window.u3dqCopyText ? window.u3dqCopyText(key, fallback) : fallback);
+const _findCopy = (key, fallback = '') => (window.u3dqCopyText ? window.u3dqCopyText(key, fallback) : fallback);
 
 async function _getFixedHuntDurationSec(pseudo) {
   if (!pseudo) return 0;
@@ -298,11 +298,11 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
 
   window._uniqueCaptureShareData = null;
   if (sharePanel) sharePanel.classList.add('field-hidden');
-  if (shareKicker) shareKicker.textContent = _copy('FLASH_SHARE_KICKER', 'FLASH CAPTURÉ');
-  if (shareTitle) shareTitle.textContent = _copy('FLASH_SHARE_TITLE', 'Fais-le voir ou invite du renfort.');
-  if (shareText) shareText.textContent = _copy('FLASH_SHARE_TEXT', 'Choisis entre une image prête à partager et un lien d\'invitation pour faire venir d\'autres joueurs.');
-  if (shareBtn) shareBtn.textContent = _copy('FLASH_SHARE_CAPTURE_CTA', 'Partager ma capture');
-  if (inviteBtn) inviteBtn.textContent = _copy('FLASH_SHARE_INVITE_CTA', 'Inviter mes amis');
+  if (shareKicker) shareKicker.textContent = _findCopy('FLASH_SHARE_KICKER', 'FLASH CAPTURÉ');
+  if (shareTitle) shareTitle.textContent = _findCopy('FLASH_SHARE_TITLE', 'Fais-le voir ou invite du renfort.');
+  if (shareText) shareText.textContent = _findCopy('FLASH_SHARE_TEXT', 'Choisis entre une image prête à partager et un lien d\'invitation pour faire venir d\'autres joueurs.');
+  if (shareBtn) shareBtn.textContent = _findCopy('FLASH_SHARE_CAPTURE_CTA', 'Partager ma capture');
+  if (inviteBtn) inviteBtn.textContent = _findCopy('FLASH_SHARE_INVITE_CTA', 'Inviter mes amis');
 
   // Show photos if available and found
   const photoStrip = document.getElementById('foundPhotoStrip');
@@ -378,10 +378,10 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
       }
     } else {
       setFoundIcon('flash', 'flash');
-      label.textContent = _copy('FLASH_WIN_LABEL', 'CAPTURÉ');
-      title.textContent = _copy('FLASH_WIN_TITRE', 'Trésor unique capturé');
+      label.textContent = _findCopy('FLASH_WIN_LABEL', 'CAPTURÉ');
+      title.textContent = _findCopy('FLASH_WIN_TITRE', 'Trésor unique capturé');
       dur.textContent   = formatDuration(durationSec);
-      desc.textContent  = _copy('FLASH_WIN_DESC', 'Trésor unique validé. Tu peux partager ta trouvaille ou poursuivre la chasse.');
+      desc.textContent  = _findCopy('FLASH_WIN_DESC', 'Trésor unique validé. Tu peux partager ta trouvaille ou poursuivre la chasse.');
       _lastUniqueSuccessModal = { id: t.id, at: Date.now() };
       window._uniqueCaptureShareData = {
         id: t.id,
@@ -397,16 +397,16 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
     }
   } else if (status === 'already') {
     setFoundIcon('refresh', 'warn');
-    label.textContent = _copy('FLASH_ALREADY_LABEL', 'DÉJÀ FLASHÉ');
-    title.textContent = _copy('FLASH_ALREADY_TITRE', 'Tu as déjà flashé ce polaroid.');
+    label.textContent = _findCopy('FLASH_ALREADY_LABEL', 'DÉJÀ FLASHÉ');
+    title.textContent = _findCopy('FLASH_ALREADY_TITRE', 'Tu as déjà flashé ce polaroid.');
     dur.textContent   = '';
     desc.textContent  = '';
   } else {
     setFoundIcon('lock', 'danger');
-    label.textContent = _copy('FLASH_PRIS_LABEL', 'TROP TARD');
-    title.textContent = _copy('FLASH_PRIS_TITRE', 'Trop tard !');
+    label.textContent = _findCopy('FLASH_PRIS_LABEL', 'TROP TARD');
+    title.textContent = _findCopy('FLASH_PRIS_TITRE', 'Trop tard !');
     dur.textContent   = '';
-    desc.textContent  = _copy('FLASH_PRIS_DESC', 'Trop tard. Ce trésor Flash a déjà été pris.');
+    desc.textContent  = _findCopy('FLASH_PRIS_DESC', 'Trop tard. Ce trésor Flash a déjà été pris.');
   }
   modal.classList.add('open');
   // Flash overlay on success
