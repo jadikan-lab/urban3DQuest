@@ -17,7 +17,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.14.15';
+const GAME_VERSION = 'v3.14.16';
 const loginVersion = document.getElementById('loginVersion');
 if (loginVersion) loginVersion.textContent = 'JOUEUR · ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · JOUEUR · ' + SUPABASE_ENV.label;
@@ -87,6 +87,7 @@ let geoGestureKickBound = false;
 let playerMarker    = null; // GPS position marker on miniMap
 let accuracyCircle  = null; // GPS accuracy circle on miniMap
 let lastHapticZone  = null;
+let hapticEnabled = localStorage.getItem('u3dq_haptic_enabled') === '1';
 let directionLayers = []; // arrow markers on minimap
 let compassArrowMode = true; // toggle: show direction arrows on minimap
 let mapFollowing = true; // true = map follows GPS, false = user is panning freely

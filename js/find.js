@@ -90,7 +90,7 @@ async function _tryProcessFindSecure(t, foundCountBefore) {
   updateRadar();
   updateProgressBar();
 
-  if (navigator.vibrate) navigator.vibrate([80, 40, 160]);
+  haptic([80, 40, 160]);
 
   if (t.type === 'fixed' && t.quest) {
     const questBeacons = treasures.filter(x => x.type === 'fixed' && x.quest === t.quest);
@@ -150,7 +150,7 @@ async function _tryGuestUniqueCapture(treasure) {
   updateRadar();
   updateProgressBar();
 
-  if (navigator.vibrate) navigator.vibrate([80, 40, 160]);
+  haptic([80, 40, 160]);
   const durationSec = Math.max(0, Math.round((Date.now() - new Date(treasure.placed_at).getTime()) / 1000));
   showFoundResult('success', treasure, durationSec, null);
   return true;
@@ -259,7 +259,7 @@ async function _doProcessFind(treasureId) {
   updateProgressBar();
 
   // Haptic feedback
-  if (navigator.vibrate) navigator.vibrate([80, 40, 160]);
+  haptic([80, 40, 160]);
 
   // Détecter fin de quête (balises fixes d'une quête nommée toutes trouvées)
   if (t.type === 'fixed' && t.quest) {

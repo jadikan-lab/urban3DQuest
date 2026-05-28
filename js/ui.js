@@ -775,6 +775,7 @@ function loadBalises() {
 // ── Moi panel ────────────────────────────────────────
 async function loadMoi() {
   const el = document.getElementById('moiContent');
+  const actionsEl = document.getElementById('moiActions');
   if (!el) return;
   const fixed = treasures.filter(t => t.type === 'fixed');
   const unique = treasures.filter(t => t.type === 'unique');
@@ -798,12 +799,35 @@ async function loadMoi() {
     <div class="moi-pseudo">${escHtml(pseudo)}</div>
     <div class="moi-grid">
       <div class="moi-tile"><div class="moi-tile-val">${myFixed}</div><div class="moi-tile-lbl">Quête</div></div>
-      <div class="moi-tile"><div class="moi-tile-val">${myFixed + myUnique}</div><div class="moi-tile-lbl">Total révélé</div></div>
+      <div class="moi-tile"><div class="moi-tile-val">${myFixed + myUnique}</div><div class="moi-tile-lbl">Total</div></div>
       <div class="moi-tile"><div class="moi-tile-val">${rank}</div><div class="moi-tile-lbl">Classement</div></div>
     </div>
-    ${myPseudo ? `<button class="moi-calib" id="calibBtn" onclick="resetCompassCalibration()">🧭 Recalibrer le compas</button>` : ''}
-    ${myPseudo ? `<button class="moi-logout" id="logoutBtn">Se déconnecter</button>` : ''}
   `;
+
+  if (actionsEl) {
+    actionsEl.innerHTML = myPseudo ? `
+      <label class="moi-toggle" for="hapticToggleInput">
+        <span class="moi-toggle-copy">
+          <strong>Haptic buzz</strong>
+          <small>Vibrations de feedback</small>
+        </span>
+        <input id="hapticToggleInput" type="checkbox" ${hapticEnabled ? 'checked' : ''}>
+        <span class="moi-toggle-track" aria-hidden="true"></span>
+      </label>
+      <button class="moi-calib" id="calibBtn" onclick="resetCompassCalibration()">🧭 Recalibrer le compas</button>
+      <button class="moi-logout" id="logoutBtn">Se déconnecter</button>
+    ` : '';
+  }
+
+  const hapticToggle = document.getElementById('hapticToggleInput');
+  if (hapticToggle) {
+    hapticToggle.addEventListener('change', () => {
+      hapticEnabled = !!hapticToggle.checked;
+      localStorage.setItem('u3dq_haptic_enabled', hapticEnabled ? '1' : '0');
+      if (hapticEnabled) haptic([40]);
+    });
+  }
+
   // addEventListener garanti même si le bouton est injecté dynamiquement
   const logoutBtn = document.getElementById('logoutBtn');
   if (logoutBtn) logoutBtn.addEventListener('click', logoutPlayer);

@@ -523,7 +523,7 @@
     .bl-item.found{border-color:rgba(34,197,94,.35);background:rgba(240,255,244,.6)}
 
     /* ── MOI panel ── */
-    #panelMoi{flex:1;overflow-y:auto;padding:18px 12px 72px;max-width:560px;margin:0 auto;width:100%}
+    #panelMoi{flex:1;overflow-y:auto;padding:14px 12px 72px;max-width:560px;margin:0 auto;width:100%}
     .moi-top{display:flex;align-items:center;gap:14px;margin-bottom:18px}
     .moi-avatar{width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:800;font-family:var(--mono);color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.25);flex-shrink:0}
     .moi-info{flex:1;min-width:0}
@@ -537,14 +537,31 @@
     .moi-btn{width:100%;padding:14px;background:transparent;border:1px solid var(--line-2);border-radius:var(--radius);color:var(--ink-2);font-size:0.9rem;font-weight:600;cursor:pointer;font-family:var(--display);margin-bottom:10px;text-align:center}
     .moi-btn-danger{border-color:rgba(248,113,113,0.4);color:#ef4444}
     .moi-pseudo{font-size:1.4rem;font-weight:800;color:var(--ink);text-align:center;margin:10px 0 16px}
-    .moi-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
-    .moi-tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 10px;text-align:center}
-    .moi-tile-val{font-size:1.4rem;font-weight:800;color:var(--ink);font-family:var(--mono)}
+    .moi-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+    .moi-tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:10px 8px;text-align:center}
+    .moi-tile-val{font-size:1.2rem;font-weight:800;color:var(--ink);font-family:var(--mono)}
     .moi-tile-lbl{font-family:var(--mono);font-size:0.6rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-3);margin-top:4px}
+    .moi-actions{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+    .moi-toggle{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:10px 12px;background:var(--surface);border:1px solid var(--line-2);border-radius:var(--radius)}
+    .moi-toggle-copy{display:flex;flex-direction:column;line-height:1.2}
+    .moi-toggle-copy strong{font-size:0.86rem;color:var(--ink)}
+    .moi-toggle-copy small{font-size:0.72rem;color:var(--ink-3);font-family:var(--mono)}
+    .moi-toggle input{position:absolute;opacity:0;pointer-events:none}
+    .moi-toggle-track{position:relative;display:inline-block;width:48px;height:28px;border-radius:999px;background:#cbd5e1;transition:background .2s ease;flex-shrink:0}
+    .moi-toggle-track::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(15,23,42,.25);transition:transform .2s ease}
+    .moi-toggle input:checked + .moi-toggle-track{background:#16a34a}
+    .moi-toggle input:checked + .moi-toggle-track::after{transform:translateX(20px)}
     .moi-calib{width:100%;padding:12px;background:transparent;border:1px solid rgba(99,102,241,0.25);border-radius:var(--radius);color:#818cf8;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:var(--display);text-align:center;margin-bottom:8px}
     .moi-logout{width:100%;padding:12px;background:transparent;border:1px solid rgba(248,113,113,0.25);border-radius:var(--radius);color:#ef4444;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:var(--display);text-align:center}
     .moi-bsaver{width:100%;padding:12px;background:transparent;border:1px solid rgba(74,222,128,0.25);border-radius:var(--radius);color:#4ade80;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:var(--display);text-align:center;margin-bottom:8px}
     .moi-bsaver.active{background:rgba(74,222,128,.12);border-color:#16a34a;color:#16a34a}
+
+    @media (max-width:390px){
+      .moi-grid{gap:6px}
+      .moi-tile{padding:9px 6px}
+      .moi-tile-val{font-size:1.05rem}
+      .moi-tile-lbl{font-size:0.56rem}
+    }
     #batterySaverOverlay{display:none;position:absolute;inset:0;z-index:10;background:rgba(5,6,16,.88);align-items:center;justify-content:center;flex-direction:column;gap:12px;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
     #batterySaverOverlay.active{display:flex}
     .bso-icon{font-size:2.4rem}

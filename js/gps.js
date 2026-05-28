@@ -230,6 +230,7 @@ function distLabel(d) {
 }
 
 function haptic(pattern) {
+  if (!hapticEnabled) return;
   if (navigator.vibrate) navigator.vibrate(pattern);
 }
 
