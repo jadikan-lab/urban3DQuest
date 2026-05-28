@@ -81,6 +81,8 @@
     #qrTips{font-size:0.86rem;color:var(--ink-2);max-width:380px;text-align:center}
     .qc-trophy,.qr-emoji{font-size:3rem;margin-bottom:10px}
     .qr-emoji{font-size:2.5rem}
+    #qrGuideVisualWrap{display:none;width:100%;max-width:280px;margin-bottom:4px}
+    #qrGuideVisual{display:block;width:100%;max-height:160px;object-fit:cover;border-radius:14px;border:1px solid var(--line-2);box-shadow:0 8px 24px rgba(2,6,23,.18)}
     .found-photo{width:100%;max-height:160px;object-fit:cover;border-radius:10px;margin-bottom:10px;display:none}
     #modeQuickGuide{display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(255,255,255,.9);border-bottom:1px solid var(--line-2)}
     #modeGuideCopy{min-width:0;flex:1}

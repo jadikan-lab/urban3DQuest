@@ -163,6 +163,30 @@ function _setRetryPhotoVisible(show) {
   btn.style.display = show ? 'flex' : 'none';
 }
 
+function _renderQRGuideVisual(url) {
+  const wrap = document.getElementById('qrGuideVisualWrap');
+  const img = document.getElementById('qrGuideVisual');
+  const emoji = document.getElementById('qrEmojiFallback');
+  if (!wrap || !img || !emoji) return;
+
+  if (url) {
+    img.src = url;
+    wrap.style.display = 'block';
+    emoji.style.display = 'none';
+    return;
+  }
+
+  img.src = '';
+  wrap.style.display = 'none';
+  emoji.style.display = 'block';
+}
+
+function _resolveQrGuideForType(type) {
+  if (type === 'fixed') return qrGuideFixedUrl || qrGuideGenericUrl || '';
+  if (type === 'unique') return qrGuideFlashUrl || qrGuideGenericUrl || '';
+  return qrGuideGenericUrl || '';
+}
+
 function retryQRPhoto() {
   const input = document.getElementById('qrFileInput');
   if (!input) return;
@@ -196,6 +220,7 @@ function openQRScanner(beaconId) {
     const questSpan = targetEl.querySelector('.qrt-quest');
     const photoEl = document.getElementById('qrTargetPhoto');
     if (t) {
+      _renderQRGuideVisual(_resolveQrGuideForType(t.type));
       if (t.type === 'fixed') {
         const beaconIndex = _fixedBeaconIndexInQuest(t);
         lblSpan.textContent = 'Tu as trouvé la balise';
@@ -226,6 +251,7 @@ function openQRScanner(beaconId) {
       }
       targetEl.style.display = 'block';
     } else {
+      _renderQRGuideVisual(_resolveQrGuideForType(null));
       if (photoEl) {
         photoEl.src = '';
         photoEl.style.display = 'none';

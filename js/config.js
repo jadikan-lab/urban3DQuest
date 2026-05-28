@@ -93,6 +93,9 @@ let myToken = localStorage.getItem('u3dq_token') || ''; // session token for sin
 let activeGameMode = (localStorage.getItem('u3dq_game_mode') || 'fixed') === 'unique' ? 'unique' : 'fixed';
 const revealedFixedClues = new Set(myPseudo ? JSON.parse(localStorage.getItem(`u3dq_clues_${myPseudo}`) || '[]') : []); // fixed clues unlocked by proximity, persisted per player
 let tutorialSeen = localStorage.getItem('u3dq_tuto_seen') === '1';
+let qrGuideFlashUrl = '';
+let qrGuideFixedUrl = '';
+let qrGuideGenericUrl = '';
 
 
 // ── Pure heading math (needed at init time) ─────────

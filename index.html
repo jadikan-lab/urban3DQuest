@@ -296,7 +296,10 @@
 <!-- ── QR Scanner overlay ──────────────────────────── -->
 <div id="qrOverlay">
   <div id="qrUI">
-    <div class="qr-emoji">📷</div>
+    <div id="qrGuideVisualWrap" class="field-hidden">
+      <img id="qrGuideVisual" alt="Exemple de prise de photo du QR code">
+    </div>
+    <div class="qr-emoji" id="qrEmojiFallback">📷</div>
     <div id="qrTarget">
       <img id="qrTargetPhoto" alt="Photo du trésor cible">
       <span class="qrt-lbl">Tu cherches</span>

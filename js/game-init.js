@@ -31,6 +31,9 @@ async function initGame(pendingFoundId) {
       const gs = new Date(c.gameStart);
       if (!isNaN(gs.getTime())) gameStart = gs;
     }
+    qrGuideFlashUrl = safeImgUrl(c.qrGuideFlashUrl || '');
+    qrGuideFixedUrl = safeImgUrl(c.qrGuideFixedUrl || '');
+    qrGuideGenericUrl = safeImgUrl(c.qrGuideGenericUrl || '');
     // Tutorial example photo
     if (c.examplePhotoUrl) {
       const qtp = document.getElementById('qtExamplePhoto');
