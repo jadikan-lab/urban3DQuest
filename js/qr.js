@@ -414,9 +414,9 @@ async function handleQRPhoto(input) {
   document.getElementById('qrPreviewImg').src = url;
   document.getElementById('qrPreviewWrap').style.display = 'block';
   try {
-    const result = await QrScanner.scanImage(file, { returnDetailedScanResult: true });
+    const result = await _scanImageBestEffort(file);
     URL.revokeObjectURL(url);
-    await _qrHandleResult(result.data);
+    await _qrHandleResult(result.data || result);
   } catch {
     URL.revokeObjectURL(url);
     status.textContent = _copy('QR_STATUS_BAD_PHOTO', '❌ Polaroid non reconnu — réessaie en te rapprochant et en éclairant bien le polaroid');
@@ -426,6 +426,56 @@ async function handleQRPhoto(input) {
     _setRetryPhotoVisible(true);
     _resetQRInput();
   }
+}
+
+async function _scanImageBestEffort(file) {
+  const scanOpts = { returnDetailedScanResult: true, alsoTryWithoutScanRegion: true };
+  try {
+    return await QrScanner.scanImage(file, scanOpts);
+  } catch {}
+
+  const img = await new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const el = new Image();
+    el.onload = () => { URL.revokeObjectURL(objectUrl); resolve(el); };
+    el.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error('image-load-failed')); };
+    el.src = objectUrl;
+  });
+
+  const fullCanvas = document.createElement('canvas');
+  const maxSide = 1800;
+  const ratio = Math.min(1, maxSide / Math.max(img.naturalWidth || img.width, img.naturalHeight || img.height));
+  fullCanvas.width = Math.max(1, Math.round((img.naturalWidth || img.width) * ratio));
+  fullCanvas.height = Math.max(1, Math.round((img.naturalHeight || img.height) * ratio));
+  const fctx = fullCanvas.getContext('2d', { willReadFrequently: true });
+  fctx.drawImage(img, 0, 0, fullCanvas.width, fullCanvas.height);
+
+  try {
+    return await QrScanner.scanImage(fullCanvas, scanOpts);
+  } catch {}
+
+  // Balises terrain: le QR est souvent au centre de la photo, ce crop augmente le taux de réussite.
+  const cropCanvas = document.createElement('canvas');
+  const cropSize = Math.round(Math.min(fullCanvas.width, fullCanvas.height) * 0.82);
+  const cx = Math.round((fullCanvas.width - cropSize) / 2);
+  const cy = Math.round((fullCanvas.height - cropSize) / 2);
+  cropCanvas.width = cropSize;
+  cropCanvas.height = cropSize;
+  const cctx = cropCanvas.getContext('2d', { willReadFrequently: true });
+  cctx.drawImage(fullCanvas, cx, cy, cropSize, cropSize, 0, 0, cropSize, cropSize);
+
+  try {
+    return await QrScanner.scanImage(cropCanvas, scanOpts);
+  } catch {}
+
+  // Dernier essai: agrandissement léger du crop pour les petits QR imprimés.
+  const upCanvas = document.createElement('canvas');
+  upCanvas.width = cropSize * 2;
+  upCanvas.height = cropSize * 2;
+  const uctx = upCanvas.getContext('2d', { willReadFrequently: true });
+  uctx.imageSmoothingEnabled = false;
+  uctx.drawImage(cropCanvas, 0, 0, upCanvas.width, upCanvas.height);
+  return await QrScanner.scanImage(upCanvas, scanOpts);
 }
 async function _qrHandleResult(raw) {
   if (qrDecodeLocked) return;
