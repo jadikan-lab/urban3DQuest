@@ -523,7 +523,15 @@ function closeQRScanner() {
   qrDecodeLocked = false;
   if (_qrHistoryPushed) {
     _qrHistoryPushed = false;
-    history.back();
+    // Do not navigate back here: it can close the next success modal on some mobile browsers.
+    try {
+      const st = history.state || {};
+      if (st && st._u3dqQrOverlay) {
+        const next = { ...st };
+        delete next._u3dqQrOverlay;
+        history.replaceState(next, '', location.href);
+      }
+    } catch {}
   }
 }
 
