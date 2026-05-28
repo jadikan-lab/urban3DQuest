@@ -381,6 +381,36 @@
     .qt-btn.ghost{background:#fff;color:#111827;border:1px solid var(--line-2)}
     .qt-note{font-size:0.7rem;color:var(--ink-3);margin-top:10px}
 
+    /* ── Small smartphone compaction ── */
+    @media (max-width: 390px), (max-height: 740px) {
+      #foundModal{padding:calc(env(safe-area-inset-top) + 8px) 10px calc(env(safe-area-inset-bottom) + 10px)}
+      .found-box{max-width:360px;padding:14px 12px;border-radius:18px;max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 14px)}
+      .found-emoji{margin-bottom:5px;min-height:32px}
+      .found-box h2{font-size:1.02rem;margin-bottom:4px}
+      .found-box .duration{font-size:1.2rem;margin-bottom:4px}
+      .found-box p{font-size:0.79rem;line-height:1.35;margin-bottom:8px}
+      .found-photo{max-height:122px;margin-bottom:8px}
+      .found-share{padding:9px;border-radius:12px}
+      .found-share-title{font-size:0.88rem}
+      .found-share-text{font-size:0.76rem;line-height:1.3}
+      .found-share-actions{gap:6px;margin-top:8px}
+      .btn-primary,.btn-main,.btn-share{min-height:48px;padding:12px 12px;font-size:0.92rem}
+      .found-share-link{min-height:48px}
+
+      #qrUI{gap:12px;padding:16px 14px calc(14px + env(safe-area-inset-bottom));max-width:380px}
+      #qrStatus{font-size:0.9rem;line-height:1.35}
+      #qrTargetPhoto{max-height:140px}
+      #qrReader video,#qrPreviewImg{max-height:42vh}
+      #qrPhotoBtn{min-height:50px;padding:12px 0;font-size:0.95rem}
+      #qrRetryPhotoBtn{min-height:46px;padding:10px 0}
+      #qrCloseBtn{min-height:46px;padding:11px 0;font-size:0.92rem}
+
+      #quickTutorialCard{max-height:88dvh;overflow-y:auto;padding:14px 12px calc(14px + env(safe-area-inset-bottom));border-radius:18px 18px 0 0}
+      .qt-grid{gap:6px;margin-bottom:10px}
+      .qt-card{padding:8px}
+      .qt-btn{min-height:46px;padding:10px 8px;font-size:0.78rem;min-width:120px}
+    }
+
     /* ── COMPOSANTS JADIKAN ────────────────────────────── */
 
     /* Pin lumineux (Leaflet L.divIcon) */

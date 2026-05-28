@@ -274,6 +274,7 @@ function updateRadar() {
     bar.className = '';
     fab.style.display = 'none';
     flashFabEl.style.display = 'none';
+    flashCaptureStickyId = null;
     hideFlashHint();
     nearestFixed = null;
     nearestUnique = null;
@@ -297,14 +298,20 @@ function updateRadar() {
       bar.textContent = copy('FLASH_RADAR_ZERO', '✅ Toutes les miniatures ont été cueillies, reviens plus tard !');
       bar.className = '';
       fab.style.display = 'none';
+      flashCaptureStickyId = null;
       nearestFixed = null;
       lastHapticZone = null;
       return;
     }
 
     const nearestU = uniqueLeft
-      .map(t => ({ t, d: haversine(playerLat, playerLng, t.lat, t.lng) }))
-      .sort((a, b) => a.d - b.d)[0];
+      .map(t => {
+        const zone = getFlashSearchZone(t);
+        const centerDist = haversine(playerLat, playerLng, zone.centerLat, zone.centerLng);
+        const edgeDist = Math.max(0, centerDist - zone.radiusM);
+        return { t, zone, centerDist, edgeDist };
+      })
+      .sort((a, b) => (a.edgeDist - b.edgeDist) || (a.centerDist - b.centerDist))[0];
 
     const available = uniqueLeft.length;
     const cStr = available === 1 ? '⚡ 1 trésor dispo' : `⚡ ${available} trésors dispos`;
@@ -315,36 +322,46 @@ function updateRadar() {
       ? copy('GUIDE_FLASH_SOUS_SOLO', 'Plus qu\'une miniature à trouver')
       : copy('GUIDE_FLASH_SOUS_MULTI', '{N} miniatures à cueillir · sois le premier !').replace('{N}', String(available));
 
-    const uniqueDist = Math.round(nearestU.d);
+    const uniqueCenterDist = Math.round(nearestU.centerDist);
+    const uniqueEdgeDist = Math.round(nearestU.edgeDist);
     const flashFab = document.getElementById('flashFab');
+    const accForFlash = Math.max(0, Math.round(playerAccuracy || 0));
+    // Enter/exit thresholds are anchored to the displayed search circle to match player expectation.
+    const flashCaptureInM = Math.max(nearestU.zone.radiusM, FLASH_CAPTURE_M) + Math.min(12, Math.round(accForFlash * 0.35));
+    const stickyForSameTarget = flashCaptureStickyId === nearestU.t.id;
+    const flashCaptureOutM = flashCaptureInM + 8;
+    const inFlashCaptureZone = nearestU.centerDist <= (stickyForSameTarget ? flashCaptureOutM : flashCaptureInM);
 
-    if (uniqueDist <= FLASH_CAPTURE_M) {
-      // Palier 3 — < 20m : FAB + hint + "scanne maintenant"
+    if (inFlashCaptureZone) {
+      // Palier 3 — inside displayed Flash search circle: FAB + hint + "scan now"
       bar.textContent = `${cStr} · ${copy('FLASH_RADAR_TRES_PROCHE', '📷 Prends le QR code en photo pour valider !').replace('{N}', String(available))}${accStr}`;
       bar.className = 'very-near';
+      flashCaptureStickyId = nearestU.t.id;
       nearestUnique = nearestU.t;
       flashFab.style.display = 'flex';
-      if (nearestU.t.photo_url) showFlashHint(nearestU.t, 'Tu es dessus — scanne !');
+      if (nearestU.t.photo_url) showFlashHint(nearestU.t, 'Tu es dans la zone — scanne !');
       if (lastHapticZone !== 'unique-capture') { lastHapticZone = 'unique-capture'; haptic([100, 50, 100, 50, 200]); }
-    } else if (uniqueDist <= FLASH_HINT_M) {
-      // Palier 2 — < 50m : photo indice révélée, pas encore de FAB
+    } else if (uniqueEdgeDist <= FLASH_HINT_M) {
+      // Palier 2 — close to the displayed search circle, no FAB yet
       bar.textContent = `${cStr} · ${copy('FLASH_RADAR_PROCHE', 'Tu es tout près !').replace('{N}', String(available))}${accStr}`;
       bar.className = 'very-near';
+      flashCaptureStickyId = null;
       nearestUnique = null;
       flashFab.style.display = 'none';
-      if (nearestU.t.photo_url) showFlashHint(nearestU.t, `À ~${uniqueDist}m — trouve l'objet`);
+      if (nearestU.t.photo_url) showFlashHint(nearestU.t, `À ~${Math.max(1, uniqueEdgeDist)}m de la zone`);
       else hideFlashHint();
       if (lastHapticZone !== 'unique-near2') { lastHapticZone = 'unique-near2'; haptic([100, 50, 100, 50, 200]); }
-    } else if (uniqueDist <= proximityR * 5) {
+    } else if (uniqueEdgeDist <= proximityR * 5) {
       // Palier 1 — < 500m : "tu chauffes", rien de révélé
-      bar.textContent = uniqueDist <= proximityR
+      bar.textContent = uniqueEdgeDist <= proximityR
         ? `${cStr} · ${copy('FLASH_RADAR_LOIN', 'Tu te rapproches !').replace('{N}', String(available))}${accStr}`
         : `${cStr} · ${copy('FLASH_RADAR_TRES_LOIN', 'Un polaroid se cache dans ce quartier…').replace('{N}', String(available))}${accStr}`;
-      bar.className = uniqueDist <= proximityR ? 'near' : '';
+      bar.className = uniqueEdgeDist <= proximityR ? 'near' : '';
+      flashCaptureStickyId = null;
       nearestUnique = null;
       flashFab.style.display = 'none';
       hideFlashHint();
-      if (uniqueDist <= proximityR) {
+      if (uniqueEdgeDist <= proximityR) {
         if (lastHapticZone !== 'unique-near') { lastHapticZone = 'unique-near'; haptic([80, 60, 80]); }
       } else {
         if (lastHapticZone !== 'unique-far') { lastHapticZone = 'unique-far'; }
@@ -352,6 +369,7 @@ function updateRadar() {
     } else {
       bar.textContent = `${cStr} · ${copy('FLASH_RADAR_TRES_LOIN', 'Un polaroid se cache dans ce quartier…').replace('{N}', String(available))}${accStr}`;
       bar.className = '';
+      flashCaptureStickyId = null;
       nearestUnique = null;
       flashFab.style.display = 'none';
       hideFlashHint();
@@ -368,6 +386,7 @@ function updateRadar() {
     .filter(t => !(t.found_by && t.found_by.split(',').includes(myPseudo)));
 
   flashFabEl.style.display = 'none';
+  flashCaptureStickyId = null;
   nearestUnique = null;
   hideFlashHint();
 
@@ -494,14 +513,25 @@ async function captureUnique() {
   if (!myPseudo) { _checkinError('Mode invité : connecte-toi pour jouer.'); return; }
   let target = nearestUnique;
   if (!target && playerLat !== null) {
+    const accForFlash = Math.max(0, Math.round(playerAccuracy || 0));
     const uniqueLeft = treasures
       .filter(t => t.type === 'unique')
       .filter(t => !(t.found_by && t.found_by.length > 0))
       .filter(t => !(t.found_by && t.found_by.split(',').includes(myPseudo)));
     const nearest = uniqueLeft
-      .map(t => ({ t, d: haversine(playerLat, playerLng, t.lat, t.lng) }))
-      .sort((a, b) => a.d - b.d)[0];
-    if (nearest && nearest.d <= FLASH_CAPTURE_M) target = nearest.t;
+      .map(t => {
+        const zone = getFlashSearchZone(t);
+        const centerDist = haversine(playerLat, playerLng, zone.centerLat, zone.centerLng);
+        const edgeDist = Math.max(0, centerDist - zone.radiusM);
+        return { t, zone, centerDist, edgeDist };
+      })
+      .sort((a, b) => (a.edgeDist - b.edgeDist) || (a.centerDist - b.centerDist))[0];
+    if (nearest) {
+      const flashCaptureInM = Math.max(nearest.zone.radiusM, FLASH_CAPTURE_M) + Math.min(12, Math.round(accForFlash * 0.35));
+      const stickyForSameTarget = flashCaptureStickyId === nearest.t.id;
+      const flashCaptureOutM = flashCaptureInM + 8;
+      if (nearest.centerDist <= (stickyForSameTarget ? flashCaptureOutM : flashCaptureInM)) target = nearest.t;
+    }
   }
   if (!target) {
     _checkinError('Approche-toi davantage pour scanner ce trésor Flash.');

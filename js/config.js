@@ -17,7 +17,7 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.14.11';
+const GAME_VERSION = 'v3.14.12';
 const loginVersion = document.getElementById('loginVersion');
 if (loginVersion) loginVersion.textContent = 'JOUEUR · ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 document.getElementById('gameVersion').textContent = 'Urban3DQuest ' + GAME_VERSION + ' · JOUEUR · ' + SUPABASE_ENV.label;
@@ -68,8 +68,12 @@ let gpsCourseLastPoint = null;
 let gpsHistory   = []; // last N positions for smoothing
 let nearestFixed  = null;
 let nearestUnique = null;
+let flashCaptureStickyId = null; // keep flash scanner visible briefly to avoid GPS flicker near threshold
 const FLASH_CAPTURE_M = 20; // metres — seuil d'apparition du FAB Flash
 const FLASH_HINT_M   = 50; // metres — seuil de révélation de la photo indice
+const FLASH_ZONE_RADIUS_M = 90; // metres — visual search circle radius shown on the map
+const FLASH_ZONE_OFFSET_MIN_M = 40; // metres — minimum offset between true point and circle center
+const FLASH_ZONE_OFFSET_MAX_M = 80; // metres — maximum offset between true point and circle center
 let lbInterval   = null;
 let geoWatch        = null;
 let geoWatchdog     = null;
@@ -107,6 +111,22 @@ function _smoothHeading(prev, next, factor) {
   if (prev === null || !Number.isFinite(prev)) return _normHeading(next);
   const delta = ((next - prev + 540) % 360) - 180;
   return _normHeading(prev + delta * factor);
+}
+
+// Flash map circle helper: deterministic pseudo-random center offset from treasure id.
+function getFlashSearchZone(t) {
+  if (!t || !t.id) return null;
+  let seed = 0;
+  const tid = String(t.id);
+  for (let i = 0; i < tid.length; i++) seed = (seed * 31 + tid.charCodeAt(i)) & 0xffffffff;
+  const angle = (seed % 628) / 100; // 0..2pi
+  const offsetM = FLASH_ZONE_OFFSET_MIN_M
+    + (Math.abs(seed >> 8) % (FLASH_ZONE_OFFSET_MAX_M - FLASH_ZONE_OFFSET_MIN_M + 1));
+  const mPerLat = 111320;
+  const mPerLng = 111320 * Math.cos(t.lat * Math.PI / 180);
+  const centerLat = t.lat + (offsetM * Math.sin(angle)) / mPerLat;
+  const centerLng = t.lng + (offsetM * Math.cos(angle)) / mPerLng;
+  return { centerLat, centerLng, radiusM: FLASH_ZONE_RADIUS_M, offsetM };
 }
 
 function _nextVisualAngle(previous, target) {

@@ -137,21 +137,13 @@ function renderMarkers() {
     const color   = isMine ? '#4ade80' : isTaken ? '#475569' : (t.type === 'unique' ? '#c084fc' : '#60a5fa');
     const opacity = isTaken && !isMine ? 0.4 : 1;
 
-    // Unique treasures still available: fuzzy circle — center is randomly OFFSET from
-    // the real location (deterministic per treasure ID), so zooming in never reveals
-    // the exact spot. The treasure is somewhere inside the circle, not at the center.
+    // Unique treasures still available: fuzzy search circle.
+    // The center is deterministically offset from the true location so map zooming never
+    // reveals the exact spot while keeping a stable search zone players can learn.
     if (t.type === 'unique' && !isMine && !isTaken) {
-      // Deterministic pseudo-random offset from treasure ID (same result every render)
-      let seed = 0;
-      for (let i = 0; i < t.id.length; i++) seed = (seed * 31 + t.id.charCodeAt(i)) & 0xffffffff;
-      const angle  = (seed % 628) / 100; // 0 to 2π
-      const dist   = 40 + (Math.abs(seed >> 8) % 40); // 40–80m offset
-      const mPerLat = 111320;
-      const mPerLng = 111320 * Math.cos(t.lat * Math.PI / 180);
-      const fuzzLat = t.lat + (dist * Math.sin(angle)) / mPerLat;
-      const fuzzLng = t.lng + (dist * Math.cos(angle)) / mPerLng;
-      const c = L.circle([fuzzLat, fuzzLng], {
-        radius: 90, color, fillColor: color,
+      const zone = getFlashSearchZone(t);
+      const c = L.circle([zone.centerLat, zone.centerLng], {
+        radius: zone.radiusM, color, fillColor: color,
         fillOpacity: 0.18 * opacity, weight: 2, opacity: 0.75 * opacity
       }).addTo(gameMap).on('click', () => openTreasureSheet(t));
       mapMarkers[t.id] = c;
