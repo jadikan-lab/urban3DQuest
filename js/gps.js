@@ -298,8 +298,11 @@ function updateRadar() {
       bar.textContent = copy('FLASH_RADAR_ZERO', '✅ Toutes les miniatures ont été cueillies, reviens plus tard !');
       bar.className = '';
       fab.style.display = 'none';
+      flashFabEl.style.display = 'none';
       flashCaptureStickyId = null;
       nearestFixed = null;
+      nearestUnique = null;
+      hideFlashHint();
       lastHapticZone = null;
       return;
     }

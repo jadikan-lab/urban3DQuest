@@ -128,11 +128,12 @@ function renderMarkers() {
 
   treasures.forEach(t => {
     const isMine  = t.found_by && t.found_by.split(',').includes(myPseudo);
+    const fixedFoundByAnyone = t.type === 'fixed' && !!(t.found_by && t.found_by.trim().length > 0);
     // Only show treasures matching the active mode (or already found by this player)
-    if (t.type === 'fixed' && activeGameMode !== 'fixed' && !isMine) return;
+    if (t.type === 'fixed' && activeGameMode !== 'fixed' && !fixedFoundByAnyone) return;
     if (t.type === 'unique' && activeGameMode !== 'unique' && !isMine) return;
-    // Fixed beacons are hidden on the map unless already found by this player
-    if (t.type === 'fixed' && !isMine) return;
+    // Fixed beacons stay hidden until captured at least once; then keep a tiny archive dot.
+    if (t.type === 'fixed' && !fixedFoundByAnyone) return;
     const isTaken = t.type === 'unique' && t.found_by && t.found_by.length > 0;
     const color   = isMine ? '#4ade80' : isTaken ? '#475569' : (t.type === 'unique' ? '#c084fc' : '#60a5fa');
     const opacity = isTaken && !isMine ? 0.4 : 1;
@@ -163,14 +164,15 @@ function renderMarkers() {
       return;
     }
 
-    // Fixed found by this player: keep a very small green dot.
-    if (t.type === 'fixed' && isMine) {
+    // Fixed found by any player: keep a very small green dot (slightly highlighted if mine).
+    if (t.type === 'fixed' && fixedFoundByAnyone) {
       mapMarkers[t.id] = L.circleMarker([t.lat, t.lng], {
-        radius: 4,
-        color: '#166534',
+        radius: isMine ? 4 : 3.2,
+        color: isMine ? '#166534' : '#14532d',
         weight: 1,
         fillColor: '#22c55e',
-        fillOpacity: 0.9
+        fillOpacity: isMine ? 0.95 : 0.8,
+        opacity: 0.95
       }).addTo(gameMap).on('click', () => openTreasureSheet(t));
       return;
     }

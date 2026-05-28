@@ -505,6 +505,47 @@ function scheduleLeaderboardRefresh(delayMs = 0) {
   }, delayMs);
 }
 
+function _isTreasureInActiveScope(t) {
+  if (!t) return false;
+  if (!Array.isArray(activeQuests) || activeQuests.length === 0) return true;
+  const quest = String(t.quest || '').trim();
+  return !quest || activeQuests.includes(quest);
+}
+
+function applyTreasureRealtimePayload(payload) {
+  if (!payload || !Array.isArray(treasures)) return false;
+  const eventType = String(payload.eventType || '').toUpperCase();
+  const newRow = payload.new || null;
+  const oldRow = payload.old || null;
+  const targetId = (newRow && newRow.id) || (oldRow && oldRow.id);
+  if (!targetId) return false;
+
+  const idx = treasures.findIndex(t => t.id === targetId);
+
+  if (eventType === 'DELETE') {
+    if (idx >= 0) treasures.splice(idx, 1);
+  } else {
+    if (!newRow || newRow.visible !== true || !_isTreasureInActiveScope(newRow)) {
+      if (idx >= 0) treasures.splice(idx, 1);
+    } else if (idx >= 0) {
+      treasures[idx] = { ...treasures[idx], ...newRow };
+    } else {
+      treasures.push(newRow);
+    }
+  }
+
+  const actualFixed = treasures.filter(t => t.type === 'fixed').length;
+  if (actualFixed > 0) fixedTotal = actualFixed;
+
+  renderMarkers();
+  if (activeTab === 'explore') {
+    updateRadar();
+    updateNearestCard();
+  }
+  updateProgressBar();
+  return true;
+}
+
 function ensureGameRealtimeSync() {
   if (gameSyncChannel) return gameSyncChannel;
   if (!window.supabase || !db || typeof db.channel !== 'function') return null;
@@ -514,9 +555,9 @@ function ensureGameRealtimeSync() {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, () => {
       scheduleLeaderboardRefresh(150);
     })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'treasures' }, () => {
-      scheduleTreasureRefresh(150);
-      scheduleLeaderboardRefresh(250);
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'treasures' }, (payload) => {
+      const applied = applyTreasureRealtimePayload(payload);
+      if (!applied) scheduleTreasureRefresh(180);
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'config' }, () => {
       scheduleTreasureRefresh(150);
