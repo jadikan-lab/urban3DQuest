@@ -120,9 +120,6 @@ function _extractScannedTreasureId(raw) {
   return null;
 }
 
-function openQRScanner(beaconId) {
-  qrExpectedId = beaconId || null;
-
 function _resolveExpectedUniqueAlias(scannedId, expectedId) {
   if (!scannedId || !expectedId || scannedId === expectedId) return scannedId;
   const expected = treasures.find(x => x.id === expectedId);
@@ -141,11 +138,29 @@ function _resolveExpectedUniqueAlias(scannedId, expectedId) {
 
   return scannedId;
 }
+
+function _setRetryPhotoVisible(show) {
+  const btn = document.getElementById('qrRetryPhotoBtn');
+  if (!btn) return;
+  btn.style.display = show ? 'flex' : 'none';
+}
+
+function retryQRPhoto() {
+  const input = document.getElementById('qrFileInput');
+  if (!input) return;
+  input.click();
+}
+
+function openQRScanner(beaconId) {
+  qrExpectedId = beaconId || null;
   const status = document.getElementById('qrStatus');
   const photoBtnText = document.getElementById('qrPhotoBtnText');
+  const retryBtnText = document.getElementById('qrRetryPhotoBtn');
   status.className = '';
   status.textContent = _copy('QR_STATUS_SCAN', 'Vise le QR pour le révéler.');
   if (photoBtnText) photoBtnText.textContent = _copy('QR_PHOTO_CTA', '📷 Prendre la photo');
+  if (retryBtnText) retryBtnText.textContent = _copy('QR_RETRY_PHOTO_CTA', '↻ Reprendre la photo');
+  _setRetryPhotoVisible(false);
   document.getElementById('qrPreviewWrap').style.display = 'none';
   document.getElementById('qrReader').style.display = 'none';
   document.getElementById('qrTips').style.display = 'none';
@@ -340,6 +355,7 @@ function _resetQRInput() {
 
 async function handleQRPhoto(input) {
   if (!input.files || !input.files[0]) return;
+  _setRetryPhotoVisible(false);
   await stopLiveQRScan();
   const status = document.getElementById('qrStatus');
   status.className = '';
@@ -359,6 +375,7 @@ async function handleQRPhoto(input) {
     status.className = 'qr-err';
     haptic([80, 60, 80]);
     document.getElementById('qrTips').style.display = 'block';
+    _setRetryPhotoVisible(true);
     _resetQRInput();
   }
 }
@@ -372,6 +389,7 @@ async function _qrHandleResult(raw) {
     status.className = 'qr-err';
     haptic([80, 60, 80]);
     qrDecodeLocked = false;
+    _setRetryPhotoVisible(true);
     return;
   }
   const scannedId = _resolveExpectedUniqueAlias(parsedId, qrExpectedId);
@@ -385,6 +403,7 @@ async function _qrHandleResult(raw) {
     status.className = 'qr-err';
     haptic([80, 60, 80]);
     qrDecodeLocked = false;
+    _setRetryPhotoVisible(true);
     // Nimiq continue de scanner — pas besoin de redémarrer
     _resetQRInput(); // permettre de retenter via photo
   } else {
@@ -400,6 +419,7 @@ async function _qrHandleResult(raw) {
 function closeQRScanner() {
   stopLiveQRScan();
   document.getElementById('qrOverlay').classList.remove('open');
+  _setRetryPhotoVisible(false);
   qrExpectedId = null;
   qrDecodeLocked = false;
 }

@@ -198,6 +198,7 @@ QR_TARGET_FIXED:   Balise {N} de la quête
 QR_TARGET_FLASH:   Trésor unique
 QR_TARGET_FLASH_REF: QR-00X
 QR_PHOTO_CTA:      📷 Prendre la photo
+QR_RETRY_PHOTO_CTA: ↻ Reprendre la photo
 QR_TIPS:           Astuce : rapproche-toi du QR code, évite les reflets et assure-toi qu'il occupe bien l'image.
 
 FLASH_TAKEN_TOAST_ONE:   ⚡ {PSEUDO} vient de prendre le trésor !
