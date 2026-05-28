@@ -299,10 +299,10 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
   window._uniqueCaptureShareData = null;
   if (sharePanel) sharePanel.classList.add('field-hidden');
   if (shareKicker) shareKicker.textContent = _findCopy('FLASH_SHARE_KICKER', 'FLASH CAPTURÉ');
-  if (shareTitle) shareTitle.textContent = _findCopy('FLASH_SHARE_TITLE', 'Fais-le voir ou invite du renfort.');
-  if (shareText) shareText.textContent = _findCopy('FLASH_SHARE_TEXT', 'Choisis entre une image prête à partager et un lien d\'invitation pour faire venir d\'autres joueurs.');
-  if (shareBtn) shareBtn.textContent = _findCopy('FLASH_SHARE_CAPTURE_CTA', 'Partager ma capture');
-  if (inviteBtn) inviteBtn.textContent = _findCopy('FLASH_SHARE_INVITE_CTA', 'Inviter mes amis');
+  if (shareTitle) shareTitle.textContent = _findCopy('FLASH_SHARE_TITLE', 'Partage ou invite.');
+  if (shareText) shareText.textContent = _findCopy('FLASH_SHARE_TEXT', 'Choisis: image de capture ou lien d\'invitation.');
+  if (shareBtn) shareBtn.textContent = _findCopy('FLASH_SHARE_CAPTURE_CTA', 'Partager');
+  if (inviteBtn) inviteBtn.textContent = _findCopy('FLASH_SHARE_INVITE_CTA', 'Inviter');
 
   // Show photos if available and found
   const photoStrip = document.getElementById('foundPhotoStrip');
@@ -381,7 +381,7 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
       label.textContent = _findCopy('FLASH_WIN_LABEL', 'CAPTURÉ');
       title.textContent = _findCopy('FLASH_WIN_TITRE', 'Trésor unique capturé');
       dur.textContent   = formatDuration(durationSec);
-      desc.textContent  = _findCopy('FLASH_WIN_DESC', 'Trésor unique validé. Tu peux partager ta trouvaille ou poursuivre la chasse.');
+      desc.textContent  = _findCopy('FLASH_WIN_DESC', 'Trésor validé. Partage ta capture ou continue la chasse.');
       _lastUniqueSuccessModal = { id: t.id, at: Date.now() };
       window._uniqueCaptureShareData = {
         id: t.id,
@@ -406,7 +406,7 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
     label.textContent = _findCopy('FLASH_PRIS_LABEL', 'TROP TARD');
     title.textContent = _findCopy('FLASH_PRIS_TITRE', 'Trop tard !');
     dur.textContent   = '';
-    desc.textContent  = _findCopy('FLASH_PRIS_DESC', 'Trop tard. Ce trésor Flash a déjà été pris.');
+    desc.textContent  = _findCopy('FLASH_PRIS_DESC', 'Ce trésor Flash a déjà été pris.');
   }
   modal.classList.add('open');
   // Flash overlay on success

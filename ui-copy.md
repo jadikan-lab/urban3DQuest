@@ -173,15 +173,15 @@ QUETE_0_DESC:    Incroyable ! Ta quête est complète !
 ```
 FLASH_WIN_LABEL:   CAPTURÉ
 FLASH_WIN_TITRE:   Trésor unique capturé
-FLASH_WIN_DESC:    Trésor unique validé. Tu peux partager ta trouvaille ou poursuivre la chasse.
+FLASH_WIN_DESC:    Trésor validé. Partage ta capture ou continue la chasse.
 FLASH_PRIS_LABEL:  TROP TARD
 FLASH_PRIS_TITRE:  Trop tard !
-FLASH_PRIS_DESC:   Trop tard. Ce trésor Flash a déjà été pris.
+FLASH_PRIS_DESC:   Ce trésor Flash a déjà été pris.
 FLASH_SHARE_KICKER:      FLASH CAPTURÉ
-FLASH_SHARE_TITLE:       Fais-le voir ou invite du renfort.
-FLASH_SHARE_TEXT:        Choisis entre une image prête à partager et un lien d'invitation pour faire venir d'autres joueurs.
-FLASH_SHARE_CAPTURE_CTA: Partager ma capture
-FLASH_SHARE_INVITE_CTA:  Inviter mes amis
+FLASH_SHARE_TITLE:       Partage ou invite.
+FLASH_SHARE_TEXT:        Choisis: image de capture ou lien d'invitation.
+FLASH_SHARE_CAPTURE_CTA: Partager
+FLASH_SHARE_INVITE_CTA:  Inviter
 ```
 
 ---
@@ -259,7 +259,7 @@ COMPTE_VIDE:              Aucun polaroid trouvé pour l'instant
 ## MESSAGES DE RETOUR (toast bienvenue)
 
 ```
-RETOUR_MESSAGE:   Bon retour {PSEUDO} ! Il te reste {N} polaroid(s) à trouver.
+RETOUR_MESSAGE:   Bon retour {PSEUDO} ! Il te reste {N} balises(s) à trouver.
 ```
 
 ---
