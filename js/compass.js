@@ -389,7 +389,13 @@ function updateCompass() {
               <polygon points="22,2 38,40 22,28 6,40" fill="${color}" stroke="#0f172a" stroke-width="3"/>
             </svg>
           `;
-          div.addEventListener('click', () => openTreasureSheet(t));
+          div.addEventListener('click', () => {
+            if (activeGameMode === 'fixed' && t.type === 'fixed') {
+              revealFixedClueFromSheet(t.id);
+              return;
+            }
+            openTreasureSheet(t);
+          });
           overlay.appendChild(div);
           // Label pushed further along the same axis to avoid overlap
           const labelR = Math.min(R + 70, Math.min(mapElC.offsetWidth, mapElC.offsetHeight) * 0.47);
@@ -402,7 +408,13 @@ function updateCompass() {
           lbl.style.color = color;
           lbl.style.borderColor = color;
           lbl.textContent = distStr + (inRange ? ' ✓' : '');
-          lbl.addEventListener('click', () => openTreasureSheet(t));
+          lbl.addEventListener('click', () => {
+            if (activeGameMode === 'fixed' && t.type === 'fixed') {
+              revealFixedClueFromSheet(t.id);
+              return;
+            }
+            openTreasureSheet(t);
+          });
           overlay.appendChild(lbl);
         });
       }

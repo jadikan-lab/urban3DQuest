@@ -132,9 +132,9 @@ function shareQuestResult() {
   const { questName, totalSecs, beaconCount, rank, total } = _qcData;
   const timeStr = _fmtDuration(totalSecs);
   const rankStr = rank && total ? ` · ${rank} sur ${total} joueurs` : '';
-  const text = `🏆 J'ai terminé la quête "${questName}" sur Urban3DQuest !\n📷 ${beaconCount} balises révélées · ⏱ ${timeStr}${rankStr}\n\nViens jouer : ${location.origin + location.pathname}`;
+  const text = `🏆 J'ai terminé la quête "${questName}" sur Urban3DQuest.fr · Jadikan !\n📷 ${beaconCount} balises révélées · ⏱ ${timeStr}${rankStr}\n\nViens jouer : ${location.origin + location.pathname}`;
   if (navigator.share) {
-    navigator.share({ title: 'Urban3DQuest — Quête accomplie !', text }).catch(() => {});
+    navigator.share({ title: 'Urban3DQuest.fr · Jadikan — Quête accomplie !', text }).catch(() => {});
   } else {
     navigator.clipboard && navigator.clipboard.writeText(text).then(() => {
       const btn = document.getElementById('qcShareBtn');
@@ -148,9 +148,9 @@ function shareScoreResult() {
   if (!d || !myPseudo) return;
   const playUrl = location.origin + location.pathname;
   if (!d.hasData) {
-    const text = `🏙 Je joue à Urban3DQuest !\nRejoins-moi pour trouver les miniatures dans la ville.\n\n${playUrl}`;
+    const text = `🏙 Je joue à Urban3DQuest.fr · Jadikan !\nRejoins-moi pour trouver les miniatures dans la ville.\n\n${playUrl}`;
     if (navigator.share) {
-      navigator.share({ title: 'Urban3DQuest — Rejoins la chasse', text, url: playUrl }).catch(() => {});
+      navigator.share({ title: 'Urban3DQuest.fr · Jadikan — Rejoins la chasse', text, url: playUrl }).catch(() => {});
       return;
     }
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -164,7 +164,7 @@ function shareScoreResult() {
   const rankTxt = d.rank && d.totalPlayers ? `#${d.rank}/${d.totalPlayers}` : '—';
   const fixedTxt = d.totalFixed > 0 ? `${d.fixedCount}/${d.totalFixed}` : `${d.fixedCount}`;
   const timeTxt = d.allFixed && d.fixedDuration !== null ? formatDuration(d.fixedDuration) : '—';
-  const text = `🏙 Urban3DQuest\n👤 ${d.pseudo}\n🏅 Rang global ${rankTxt}\n⭐ Score ${d.globalScore || 0}\n📷 Quête ${fixedTxt}\n⚡ Flash ${d.flashCount}\n⏱ Temps quête ${timeTxt}\n\nViens jouer : ${playUrl}`;
+  const text = `🏙 Urban3DQuest.fr · Jadikan\n👤 ${d.pseudo}\n🏅 Rang global ${rankTxt}\n⭐ Score ${d.globalScore || 0}\n📷 Quête ${fixedTxt}\n⚡ Flash ${d.flashCount}\n⏱ Temps quête ${timeTxt}\n\nViens jouer : ${playUrl}`;
 
   const cardModel = {
     kicker: 'SCORE JOUEUR',
@@ -183,7 +183,7 @@ function shareScoreResult() {
   _shareCaptureCard({
     model: cardModel,
     buttonId: 'scoreShareBtn',
-    shareTitle: 'Urban3DQuest — Mon score',
+    shareTitle: 'Urban3DQuest.fr · Jadikan — Mon score',
     shareText: text,
     shareUrl: playUrl
   }).catch(() => {});
@@ -235,8 +235,8 @@ function _renderShareCaptureCard(model) {
 
   card.classList.toggle('share-capture-flash', model.accent !== 'score');
   card.classList.toggle('share-capture-score', model.accent === 'score');
-  kicker.textContent = model.kicker || 'URBAN3DQUEST';
-  title.textContent = model.title || 'Urban3DQuest';
+  kicker.textContent = model.kicker || 'URBAN3DQUEST.FR · JADIKAN';
+  title.textContent = model.title || 'Urban3DQuest.fr · Jadikan';
   subtitle.textContent = model.subtitle || '';
   footer.textContent = model.footer || '';
   shareUrl.textContent = model.shareUrl || (location.origin + location.pathname);
@@ -333,7 +333,7 @@ async function shareUniqueCapture() {
   await _shareCaptureCard({
     model: cardModel,
     buttonId: 'foundShareCaptureBtn',
-    shareTitle: 'Urban3DQuest — Flash capturé',
+    shareTitle: 'Urban3DQuest.fr · Jadikan — Flash capturé',
     shareText,
     shareUrl
   });

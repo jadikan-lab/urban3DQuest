@@ -51,7 +51,7 @@ async function sha256(str) {
 }
 
 async function logoutPlayer() {
-  if (!window.confirm('Se déconnecter de Urban3DQuest ?\nTon score est sauvegardé, tu pourras te reconnecter avec le même pseudo et mot de passe.')) return;
+  if (!window.confirm('Se déconnecter de Urban3DQuest.fr · Jadikan ?\nTon score est sauvegardé, tu pourras te reconnecter avec le même pseudo et mot de passe.')) return;
   const pseudo = myPseudo;
   if (pseudo) {
     await db.rpc('clear_player_session', { p_pseudo: pseudo });
