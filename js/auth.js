@@ -95,21 +95,9 @@ window.addEventListener('load', async () => {
   const qrInput = document.getElementById('qrFileInput');
   if (qrInput) qrInput.addEventListener('change', () => handleQRPhoto(qrInput));
 
-  // Pre-fetch config to get mapCenter + gameCode for landing screen
-  const { data: cfgData } = await db.from('config').select('key,value').in('key',['mapCenter','gameCode','guestLandingUrl']);
-  let guestLandingUrl = 'https://jadikan.carrd.co/';
-  if (cfgData) {
-    const cMap = Object.fromEntries(cfgData.map(r => [r.key, r.value]));
-    if (cMap.mapCenter) {
-      const parts = cMap.mapCenter.split(',').map(Number);
-      if (parts.length === 2 && !isNaN(parts[0])) mapCenter = parts;
-    }
-    if (cMap.gameCode) {
-      gameCode = cMap.gameCode;
-      if (!myPseudo) showAccessGate();
-    }
-    if (cMap.guestLandingUrl) guestLandingUrl = cMap.guestLandingUrl;
-  }
+  // Emergency egress guard: keep anonymous landing fully static (no config read).
+  // Logged users still load full config in initGame after authentication.
+  const guestLandingUrl = 'https://jadikan.carrd.co/';
 
   const params    = new URLSearchParams(location.search);
   const foundId   = params.get('found');
