@@ -1,5 +1,7 @@
 
 // ── Init game ────────────────────────────────────────
+const _gameCopy = (key, fallback = '') => (window.u3dqCopyText ? window.u3dqCopyText(key, fallback) : fallback);
+
 async function initGame(pendingFoundId) {
   // Landing defaults to Quest tab; enforce matching mode to avoid Quest/Flash mismatch.
   if (activeGameMode !== 'fixed') {
@@ -140,9 +142,9 @@ function _doCheckin() {
   // Cas 1 : ID spécifique (QR par balise)
   if (targetId && targetId !== '1') {
     const t = treasures.find(t => t.id === targetId);
-    if (!t) { _checkinError('Polaroid introuvable — il a peut-être été retiré.'); return; }
+    if (!t) { _checkinError(_gameCopy('ERR_INTROUVABLE', 'Balise introuvable — elle a peut-être été retirée.')); return; }
     if (t.found_by && t.found_by.split(',').includes(myPseudo)) {
-      _checkinError('Tu as déjà révélé ce polaroid. 📷'); return;
+      _checkinError('Tu as déjà révélé cette balise. 📷'); return;
     }
     const dist = haversine(playerLat, playerLng, t.lat, t.lng);
     if (dist > proximityR) {
@@ -159,7 +161,7 @@ function _doCheckin() {
     if (t.found_by && t.found_by.split(',').includes(myPseudo)) return false;
     return true;
   });
-  if (!candidates.length) { _checkinError('Tu as révélé tous les polaroids ! 🏆'); return; }
+  if (!candidates.length) { _checkinError(_gameCopy('ERR_TOUS_TROUVES', 'Tu as révélé toutes les balises ! 🏆')); return; }
   const nearest = candidates
     .map(t => ({ ...t, dist: haversine(playerLat, playerLng, t.lat, t.lng) }))
     .sort((a, b) => a.dist - b.dist)[0];
@@ -174,7 +176,7 @@ let _lastCheckinId = null; // pour le bouton Réessayer
 
 function _checkinError(msg, retryId) {
   setFoundIcon('gps', 'warn');
-  document.getElementById('foundTitle').textContent = 'Polaroid trouvé !';
+  document.getElementById('foundTitle').textContent = 'Trouvaille';
   document.getElementById('foundDuration').textContent = '';
   document.getElementById('foundDesc').textContent = msg;
   document.getElementById('foundPhotoStrip').style.display = 'none';
@@ -394,9 +396,9 @@ function showFlashTakenToast(taken) {
   const copy = (key, fallback = '') => (window.u3dqCopyText ? window.u3dqCopyText(key, fallback) : fallback);
   if (taken.length === 1) {
     const who = taken[0].found_by || '?';
-    el.textContent = copy('FLASH_TAKEN_TOAST_ONE', '⚡ {PSEUDO} vient de prendre le trésor !').replace('{PSEUDO}', who);
+    el.textContent = copy('FLASH_TAKEN_TOAST_ONE', '⚡ {PSEUDO} vient de capturer une miniature !').replace('{PSEUDO}', who);
   } else {
-    el.textContent = copy('FLASH_TAKEN_TOAST_MULTI', '⚡ {N} trésors viennent d\'être pris !').replace('{N}', String(taken.length));
+    el.textContent = copy('FLASH_TAKEN_TOAST_MULTI', '⚡ {N} miniatures viennent d\'être capturées !').replace('{N}', String(taken.length));
   }
   el.classList.add('show');
   clearTimeout(el._hideTimer);

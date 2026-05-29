@@ -132,7 +132,7 @@ function shareQuestResult() {
   const { questName, totalSecs, beaconCount, rank, total } = _qcData;
   const timeStr = _fmtDuration(totalSecs);
   const rankStr = rank && total ? ` · ${rank} sur ${total} joueurs` : '';
-  const text = `🏆 J'ai terminé la quête "${questName}" sur Urban3DQuest !\n📷 ${beaconCount} polaroids révélés · ⏱ ${timeStr}${rankStr}\n\nViens jouer : ${location.origin + location.pathname}`;
+  const text = `🏆 J'ai terminé la quête "${questName}" sur Urban3DQuest !\n📷 ${beaconCount} balises révélées · ⏱ ${timeStr}${rankStr}\n\nViens jouer : ${location.origin + location.pathname}`;
   if (navigator.share) {
     navigator.share({ title: 'Urban3DQuest — Quête accomplie !', text }).catch(() => {});
   } else {
@@ -148,7 +148,7 @@ function shareScoreResult() {
   if (!d || !myPseudo) return;
   const playUrl = location.origin + location.pathname;
   if (!d.hasData) {
-    const text = `🏙 Je joue à Urban3DQuest !\nRejoins-moi pour trouver les polaroids dans la ville.\n\n${playUrl}`;
+    const text = `🏙 Je joue à Urban3DQuest !\nRejoins-moi pour trouver les miniatures dans la ville.\n\n${playUrl}`;
     if (navigator.share) {
       navigator.share({ title: 'Urban3DQuest — Rejoins la chasse', text, url: playUrl }).catch(() => {});
       return;
@@ -343,7 +343,7 @@ async function inviteFriendsFromCapture() {
   const data = window._uniqueCaptureShareData;
   if (!data) return;
   const shareUrl = data.shareUrl || location.origin + location.pathname;
-  const text = `J'ai capturé un trésor unique sur Urban 3D Quest. Rejoins-moi ici : ${shareUrl}`;
+  const text = `J'ai capturé une miniature Flash sur Urban 3D Quest. Rejoins-moi ici : ${shareUrl}`;
 
   if (navigator.share) {
     try {
@@ -388,7 +388,7 @@ async function loadCarnet() {
       .order('created_at', { ascending: false });
     if (error) throw error;
     if (!evts || evts.length === 0) {
-      el.innerHTML = `<div class="cn-empty"><span class="cn-empty-icon">🌍</span><span class="cn-empty-label">Aucun polaroid trouvés pour l'instant</span></div>`;
+      el.innerHTML = `<div class="cn-empty"><span class="cn-empty-icon">🌍</span><span class="cn-empty-label">Aucune miniature trouvée pour l'instant</span></div>`;
       countEl.textContent = '';
       return;
     }

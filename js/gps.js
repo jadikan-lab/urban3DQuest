@@ -318,7 +318,9 @@ function updateRadar() {
       .sort((a, b) => (a.edgeDist - b.edgeDist) || (a.centerDist - b.centerDist))[0];
 
     const available = uniqueLeft.length;
-    const cStr = available === 1 ? '⚡ 1 trésor dispo' : `⚡ ${available} trésors dispos`;
+    const cStr = available === 1
+      ? copy('FLASH_COUNT_ONE', '⚡ 1 miniature dispo')
+      : copy('FLASH_COUNT_MULTI', '⚡ {N} miniatures dispos').replace('{N}', String(available));
 
     // Update guide bar count
     const guideText = document.getElementById('modeGuideText');
@@ -337,7 +339,7 @@ function updateRadar() {
 
     if (inFlashCaptureZone) {
       // Palier 3 — inside displayed Flash search circle: FAB + hint + "scan now"
-      bar.textContent = `${cStr} · 📷 Prends le QR en photo pour valider${accStr}`;
+      bar.textContent = `${cStr} · ${copy('FLASH_RADAR_CAPTURE', '📷 Prends le QR en photo pour valider')}${accStr}`;
       bar.className = 'very-near';
       flashCaptureStickyId = nearestU.t.id;
       nearestUnique = nearestU.t;
@@ -346,7 +348,7 @@ function updateRadar() {
       if (lastHapticZone !== 'unique-capture') { lastHapticZone = 'unique-capture'; haptic([100, 50, 100, 50, 200]); }
     } else if (uniqueEdgeDist <= FLASH_HINT_M) {
       // Palier 2 — close to the displayed search circle, no FAB yet
-      bar.textContent = `${cStr} · Tu es tout près${accStr}`;
+      bar.textContent = `${cStr} · ${copy('FLASH_RADAR_NEAR', 'Tu es tout près')}${accStr}`;
       bar.className = 'very-near';
       flashCaptureStickyId = null;
       nearestUnique = null;
@@ -357,8 +359,8 @@ function updateRadar() {
     } else if (uniqueEdgeDist <= proximityR * 5) {
       // Palier 1 — < 500m : "tu chauffes", rien de révélé
       bar.textContent = uniqueEdgeDist <= proximityR
-        ? `${cStr} · À ~${Math.max(1, uniqueEdgeDist)}m de la zone${accStr}`
-        : `${cStr} · Un polaroid se cache dans ce quartier${accStr}`;
+        ? `${cStr} · ${copy('FLASH_RADAR_ZONE_DIST', 'À ~{D}m de la zone').replace('{D}', String(Math.max(1, uniqueEdgeDist)))}${accStr}`
+        : `${cStr} · ${copy('FLASH_RADAR_DISTRICT', 'Un polaroid se cache dans ce quartier')}${accStr}`;
       bar.className = uniqueEdgeDist <= proximityR ? 'near' : '';
       flashCaptureStickyId = null;
       nearestUnique = null;
@@ -370,7 +372,7 @@ function updateRadar() {
         if (lastHapticZone !== 'unique-far') { lastHapticZone = 'unique-far'; }
       }
     } else {
-      bar.textContent = `${cStr} · Un polaroid se cache dans ce quartier${accStr}`;
+      bar.textContent = `${cStr} · ${copy('FLASH_RADAR_DISTRICT', 'Un polaroid se cache dans ce quartier')}${accStr}`;
       bar.className = '';
       flashCaptureStickyId = null;
       nearestUnique = null;
@@ -429,7 +431,7 @@ function updateRadar() {
   }
 
   if (zone === 'far') {
-    bar.textContent = `${copy('QUETE_RADAR_TRES_LOIN', 'Un polaroid se cache dans ce quartier…')}${accStr}`;
+    bar.textContent = `${copy('QUETE_RADAR_TRES_LOIN', 'Une balise se cache dans ce quartier…')}${accStr}`;
     bar.className = '';
     fab.style.display = 'none';
     nearestFixed = null;
@@ -504,7 +506,7 @@ function hideFlashHint() {
 }
 
 async function captureFixed() {
-  if (!myPseudo) { _checkinError('Mode invité : connecte-toi pour révéler des polaroids.'); return; }
+  if (!myPseudo) { _checkinError('Mode invité : connecte-toi pour révéler des balises.'); return; }
   let target = nearestFixed;
   if (!target && playerLat !== null) {
     const fixedLeft = treasures
@@ -517,7 +519,7 @@ async function captureFixed() {
     if (nearest && nearest.d <= scanRadius) target = nearest.t;
   }
   if (!target) {
-    _checkinError('Approche-toi du polaroid pour capturer (zone GPS requise).');
+    _checkinError('Approche-toi de la balise pour capturer (zone GPS requise).');
     return;
   }
   haptic([50, 30, 50]);
@@ -549,11 +551,11 @@ async function captureUnique() {
     }
   }
   if (!target) {
-    _checkinError('Approche-toi davantage pour scanner ce trésor Flash.');
+    _checkinError('Approche-toi davantage pour scanner cette miniature Flash.');
     return;
   }
   if (target.found_by && target.found_by.length > 0) {
-    _checkinError('Ce trésor vient d\'être pris — trop tard ! 😅'); return;
+    _checkinError('Cette miniature vient d\'être capturée — trop tard ! 😅'); return;
   }
   haptic([50, 30, 50]);
   openQRScanner(target.id);

@@ -40,7 +40,7 @@ NAV_SCORES:         Scores
 ## CARTOUCHE MODE (en-tête de carte)
 
 > Petite barre affichée au-dessus de la minimap selon le mode actif.
-> Pour Flash, `{N}` = nombre de trésors encore disponibles.
+> Pour Flash, `{N}` = nombre de miniatures encore disponibles.
 
 ```
 GUIDE_QUETE_TITRE:       Mode Quête
@@ -81,7 +81,7 @@ TUTO_ASTUCE:        Active GPS + compas avant de démarrer pour une meilleure fl
 > Textes qui apparaissent dans la barre en bas de la carte selon la distance à la balise la plus proche.
 
 ```
-QUETE_RADAR_TRES_LOIN:    Un polaroid se cache dans ce quartier…
+QUETE_RADAR_TRES_LOIN:    Une balise se cache dans ce quartier…
 QUETE_RADAR_LOIN:         Tu chauffes — il est tout près.
 QUETE_RADAR_PROCHE:       Cherche bien, il est là.
 QUETE_RADAR_ZONE_RECHERCHE: Zone de recherche: ouvre l'œil autour de toi.
@@ -96,13 +96,15 @@ QUETE_RADAR_COMPLETE:     ✅ Ta quête est complète !
 
 ## BARRE DE PROXIMITÉ — Mode Flash
 
-> `{N}` = nombre de trésors Flash disponibles.
+> `{N}` = nombre de miniatures Flash disponibles.
 
 ```
-FLASH_RADAR_TRES_LOIN:    {N} trésor(s) dispo · Un polaroid se cache dans ce quartier…
-FLASH_RADAR_LOIN:         {N} trésor(s) dispo · Tu te rapproches !
-FLASH_RADAR_PROCHE:       {N} trésor(s) dispo · Tu es tout près !
-FLASH_RADAR_TRES_PROCHE:  {N} trésor(s) dispo · 📷 Prends le QR code en photo pour valider !
+FLASH_COUNT_ONE:          ⚡ 1 miniature dispo
+FLASH_COUNT_MULTI:        ⚡ {N} miniatures dispos
+FLASH_RADAR_DISTRICT:     Un polaroid se cache dans ce quartier
+FLASH_RADAR_ZONE_DIST:    À ~{D}m de la zone
+FLASH_RADAR_NEAR:         Tu es tout près
+FLASH_RADAR_CAPTURE:      📷 Prends le QR en photo pour valider
 FLASH_RADAR_ZERO:         ✅ Toutes les miniatures ont été cueillies, reviens plus tard !
 ```
 
@@ -113,7 +115,7 @@ FLASH_RADAR_ZERO:         ✅ Toutes les miniatures ont été cueillies, reviens
 ```
 QUETE_FIRST_LABEL:  PREMIÈRE RÉVÉLATION
 QUETE_FIRST_TITRE:  La chasse commence !
-QUETE_FIRST_DESC:   Le chrono est lancé. Révèle les {N} autres polaroids le plus vite possible.
+QUETE_FIRST_DESC:   Le chrono est lancé. Révèle les {N} autres balises le plus vite possible.
 ```
 
 ---
@@ -129,7 +131,7 @@ MID_1_DESC:    Continue, il t'en reste {N}.
 
 MID_2_LABEL:   EN ROUTE
 MID_2_TITRE:   Belle trouvaille.
-MID_2_DESC:    {N} polaroids t'attendent encore.
+MID_2_DESC:    {N} balises t'attendent encore.
 
 MID_3_LABEL:   TROUVÉ
 MID_3_TITRE:   Tu as l'œil.
@@ -141,7 +143,7 @@ MID_4_DESC:    {N} restants. Ne ralentis pas.
 
 MID_5_LABEL:   EN CHASSE
 MID_5_TITRE:   La quête avance.
-MID_5_DESC:    {N} polaroids à révéler.
+MID_5_DESC:    {N} balises à révéler.
 ```
 
 ---
@@ -162,7 +164,7 @@ QUETE_1_TITRE:   Plus qu'un !
 QUETE_1_DESC:    Une seule Balise te sépare de la fin. Tout se joue maintenant.
 
 QUETE_0_LABEL:   BALISE TROUVÉE
-QUETE_0_TITRE:   Polaroid révélé !
+QUETE_0_TITRE:   Balise révélée !
 QUETE_0_DESC:    Incroyable ! Ta quête est complète !
 ```
 
@@ -172,11 +174,11 @@ QUETE_0_DESC:    Incroyable ! Ta quête est complète !
 
 ```
 FLASH_WIN_LABEL:   CAPTURÉ
-FLASH_WIN_TITRE:   Trésor unique capturé
-FLASH_WIN_DESC:    Trésor validé. Partage ta capture et continue la chasse.
+FLASH_WIN_TITRE:   Miniature Flash capturée
+FLASH_WIN_DESC:    Miniature validée. Partage ta capture et continue la chasse.
 FLASH_PRIS_LABEL:  TROP TARD
 FLASH_PRIS_TITRE:  Trop tard !
-FLASH_PRIS_DESC:   Ce trésor Flash a déjà été pris.
+FLASH_PRIS_DESC:   Cette miniature Flash a déjà été capturée.
 FLASH_SHARE_KICKER:      FLASH CAPTURÉ · {PSEUDO}
 FLASH_SHARE_TITLE:
 FLASH_SHARE_TEXT:
@@ -200,14 +202,14 @@ QR_STATUS_WRONG_TREASURE_DETAIL: ⚠️ Mauvais QR: détecté {SCANNED}. Cherche
 QR_STATUS_CAPTURED: ✅ Polaroid révélé !
 QR_STATUS_CAMERA_BLOCKED: ⚠️ Caméra bloquée. Autorise la caméra puis utilise la photo de secours.
 QR_TARGET_FIXED:   Balise {N} de la quête
-QR_TARGET_FLASH:   Trésor unique
+QR_TARGET_FLASH:   Miniature Flash
 QR_TARGET_FLASH_REF: QR-00X
 QR_PHOTO_CTA:      📷 Prendre la photo
 QR_RETRY_PHOTO_CTA: ↻ Reprendre la photo
 QR_TIPS:           Astuce : rapproche-toi du QR code, évite les reflets et assure-toi qu'il occupe bien l'image.
 
-FLASH_TAKEN_TOAST_ONE:   ⚡ {PSEUDO} vient de prendre le trésor !
-FLASH_TAKEN_TOAST_MULTI:  ⚡ {N} trésors viennent d'être pris !
+FLASH_TAKEN_TOAST_ONE:   ⚡ {PSEUDO} vient de capturer une miniature !
+FLASH_TAKEN_TOAST_MULTI:  ⚡ {N} miniatures viennent d'être capturées !
 ```
 
 ---
@@ -223,7 +225,7 @@ DEJA_TITRE:   Tu as déjà flashé ce polaroid.
 
 ## ÉCRAN COMPLÉTION — Mode Quête
 
-> S'affiche quand tous les polaroids fixes sont trouvés.
+> S'affiche quand toutes les balises fixes sont trouvées.
 
 ```
 COMPLETE_TITRE:   Série complète.
@@ -251,7 +253,7 @@ PROGRES_LABEL:    📷 Balises trouvées
 ```
 COMPTE_COLLECTION_TITRE:  Ma collection
 COMPTE_COLLECTION_SOUS:   📷 Polaroids trouvés
-COMPTE_VIDE:              Aucun polaroid trouvé pour l'instant
+COMPTE_VIDE:              Aucune miniature trouvée pour l'instant
 ```
 
 ---
@@ -268,9 +270,9 @@ RETOUR_MESSAGE:   Bon retour {PSEUDO} ! Il te reste {N} balise{S} à trouver.
 
 ```
 ERR_TROP_LOIN:       Tu es à {N}m — trop loin pour révéler. Approche-toi à moins de {R}m.
-ERR_TOUS_TROUVES:    Tu as révélé tous les polaroids ! 🏆
-ERR_INVITÉ:          Mode invité : connecte-toi pour révéler des polaroids.
+ERR_TOUS_TROUVES:    Tu as révélé toutes les balises ! 🏆
+ERR_INVITÉ:          Mode invité : connecte-toi pour révéler des balises.
 ERR_INTROUVABLE:     Polaroid introuvable — il a peut-être été retiré.
-ERR_PAS_ACTIF:       Ce polaroid n'est pas encore actif.
+ERR_PAS_ACTIF:       Cette balise ou miniature n'est pas encore active.
 ERR_RESEAU:          Révélation impossible pour le moment. Réessaie dans quelques secondes.
 ```

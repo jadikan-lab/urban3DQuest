@@ -14,7 +14,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" media="print" onload="this.media='all'">
   <link rel="stylesheet" href="css/design-tokens.css">
-  <link rel="stylesheet" href="css/index-core.css?v=20260529-v3152">
+  <link rel="stylesheet" href="css/index-core.css?v=20260529-v3153">
 </head>
 <body>
 
@@ -147,7 +147,7 @@
 
 <!-- ── Photo viewer overlay ──────────────────────────── -->
 <div id="photoViewer" onclick="closePhotoViewer()">
-  <img id="photoViewerImg" src="" alt="Photo du trésor agrandie">
+  <img id="photoViewerImg" src="" alt="Photo agrandie de la trouvaille">
   <button onclick="closePhotoViewer()" aria-label="Fermer la photo">✕ Fermer</button>
 </div>
 
@@ -200,8 +200,8 @@
   <span>Capturer</span>
 </button>
 
-<!-- ── Flash Capture FAB (trésors uniques: zone affichée) ───── -->
-<button id="flashFab" onclick="captureUnique()" aria-label="Scanner le trésor Flash">
+<!-- ── Flash Capture FAB (miniatures Flash: zone affichée) ───── -->
+<button id="flashFab" onclick="captureUnique()" aria-label="Scanner la miniature Flash">
   <svg viewBox="0 0 74 74" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:26px;height:26px;flex-shrink:0;pointer-events:none" aria-hidden="true">
     <path d="M18 26V18h8" stroke="rgba(255,255,255,0.95)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
     <path d="M18 48v8h8" stroke="rgba(255,255,255,0.95)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -241,7 +241,7 @@
 <div id="foundModal">
   <div class="found-box relative-wrap" style="overflow:hidden">
     <div id="foundFlashOverlay"></div>
-    <img id="foundPhoto" class="found-photo" alt="photo du trésor">
+    <img id="foundPhoto" class="found-photo" alt="photo de la trouvaille">
     <div id="foundPhotoStrip" class="field-hidden"></div>
     <div class="found-emoji" id="foundEmoji"><span class="ui-icon lg teal" aria-hidden="true"><svg viewBox="0 0 22 22"><path d="M2 9a2 2 0 0 1 2-2h1.2L6.8 5h8.4L16.8 7H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9z"/><circle cx="11" cy="13" r="3"/></svg></span></div>
     <div class="found-label" id="foundLabel">RÉVÉLATION</div>
@@ -297,12 +297,12 @@
     </div>
     <div class="qr-emoji" id="qrEmojiFallback">📷</div>
     <div id="qrTarget">
-      <img id="qrTargetPhoto" alt="Photo du trésor cible">
+      <img id="qrTargetPhoto" alt="Photo de la miniature cible">
       <span class="qrt-lbl">Tu cherches</span>
       <span class="qrt-name"></span>
       <span class="qrt-quest"></span>
     </div>
-    <div id="qrStatus">Vise le polaroid pour le révéler.</div>
+    <div id="qrStatus">Vise le QR pour le révéler.</div>
     <div id="qrDebugLog" class="field-hidden"></div>
     <div id="qrReader"></div>
     <div id="qrZoomRow" class="field-hidden" aria-label="Contrôles de zoom">
@@ -335,17 +335,17 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner.legacy.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/supabase-env.js?v=20260529-v3152"></script>
-<script src="js/config.js?v=20260529-v3152"></script>
-<script src="js/ui-copy.js?v=20260529-v3152"></script>
-<script src="js/auth.js?v=20260529-v3152"></script>
-<script src="js/map-init.js?v=20260529-v3152"></script>
-<script src="js/gps.js?v=20260529-v3152"></script>
-<script src="js/compass.js?v=20260529-v3152"></script>
-<script src="js/qr.js?v=20260529-v3152"></script>
-<script src="js/game-init.js?v=20260529-v3152"></script>
-<script src="js/find.js?v=20260529-v3152"></script>
-<script src="js/leaderboard.js?v=20260529-v3152"></script>
-<script src="js/ui.js?v=20260529-v3152"></script>
+<script src="js/supabase-env.js?v=20260529-v3153"></script>
+<script src="js/config.js?v=20260529-v3153"></script>
+<script src="js/ui-copy.js?v=20260529-v3153"></script>
+<script src="js/auth.js?v=20260529-v3153"></script>
+<script src="js/map-init.js?v=20260529-v3153"></script>
+<script src="js/gps.js?v=20260529-v3153"></script>
+<script src="js/compass.js?v=20260529-v3153"></script>
+<script src="js/qr.js?v=20260529-v3153"></script>
+<script src="js/game-init.js?v=20260529-v3153"></script>
+<script src="js/find.js?v=20260529-v3153"></script>
+<script src="js/leaderboard.js?v=20260529-v3153"></script>
+<script src="js/ui.js?v=20260529-v3153"></script>
 </body>
 </html>
