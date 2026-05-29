@@ -101,17 +101,18 @@ async function initGame(pendingFoundId) {
 
   maybeOpenQuickTutorial();
   // Welcome back toast for returning players
-  if (myPseudo && myFoundCount > 0) {
+  if (myPseudo && myFoundCount > 0 && !sessionStorage.getItem('u3dq_welcome_seen')) {
     const remaining = treasures.filter(t => t.type === 'fixed' && !(t.found_by && t.found_by.split(',').includes(myPseudo))).length;
     if (remaining > 0) {
       const wt = document.getElementById('welcomeToast');
       if (wt) {
         const copy = (key, fallback = '') => (window.u3dqCopyText ? window.u3dqCopyText(key, fallback) : fallback);
-        wt.textContent = copy('RETOUR_MESSAGE', 'Bon retour {PSEUDO} ! Il te reste {N} balise{S} à trouver.')
+        wt.textContent = copy('RETOUR_MESSAGE_SHORT', 'Bon retour {PSEUDO} !')
           .replace('{PSEUDO}', myPseudo)
           .replace('{N}', String(remaining))
           .replace('{S}', remaining > 1 ? 's' : '');
         wt.classList.add('show');
+        sessionStorage.setItem('u3dq_welcome_seen', '1');
         setTimeout(() => wt.classList.remove('show'), 4000);
       }
     }
