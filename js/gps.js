@@ -285,7 +285,6 @@ function updateRadar() {
 
   // GPS accuracy warning
   const accStr = playerAccuracy ? ` · GPS ±${Math.round(playerAccuracy)}m` : '';
-  const gpsWeak = playerAccuracy && playerAccuracy > 40;
 
   if (activeGameMode === 'unique') {
     const uniqueLeft = treasures
@@ -296,8 +295,9 @@ function updateRadar() {
     if (!uniqueLeft.length) {
       const guideText = document.getElementById('modeGuideText');
       if (guideText) guideText.textContent = copy('GUIDE_FLASH_SOUS_ZERO', 'Aucune miniature disponible pour le moment');
-      bar.textContent = copy('FLASH_RADAR_ZERO', '✅ Toutes les miniatures ont été cueillies, reviens plus tard !');
+      bar.textContent = '';
       bar.className = '';
+      bar.style.display = 'none';
       fab.style.display = 'none';
       flashFabEl.style.display = 'none';
       flashCaptureStickyId = null;
@@ -326,7 +326,6 @@ function updateRadar() {
       ? copy('GUIDE_FLASH_SOUS_SOLO', 'Plus qu\'une miniature à trouver')
       : copy('GUIDE_FLASH_SOUS_MULTI', '{N} miniatures à cueillir · sois le premier !').replace('{N}', String(available));
 
-    const uniqueCenterDist = Math.round(nearestU.centerDist);
     const uniqueEdgeDist = Math.round(nearestU.edgeDist);
     const flashFab = document.getElementById('flashFab');
     const accForFlash = Math.max(0, Math.round(playerAccuracy || 0));
@@ -395,8 +394,9 @@ function updateRadar() {
   hideFlashHint();
 
   if (!fixedLeft.length) {
-    bar.textContent = '✅ Ta quete est complete !';
+    bar.textContent = '';
     bar.className = '';
+    bar.style.display = 'none';
     fab.style.display = 'none';
     nearestFixed = null;
     lastHapticZone = null;
