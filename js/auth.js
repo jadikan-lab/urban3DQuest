@@ -80,6 +80,17 @@ function initEnvUI() {
 initEnvUI();
 
 window.addEventListener('load', async () => {
+  const bootParams = new URLSearchParams(location.search);
+  if (bootParams.get('teaser') === '1') {
+    const teaserUrl = new URL('teaser.html', location.href);
+    const env = bootParams.get('env');
+    const cachebust = bootParams.get('cachebust');
+    if (env) teaserUrl.searchParams.set('env', env);
+    if (cachebust) teaserUrl.searchParams.set('cachebust', cachebust);
+    location.replace(teaserUrl.toString());
+    return;
+  }
+
   // Attach QR file input handler (cloneNode approach requires JS init)
   const qrInput = document.getElementById('qrFileInput');
   if (qrInput) qrInput.addEventListener('change', () => handleQRPhoto(qrInput));
