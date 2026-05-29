@@ -337,7 +337,7 @@ function updateRadar() {
 
     if (inFlashCaptureZone) {
       // Palier 3 — inside displayed Flash search circle: FAB + hint + "scan now"
-      bar.textContent = `${cStr} · ${copy('FLASH_RADAR_TRES_PROCHE', '📷 Prends le QR code en photo pour valider !').replace('{N}', String(available))}${accStr}`;
+      bar.textContent = `${cStr} · 📷 Prends le QR en photo pour valider${accStr}`;
       bar.className = 'very-near';
       flashCaptureStickyId = nearestU.t.id;
       nearestUnique = nearestU.t;
@@ -346,7 +346,7 @@ function updateRadar() {
       if (lastHapticZone !== 'unique-capture') { lastHapticZone = 'unique-capture'; haptic([100, 50, 100, 50, 200]); }
     } else if (uniqueEdgeDist <= FLASH_HINT_M) {
       // Palier 2 — close to the displayed search circle, no FAB yet
-      bar.textContent = `${cStr} · ${copy('FLASH_RADAR_PROCHE', 'Tu es tout près !').replace('{N}', String(available))}${accStr}`;
+      bar.textContent = `${cStr} · Tu es tout près${accStr}`;
       bar.className = 'very-near';
       flashCaptureStickyId = null;
       nearestUnique = null;
@@ -357,8 +357,8 @@ function updateRadar() {
     } else if (uniqueEdgeDist <= proximityR * 5) {
       // Palier 1 — < 500m : "tu chauffes", rien de révélé
       bar.textContent = uniqueEdgeDist <= proximityR
-        ? `${cStr} · ${copy('FLASH_RADAR_LOIN', 'Tu te rapproches !').replace('{N}', String(available))}${accStr}`
-        : `${cStr} · ${copy('FLASH_RADAR_TRES_LOIN', 'Un polaroid se cache dans ce quartier…').replace('{N}', String(available))}${accStr}`;
+        ? `${cStr} · À ~${Math.max(1, uniqueEdgeDist)}m de la zone${accStr}`
+        : `${cStr} · Un polaroid se cache dans ce quartier${accStr}`;
       bar.className = uniqueEdgeDist <= proximityR ? 'near' : '';
       flashCaptureStickyId = null;
       nearestUnique = null;
@@ -370,7 +370,7 @@ function updateRadar() {
         if (lastHapticZone !== 'unique-far') { lastHapticZone = 'unique-far'; }
       }
     } else {
-      bar.textContent = `${cStr} · ${copy('FLASH_RADAR_TRES_LOIN', 'Un polaroid se cache dans ce quartier…').replace('{N}', String(available))}${accStr}`;
+      bar.textContent = `${cStr} · Un polaroid se cache dans ce quartier${accStr}`;
       bar.className = '';
       flashCaptureStickyId = null;
       nearestUnique = null;
