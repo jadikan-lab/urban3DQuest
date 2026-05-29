@@ -298,8 +298,11 @@ function openQuickTutorial() {
   const el = document.getElementById('quickTutorial');
   if (!el) return;
   const copy = (key, fallback = '') => (window.u3dqCopyText ? window.u3dqCopyText(key, fallback) : fallback);
-  const clickHint = document.getElementById('qtClickHint');
-  if (clickHint) clickHint.textContent = copy('TUTO_CLICK_HINT', 'Astuce : la flèche et le rond sont cliquables.');
+  const tip = document.getElementById('qtClickableTip');
+  if (tip) {
+    tip.textContent = copy('TUTO_ASTUCE_CLICABLE', 'Astuce : la flèche et le rond de la carte sont cliquables.');
+    tip.classList.remove('field-hidden');
+  }
   el.classList.add('open');
 }
 

@@ -65,8 +65,8 @@ async function _tryProcessFindSecure(t, foundCountBefore) {
   }
   if (!data || !data.status) return false;
 
-  if (data.status === 'not_found') { _checkinError(t.type === 'fixed' ? 'Balise introuvable — elle a peut-être été retirée.' : 'Miniature introuvable — elle a peut-être été retirée.'); return true; }
-  if (data.status === 'hidden')   { _checkinError(t.type === 'fixed' ? 'Cette balise n\'est pas encore active.' : 'Cette miniature n\'est pas encore active.'); return true; }
+  if (data.status === 'not_found') { _checkinError('Polaroid introuvable — il a peut-être été retiré.'); return true; }
+  if (data.status === 'hidden')   { _checkinError('Ce polaroid n\'est pas encore actif.'); return true; }
   if (data.status === 'no_gps')   { _checkinError('GPS requis pour valider cette capture.'); return true; }
   if (data.status === 'invalid_session') {
     _checkinError('Session expirée — reconnecte-toi puis réessaie.');
@@ -186,8 +186,8 @@ async function _doProcessFind(treasureId) {
   const foundCountBefore = myFoundCount;
   // Fetch treasure fresh from DB
   const { data: t, error } = await db.from('treasures').select('*').eq('id', treasureId).single();
-  if (error || !t) { _checkinError('Balise ou miniature introuvable — elle a peut-être été retirée.'); return; }
-  if (!t.visible)  { _checkinError(t.type === 'fixed' ? 'Cette balise n\'est pas encore active.' : 'Cette miniature n\'est pas encore active.'); return; }
+  if (error || !t) { _checkinError('Polaroid introuvable — il a peut-être été retiré.'); return; }
+  if (!t.visible)  { _checkinError('Ce polaroid n\'est pas encore actif.'); return; }
   if (!_isTreasureAllowedInActiveScope(t)) {
     _checkinError('Cette balise n\'est pas active dans cette partie. Scanne une balise de la quête en cours.');
     return;
@@ -195,7 +195,7 @@ async function _doProcessFind(treasureId) {
 
   if (!myPseudo) {
     if (await _tryGuestUniqueCapture(t)) return;
-    _checkinError(t.type === 'fixed' ? 'Mode invité : connecte-toi pour révéler des balises.' : 'Mode invité : connecte-toi pour cueillir des miniatures.');
+    _checkinError('Mode invité : connecte-toi pour révéler des polaroids.');
     return;
   }
 
@@ -356,12 +356,12 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
         setFoundIcon('camera', 'teal');
         label.textContent = 'PREMIÈRE RÉVÉLATION';
         title.textContent = 'La chasse commence !';
-        desc.textContent = `Le chrono est lancé. Trouve les ${fixedTotal - 1} autres balises le plus vite possible.`;
+        desc.textContent = `Le chrono est lancé. Trouve les ${fixedTotal - 1} autres polaroids le plus vite possible.`;
         dur.textContent = '';
       } else if (remaining === 0) {
         setFoundIcon('camera', 'teal');
         label.textContent = 'BALISE TROUVÉE';
-        title.textContent = 'Balise révélée !';
+        title.textContent = 'Polaroid révélé !';
         dur.textContent = durationSec != null ? formatDuration(durationSec) + ' depuis le début' : '';
         desc.textContent = 'Incroyable ! Ta quete est complete !';
         db.from('config').select('key,value').then(({ data: cfgData }) => {
@@ -391,10 +391,10 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
       } else {
         const midMessages = [
           { icon: 'camera', className: 'teal', label: 'RÉVÉLÉ', title: 'Balise révélé.', desc: `Continue, il t'en reste ${remaining}.` },
-          { icon: 'gps', className: 'teal', label: 'EN ROUTE', title: 'Belle trouvaille.', desc: `${remaining} balises t'attendent encore.` },
+          { icon: 'gps', className: 'teal', label: 'EN ROUTE', title: 'Belle trouvaille.', desc: `${remaining} polaroids t'attendent encore.` },
           { icon: 'check', className: 'success', label: 'TROUVÉ', title: 'Tu as l\'œil.', desc: `Plus que ${remaining} en attente.` },
           { icon: 'gps', className: 'warn', label: 'MARQUÉ', title: 'Dans la boîte.', desc: `${remaining} restants. Ne ralentis pas.` },
-          { icon: 'flash', className: 'flash', label: 'EN CHASSE', title: 'La quête avance.', desc: `${remaining} balises à révéler.` }
+          { icon: 'flash', className: 'flash', label: 'EN CHASSE', title: 'La quête avance.', desc: `${remaining} polaroids à révéler.` }
         ];
         const msg = midMessages[foundNow % midMessages.length];
         setFoundIcon(msg.icon, msg.className);
@@ -406,9 +406,9 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
     } else {
       setFoundIcon('flash', 'flash');
       label.textContent = _findCopy('FLASH_WIN_LABEL', 'CAPTURÉ');
-      title.textContent = _findCopy('FLASH_WIN_TITRE', 'Miniature Flash capturée');
+      title.textContent = _findCopy('FLASH_WIN_TITRE', 'Trésor unique capturé');
       dur.textContent   = formatDuration(durationSec);
-      desc.textContent  = _findCopy('FLASH_WIN_DESC', 'Miniature validée. Partage ta capture et continue la chasse.');
+      desc.textContent  = _findCopy('FLASH_WIN_DESC', 'Trésor validé. Partage ta capture et continue la chasse.');
       _lastUniqueSuccessModal = { id: t.id, at: Date.now() };
       window._uniqueCaptureShareData = {
         id: t.id,
@@ -433,7 +433,7 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
     label.textContent = _findCopy('FLASH_PRIS_LABEL', 'TROP TARD');
     title.textContent = _findCopy('FLASH_PRIS_TITRE', 'Trop tard !');
     dur.textContent   = '';
-    desc.textContent  = _findCopy('FLASH_PRIS_DESC', 'Cette miniature Flash a déjà été capturée.');
+    desc.textContent  = _findCopy('FLASH_PRIS_DESC', 'Ce trésor Flash a déjà été pris.');
   }
   modal.classList.add('open');
   // Flash overlay on success
