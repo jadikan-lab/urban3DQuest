@@ -80,8 +80,9 @@ function initEnvUI() {
 initEnvUI();
 
 window.addEventListener('load', async () => {
+  const TEASER_ROUTE_ENABLED = false;
   const bootParams = new URLSearchParams(location.search);
-  if (bootParams.get('teaser') === '1') {
+  if (TEASER_ROUTE_ENABLED && bootParams.get('teaser') === '1') {
     const teaserUrl = new URL('teaser.html', location.href);
     const env = bootParams.get('env');
     const cachebust = bootParams.get('cachebust');

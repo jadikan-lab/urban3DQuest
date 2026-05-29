@@ -160,7 +160,7 @@
   <script>
     // Emergency static mode: no Supabase read to keep public egress near zero.
     const TEASER_CONFIG = {
-      enabled: true,
+      enabled: false,
       title: 'Urban3DQuest.fr · Jadikan',
       subtitle: 'Le prochain drop arrive. Laisse ton blase, on te previent.',
       targetAt: '2026-05-30T15:08:00+02:00',
@@ -218,8 +218,15 @@
       subtitle.textContent = TEASER_CONFIG.subtitle;
       cta.textContent = TEASER_CONFIG.ctaLabel;
       cta.href = TEASER_CONFIG.ctaUrl;
-      hint.textContent = TEASER_CONFIG.enabled ? 'Landing teaser active.' : 'Landing teaser inactive.';
+      hint.textContent = TEASER_CONFIG.enabled ? 'Landing teaser active.' : 'Landing teaser desactivee temporairement.';
       hint.className = TEASER_CONFIG.enabled ? 'hint' : 'hint off';
+
+      if (!TEASER_CONFIG.enabled) {
+        document.getElementById('countGrid').style.display = 'none';
+        document.getElementById('teaserMeta').textContent = 'Teaser desactive temporairement.';
+        cta.style.display = 'none';
+        return;
+      }
 
       renderCountdown(TEASER_CONFIG.targetAt);
     }
