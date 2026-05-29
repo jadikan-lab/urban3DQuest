@@ -229,6 +229,10 @@ function openQRScanner(beaconId) {
     const nameSpan = targetEl.querySelector('.qrt-name');
     const questSpan = targetEl.querySelector('.qrt-quest');
     const photoEl = document.getElementById('qrTargetPhoto');
+    if (photoEl) {
+      photoEl.src = '';
+      photoEl.style.display = 'none';
+    }
     if (t) {
       _renderQRGuideVisual(_resolveQrGuideForType(t.type));
       if (t.type === 'fixed') {
@@ -249,14 +253,8 @@ function openQRScanner(beaconId) {
         questSpan.style.display = 'block';
         status.textContent = _qrCopy('QR_STATUS_FLASH', 'Tu as trouvé la miniature, prends une photo du QR code pour valider ta cueillette.');
         if (photoEl) {
-          const photoUrl = safeImgUrl(getPhotoUrls(t.photo_url)[0]);
-          if (photoUrl) {
-            photoEl.src = photoUrl;
-            photoEl.style.display = 'block';
-          } else {
-            photoEl.src = '';
-            photoEl.style.display = 'none';
-          }
+          photoEl.src = '';
+          photoEl.style.display = 'none';
         }
       }
       targetEl.style.display = 'block';

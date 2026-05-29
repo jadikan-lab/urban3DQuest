@@ -12,3 +12,4 @@ Ajoute une idee avec:
 	- [x] Rendre les textes du bloc partage Flash configurables dans ui-copy.
 	- [x] Ajouter une action "Reprendre la photo" claire après échec, sans fermer l'overlay.
 	- [ ] Revalider le flux complet sur mobile réel (Flash trouvé -> photo -> récompense -> partage).
+- [ ] 2026-05-29 09:57 - Il faudrait améliorer le design de l'image de partage. Quand on veut scanner un flash, il y a deux images: il faudrait n'en garder qu'une seule, celle qui montre qu'on scanne le QR code.
