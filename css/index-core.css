@@ -393,6 +393,7 @@
     .qt-btn.secondary{background:#111827;color:#f9fafb}
     .qt-btn.ghost{background:#fff;color:#111827;border:1px solid var(--line-2)}
     .qt-note{font-size:0.7rem;color:var(--ink-3);margin-top:10px}
+    .qt-click-hint{font-size:0.74rem;color:var(--magenta);font-weight:700;margin-top:8px;line-height:1.45}
 
     /* ── Small smartphone compaction ── */
     @media (max-width: 390px), (max-height: 740px) {
@@ -495,6 +496,7 @@
     .ts-loc{font-family:var(--mono);font-size:0.7rem;color:var(--ink-3);padding:0 20px;margin-bottom:14px}
     .ts-hint-wrap{margin:0 20px 16px;padding:10px 12px;background:var(--bg);border-radius:var(--radius-sm);border-left:3px solid var(--magenta)}
     .ts-hint{font-style:italic;font-size:0.86rem;color:var(--ink-2);line-height:1.6}
+    .ts-actions{display:flex;flex-direction:column;gap:10px;padding:0 20px;margin-top:4px}
     .ts-stats{display:flex;margin:0 20px 18px;border:1px solid var(--line);border-radius:var(--radius-sm);overflow:hidden}
     .ts-stat{flex:1;text-align:center;padding:12px 4px;border-right:1px solid var(--line)}
     .ts-stat:last-child{border-right:none}
@@ -503,6 +505,7 @@
     .ts-stat-key{font-family:var(--mono);font-size:0.58rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-3);margin-top:3px}
     .ts-cta{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 20px;padding:16px;background:var(--ink);border:none;border-radius:var(--radius);color:var(--surface);font-size:1.05rem;font-weight:800;cursor:pointer;width:calc(100% - 40px);letter-spacing:0.02em;font-family:var(--display)}
     .ts-cta:active{opacity:0.85}
+    .ts-cta.ts-back{margin:0;width:100%;background:var(--surface);color:var(--ink);border:1px solid var(--line-2)}
     .ts-cta-taken{background:var(--line);color:var(--ink-3);cursor:default}
     .ts-top-row{display:flex;align-items:center;gap:8px;padding:0 20px 12px}
     .ts-type{font-family:var(--mono);font-size:0.72rem;color:var(--ink-3);margin-left:auto}

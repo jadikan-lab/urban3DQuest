@@ -72,6 +72,9 @@ TUTO_FLASH_DESC:    Trouves les petits Polaroids qui apparaissent sur la carte
                     
 
 TUTO_ASTUCE:        Active GPS + compas avant de démarrer pour une meilleure fluidité.
+TUTO_CLICK_HINT:    Astuce : la flèche en Quête et le rond en Flash sont cliquables.
+SHEET_BACK_BTN:     Retour au jeu
+FLASH_SHEET_HINT:   Clique le rond pour voir l'info, puis reviens ici.
 ```
 
 ---

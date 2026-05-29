@@ -297,6 +297,9 @@ function onHeaderPseudoClick() {
 function openQuickTutorial() {
   const el = document.getElementById('quickTutorial');
   if (!el) return;
+  const copy = (key, fallback = '') => (window.u3dqCopyText ? window.u3dqCopyText(key, fallback) : fallback);
+  const clickHint = document.getElementById('qtClickHint');
+  if (clickHint) clickHint.textContent = copy('TUTO_CLICK_HINT', 'Astuce : la flèche et le rond sont cliquables.');
   el.classList.add('open');
 }
 

@@ -611,6 +611,7 @@ function revealFixedClueFromSheet(id) {
 
 // ── Treasure sheet ───────────────────────────────────
 function openTreasureSheet(t) {
+  const copy = (key, fallback = '') => (window.u3dqCopyText ? window.u3dqCopyText(key, fallback) : fallback);
   const isMine   = t.found_by && t.found_by.split(',').includes(myPseudo);
   const isTaken  = t.type === 'unique' && t.found_by && t.found_by.length > 0;
   const typeLabel = t.type === 'fixed' ? 'Polaroid · Quete' : 'Polaroid · Flash';
@@ -629,13 +630,15 @@ function openTreasureSheet(t) {
   const badge = isMine ? '<span class="ts-badge ts-badge-found">✓ Révélé</span>'
     : isTaken ? '<span class="ts-badge ts-badge-taken">🔒 Flash pris</span>'
     : '<span class="ts-badge ts-badge-open">· À révéler</span>';
-  const cta = (!isMine && !isTaken && t.type === 'unique' && t.lat && t.lng)
-    ? `<button class="ts-cta" onclick="recenterOn(${t.lat},${t.lng})">M'y emmener →</button>` : '';
   const clueCta = (isFixedLocked && !clueUnlocked)
     ? (isNearForClue
         ? `<button class="ts-cta" onclick="revealFixedClueFromSheet('${jsSingleQuoted(t.id)}')">Voir la photo + indice</button>`
         : `<div class="ts-hint">📍 Approche-toi encore pour débloquer la photo et l'indice.</div>`)
     : '';
+  const flashHint = t.type === 'unique'
+    ? `<div class="ts-hint">⚡ ${copy('FLASH_SHEET_HINT', 'Clique le rond pour ouvrir les détails, puis reviens ici.')}</div>`
+    : '';
+  const backBtn = `<button class="ts-cta ts-back" onclick="closeTreasureSheet()">${copy('SHEET_BACK_BTN', 'Retour au jeu')}</button>`;
   const dist = distM !== null
     ? (() => { const d = distM; return d < 1000 ? Math.round(d) + ' m' : (d/1000).toFixed(1) + ' km'; })()
     : '';
@@ -646,7 +649,10 @@ function openTreasureSheet(t) {
     ${dist ? `<div class="ts-dist">${escHtml(dist)} de moi</div>` : ''}
     ${(t.hint && canShowFixedMedia) ? `<div class="ts-hint">💡 ${escHtml(t.hint)}</div>` : ''}
     ${clueCta}
-    ${cta}
+    ${flashHint}
+    <div class="ts-actions">
+      ${backBtn}
+    </div>
   `;
   document.getElementById('treasureSheet').classList.add('open');
 }
