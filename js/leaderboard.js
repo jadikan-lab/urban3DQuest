@@ -155,6 +155,22 @@ function _renderLeaderboard({ rows, totalFixed, myData, myRankNum }) {
 
 async function loadLeaderboard() {
   const el = document.getElementById('lbList');
+  if (egressEmergencyMode) {
+    const myCardEl = document.getElementById('myCard');
+    if (myCardEl) {
+      myCardEl.style.display = myPseudo ? 'block' : 'none';
+      if (myPseudo) {
+        myCardEl.innerHTML = `<div class="my-card" style="text-align:center;padding:14px">
+          <div class="my-card-pseudo">${escHtml(myPseudo)}</div>
+          <div class="my-card-sub" style="margin-top:4px">Classement temporairement en pause (mode egress).</div>
+        </div>`;
+      }
+    }
+    el.innerHTML = '<p style="color:#94a3b8;text-align:center;padding:40px">⏸ Classement temporairement désactivé pour réduire l\'egress.</p>';
+    const rf = document.getElementById('lbRefresh');
+    if (rf) rf.textContent = '↻ mode egress';
+    return;
+  }
   if (!el.dataset.loaded) el.innerHTML = `<p style="color:var(--ink-3);text-align:center;padding:30px">⏳ Chargement…</p>`;
   try {
     const data = await _fetchLeaderboardData();
@@ -167,9 +183,13 @@ async function loadLeaderboard() {
 }
 
 function startLbPolling() {
+  if (lbInterval) clearInterval(lbInterval);
+  if (egressEmergencyMode) {
+    loadLeaderboard();
+    return;
+  }
   loadLeaderboard();
   loadTreasures();
-  if (lbInterval) clearInterval(lbInterval);
   lbInterval = setInterval(() => { loadLeaderboard(); loadTreasures(); }, 120000);
 }
 

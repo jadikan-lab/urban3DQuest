@@ -33,6 +33,7 @@ async function initGame(pendingFoundId) {
       const gs = new Date(c.gameStart);
       if (!isNaN(gs.getTime())) gameStart = gs;
     }
+    egressEmergencyMode = c.egressEmergency === 'true';
     qrGuideFlashUrl = safeImgUrl(c.qrGuideFlashUrl || '');
     qrGuideFixedUrl = safeImgUrl(c.qrGuideFixedUrl || '');
     qrGuideGenericUrl = safeImgUrl(c.qrGuideGenericUrl || '');
