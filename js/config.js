@@ -17,8 +17,8 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.14.25';
-const ASSET_VERSION = '20260530-v31425';
+const GAME_VERSION = 'v3.14.26';
+const ASSET_VERSION = '20260530-v31426';
 const loginVersion = document.getElementById('loginVersion');
 if (loginVersion) loginVersion.textContent = 'JOUEUR · ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 document.getElementById('gameVersion').textContent = 'Urban3DQuest.fr · Jadikan ' + GAME_VERSION + ' · JOUEUR · ' + SUPABASE_ENV.label;
