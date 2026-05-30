@@ -32,6 +32,9 @@ function showTab(name, btn) {
   if (name !== 'explore') {
     document.getElementById('radarBar').style.display = 'none';
     document.getElementById('progressBar').style.display = 'none';
+    const flashFab = document.getElementById('flashFab');
+    if (flashFab) flashFab.style.display = 'none';
+    if (typeof hideFlashHint === 'function') hideFlashHint();
   }
   const gpsKickBtn = document.getElementById('gpsKickBtn');
   if (gpsKickBtn) gpsKickBtn.style.display = (name === 'explore' && isIOSDevice() && playerLat === null) ? 'block' : 'none';

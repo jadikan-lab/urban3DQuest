@@ -376,7 +376,7 @@ function updateRadar() {
       flashCaptureStickyId = nearestU.t.id;
       nearestUnique = nearestU.t;
       flashFab.style.display = 'flex';
-      if (nearestU.t.photo_url) showFlashHint(nearestU.t, 'Tu es dans le rond: scanne le QR pour valider.');
+      if (nearestU.t.photo_url) showFlashHint(nearestU.t, 'Scanne le QR pour valider.');
       if (lastHapticZone !== 'unique-capture') { lastHapticZone = 'unique-capture'; haptic([100, 50, 100, 50, 200]); }
     } else {
       // Two-state UX: outside the circle => keep guidance minimal.

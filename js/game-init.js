@@ -262,6 +262,21 @@ function updateTutorialEntryPoints() {
 function setGameMode(mode) {
   const nextMode = mode === 'unique' ? 'unique' : 'fixed';
   if (activeGameMode === nextMode) return;
+
+  // Hard reset mode-specific UI to avoid stale Flash artifacts when switching.
+  const radarBar = document.getElementById('radarBar');
+  if (radarBar) {
+    radarBar.textContent = '';
+    radarBar.className = '';
+  }
+  const flashFab = document.getElementById('flashFab');
+  if (flashFab) flashFab.style.display = 'none';
+  const captureFab = document.getElementById('captureFab');
+  if (captureFab) captureFab.style.display = 'none';
+  if (typeof hideFlashHint === 'function') hideFlashHint();
+  nearestUnique = null;
+  flashCaptureStickyId = null;
+
   activeGameMode = nextMode;
   localStorage.setItem('u3dq_game_mode', activeGameMode);
   document.body.classList.toggle('flash-mode', activeGameMode === 'unique');
