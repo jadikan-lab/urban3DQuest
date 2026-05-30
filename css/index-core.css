@@ -340,7 +340,7 @@
     #radarCenterDot{position:absolute;width:14px;height:14px;border-radius:50%;background:#fb7185;box-shadow:0 0 14px rgba(251,113,133,.9),0 0 4px rgba(255,255,255,.5);top:50%;left:50%;transform:translate(-50%,-50%);z-index:3}
     #radarCenterLabel{display:none}
     /* ── Compass corner widget (rose des vents transparente) ── */
-    #compassCorner{position:absolute;left:10px;bottom:56px;z-index:1000;display:none;align-items:center;justify-content:center;background:transparent;border:none;border-radius:0;padding:0;box-shadow:none;font-family:var(--mono);width:60px;height:60px;overflow:visible}
+    #compassCorner{position:absolute;left:10px;bottom:calc(96px + max(0px, env(safe-area-inset-bottom)));z-index:1000;display:none;align-items:center;justify-content:center;background:transparent;border:none;border-radius:0;padding:0;box-shadow:none;font-family:var(--mono);width:60px;height:60px;overflow:visible}
     #compassCorner.active{display:flex}
     #compassRose{position:relative;width:58px;height:58px;display:flex;align-items:center;justify-content:center;transform:rotate(0deg);transform-origin:50% 50%;transition:transform .24s ease;overflow:visible}
     #compassRoseSvg{width:58px;height:58px;display:block;overflow:visible;filter:drop-shadow(0 1px 4px rgba(45,36,24,.32))}
