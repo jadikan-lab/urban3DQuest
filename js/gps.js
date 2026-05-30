@@ -353,7 +353,7 @@ function updateRadar() {
       .sort((a, b) => (a.edgeDist - b.edgeDist) || (a.centerDist - b.centerDist))[0];
 
     const available = uniqueLeft.length;
-    const cStr = available === 1 ? '⚡ 1 trésor dispo' : `⚡ ${available} trésors dispos`;
+    // const cStr = available === 1 ? '⚡ 1 trésor dispo' : `⚡ ${available} trésors dispos`;
 
     // Update guide bar count
     const guideText = document.getElementById('modeGuideText');
@@ -372,7 +372,7 @@ function updateRadar() {
     if (inFlashCaptureZone) {
       // Two-state UX: inside displayed search circle => scan is available.
       bar.style.display = 'block';
-      bar.textContent = `${cStr} · ${copy('FLASH_RADAR_SCAN', '📷 Tu peux scanner le QR maintenant.')}${accStr}`;
+      bar.textContent = `${copy('FLASH_RADAR_SCAN', '📷 Tu peux scanner le QR maintenant.')}${accStr}`;
       bar.className = 'very-near';
       flashCaptureStickyId = nearestU.t.id;
       nearestUnique = nearestU.t;
