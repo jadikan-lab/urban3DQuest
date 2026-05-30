@@ -235,30 +235,65 @@ function haptic(pattern) {
 }
 
 let fixedQuestZoneState = null;
+let fixedQuestZoneCandidate = null;
+let fixedQuestZoneStableCount = 0;
+let fixedQuestLock = { id: null, until: 0 };
 
-function _computeFixedQuestZone(dist, radius, previousZone) {
+function _computeFixedQuestZone(dist, radius, accuracyM, previousZone) {
   const r = Math.max(1, Number(radius) || 100);
-  const scanIn = 0.15 * r;
-  const finalIn = 0.45 * r;
-  const searchIn = 1.2 * r;
-  const approachIn = 2.5 * r;
+  const acc = Math.max(0, Number(accuracyM) || 0);
+  const scanIn = Math.max(10, 0.30 * r) + Math.min(12, Math.round(acc * 0.35));
+  const nearIn = 1.20 * r;
 
   const outMul = 1.10;
   const scanOut = scanIn * outMul;
-  const finalOut = finalIn * outMul;
-  const searchOut = searchIn * outMul;
-  const approachOut = approachIn * outMul;
+  const nearOut = nearIn * 1.12;
 
-  if (previousZone === 'scan' && dist <= scanOut) return 'scan';
-  if ((previousZone === 'scan' || previousZone === 'final') && dist <= finalOut) return 'final';
-  if ((previousZone === 'scan' || previousZone === 'final' || previousZone === 'search') && dist <= searchOut) return 'search';
-  if ((previousZone === 'scan' || previousZone === 'final' || previousZone === 'search' || previousZone === 'approach') && dist <= approachOut) return 'approach';
+  let zone;
+  if (previousZone === 'scan' && dist <= scanOut) zone = 'scan';
+  else if ((previousZone === 'scan' || previousZone === 'proche') && dist <= nearOut) zone = 'proche';
+  else if (dist <= scanIn) zone = 'scan';
+  else if (dist <= nearIn) zone = 'proche';
+  else zone = 'far';
 
-  if (dist <= scanIn) return 'scan';
-  if (dist <= finalIn) return 'final';
-  if (dist <= searchIn) return 'search';
-  if (dist <= approachIn) return 'approach';
-  return 'far';
+  // Guardrail: with weak GPS, never allow scan state.
+  if (acc > 35 && zone === 'scan') zone = 'proche';
+  return zone;
+}
+
+function _stabilizeFixedQuestZone(nextZone, currentZone) {
+  if (!currentZone) {
+    fixedQuestZoneCandidate = null;
+    fixedQuestZoneStableCount = 0;
+    return nextZone;
+  }
+  if (nextZone === currentZone) {
+    fixedQuestZoneCandidate = null;
+    fixedQuestZoneStableCount = 0;
+    return currentZone;
+  }
+
+  const level = { far: 0, proche: 1, scan: 2 };
+  const goingUp = (level[nextZone] || 0) > (level[currentZone] || 0);
+
+  // Descents are immediate; ascents require 2 consecutive confirmations.
+  if (!goingUp) {
+    fixedQuestZoneCandidate = null;
+    fixedQuestZoneStableCount = 0;
+    return nextZone;
+  }
+
+  if (fixedQuestZoneCandidate === nextZone) fixedQuestZoneStableCount += 1;
+  else {
+    fixedQuestZoneCandidate = nextZone;
+    fixedQuestZoneStableCount = 1;
+  }
+  if (fixedQuestZoneStableCount >= 2) {
+    fixedQuestZoneCandidate = null;
+    fixedQuestZoneStableCount = 0;
+    return nextZone;
+  }
+  return currentZone;
 }
 
 function updateRadar() {
@@ -375,61 +410,57 @@ function updateRadar() {
     fab.style.display = 'none';
     nearestFixed = null;
     lastHapticZone = null;
+    fixedQuestZoneCandidate = null;
+    fixedQuestZoneStableCount = 0;
+    fixedQuestLock = { id: null, until: 0 };
     return;
   }
 
-  const nearestF = fixedLeft
+  const fixedCandidates = fixedLeft
     .map(t => ({ t, d: haversine(playerLat, playerLng, t.lat, t.lng) }))
-    .sort((a, b) => a.d - b.d)[0];
+    .sort((a, b) => a.d - b.d);
+  const now = Date.now();
+  const locked = fixedQuestLock.id && now < fixedQuestLock.until
+    ? fixedCandidates.find(x => x.t.id === fixedQuestLock.id)
+    : null;
+  const nearestF = locked || fixedCandidates[0];
+  if (nearestF && nearestF.t.id !== fixedQuestLock.id) {
+    fixedQuestLock = { id: nearestF.t.id, until: now + 4000 };
+  }
 
   const dist = Math.round(nearestF.d);
   const gpsAcc = Math.round(playerAccuracy || 999);
   const gpsWeakForFixed = gpsAcc > 35;
-  const gpsVeryWeakForFixed = gpsAcc > 50;
 
-  let zone = _computeFixedQuestZone(dist, proximityR, fixedQuestZoneState);
-  if (gpsVeryWeakForFixed && (zone === 'scan' || zone === 'final')) zone = 'search';
+  const rawZone = _computeFixedQuestZone(dist, proximityR, gpsAcc, fixedQuestZoneState);
+  const zone = _stabilizeFixedQuestZone(rawZone, fixedQuestZoneState);
 
   const zoneChanged = zone !== fixedQuestZoneState;
   fixedQuestZoneState = zone;
 
   const t = nearestF.t;
-  const canScanNow = zone === 'scan' && !gpsVeryWeakForFixed;
+  const canScanNow = zone === 'scan';
   const unstableMsg = gpsWeakForFixed ? ` ${copy('QUETE_RADAR_GPS_INSTABLE', '⚠️ GPS instable (±{A}m), avance en zone dégagée.').replace('{A}', String(gpsAcc))}` : '';
 
-  if ((zone === 'search' || zone === 'final' || zone === 'scan') && t.photo_url && !revealedFixedClues.has(t.id)) {
+  if ((zone === 'proche' || zone === 'scan') && t.photo_url && !revealedFixedClues.has(t.id)) {
     revealedFixedClues.add(t.id);
     if (myPseudo) localStorage.setItem(`u3dq_clues_${myPseudo}`, JSON.stringify([...revealedFixedClues]));
     showFlashHint(t, copy('QUETE_RADAR_INDICE', 'Voilà ce que tu cherches — tu es dans la zone !'), 'quest');
   }
 
   if (zone === 'far') {
-    bar.textContent = `${copy('QUETE_RADAR_TRES_LOIN', 'Un polaroid se cache dans ce quartier…')}${accStr}`;
+    bar.textContent = `${copy('QUETE_RADAR_TRES_LOIN', 'Une balise est dans ce quartier.')}${accStr}`;
     bar.className = '';
     fab.style.display = 'none';
     nearestFixed = null;
     if (lastHapticZone !== 'far') { lastHapticZone = 'far'; }
-  } else if (zone === 'approach') {
-    bar.textContent = `${copy('QUETE_RADAR_LOIN', 'Tu chauffes — il est tout près.')}${accStr}`;
+  } else if (zone === 'proche') {
+    bar.textContent = `${copy('QUETE_RADAR_LOIN', 'Tu chauffes, ouvre l\'oeil.')}${accStr}${unstableMsg}`;
     bar.className = 'near';
     fab.style.display = 'none';
     nearestFixed = null;
     if (zoneChanged) haptic([80, 60, 80]);
-    if (lastHapticZone !== 'approach') lastHapticZone = 'approach';
-  } else if (zone === 'search') {
-    bar.textContent = `${copy('QUETE_RADAR_ZONE_RECHERCHE', 'Zone de recherche: ouvre l\'œil autour de toi.')}${accStr}${unstableMsg}`;
-    bar.className = 'near';
-    fab.style.display = 'none';
-    nearestFixed = null;
-    if (zoneChanged) haptic([80, 60, 80]);
-    if (lastHapticZone !== 'search') lastHapticZone = 'search';
-  } else if (zone === 'final') {
-    bar.textContent = `${copy('QUETE_RADAR_FINALE', 'Tu es tout près. Repère l\'objet réel et son QR.')}${accStr}${unstableMsg}`;
-    bar.className = 'very-near';
-    fab.style.display = 'none';
-    nearestFixed = null;
-    if (zoneChanged) haptic([100, 50, 100]);
-    if (lastHapticZone !== 'final') lastHapticZone = 'final';
+    if (lastHapticZone !== 'proche') lastHapticZone = 'proche';
   } else {
     bar.textContent = `${copy('QUETE_RADAR_SCAN', 'Tu es dans la bonne zone: prends le QR en photo.')}${accStr}`;
     bar.className = 'very-near';
@@ -480,6 +511,11 @@ function hideFlashHint() {
 
 async function captureFixed() {
   if (!myPseudo) { _checkinError('Mode invité : connecte-toi pour révéler des polaroids.'); return; }
+  const gpsAcc = Math.round(playerAccuracy || 999);
+  if (gpsAcc > 35) {
+    _checkinError(`GPS instable (±${gpsAcc}m). Avance en zone dégagée puis réessaie.`);
+    return;
+  }
   let target = nearestFixed;
   if (!target && playerLat !== null) {
     const fixedLeft = treasures
@@ -488,7 +524,7 @@ async function captureFixed() {
     const nearest = fixedLeft
       .map(t => ({ t, d: haversine(playerLat, playerLng, t.lat, t.lng) }))
       .sort((a, b) => a.d - b.d)[0];
-    const scanRadius = Math.max(8, (Number(proximityR) || 100) * 0.15);
+    const scanRadius = Math.max(10, (Number(proximityR) || 100) * 0.30) + Math.min(12, Math.round(gpsAcc * 0.35));
     if (nearest && nearest.d <= scanRadius) target = nearest.t;
   }
   if (!target) {
