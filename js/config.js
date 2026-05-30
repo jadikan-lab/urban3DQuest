@@ -60,6 +60,7 @@ let activeQuests = [];  // empty = all quests visible
 let gameStart    = null;  // Date or null — reference timestamp for score calc
 let gameCode     = '';    // empty = open access
 let egressEmergencyMode = false; // true = reduce heavy public reads during incidents
+let questScanMaxGpsAccuracy = 35; // max GPS accuracy (meters) allowed to enable Quest scan
 let playerLat    = null, playerLng = null;
 let playerAccuracy = null; // GPS accuracy in meters
 let gpsCourseHeading = null;

@@ -33,6 +33,10 @@ async function initGame(pendingFoundId) {
       const gs = new Date(c.gameStart);
       if (!isNaN(gs.getTime())) gameStart = gs;
     }
+    if (c.questScanMaxGpsAccuracy) {
+      const parsed = Number(c.questScanMaxGpsAccuracy);
+      if (!Number.isNaN(parsed) && parsed >= 5 && parsed <= 200) questScanMaxGpsAccuracy = parsed;
+    }
     egressEmergencyMode = c.egressEmergency === 'true';
     qrGuideFlashUrl = safeImgUrl(c.qrGuideFlashUrl || '');
     qrGuideFixedUrl = safeImgUrl(c.qrGuideFixedUrl || '');

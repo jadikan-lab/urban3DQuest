@@ -430,7 +430,7 @@ function updateRadar() {
 
   const dist = Math.round(nearestF.d);
   const gpsAcc = Math.round(playerAccuracy || 999);
-  const gpsWeakForFixed = gpsAcc > 35;
+  const gpsWeakForFixed = gpsAcc > questScanMaxGpsAccuracy;
 
   const rawZone = _computeFixedQuestZone(dist, proximityR, gpsAcc, fixedQuestZoneState);
   const zone = _stabilizeFixedQuestZone(rawZone, fixedQuestZoneState);
@@ -512,7 +512,7 @@ function hideFlashHint() {
 async function captureFixed() {
   if (!myPseudo) { _checkinError('Mode invité : connecte-toi pour révéler des polaroids.'); return; }
   const gpsAcc = Math.round(playerAccuracy || 999);
-  if (gpsAcc > 35) {
+  if (gpsAcc > questScanMaxGpsAccuracy) {
     _checkinError(`GPS instable (±${gpsAcc}m). Avance en zone dégagée puis réessaie.`);
     return;
   }
