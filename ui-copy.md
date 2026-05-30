@@ -106,6 +106,7 @@ FLASH_RADAR_DISTRICT:     Un polaroid se cache dans ce quartier
 FLASH_RADAR_ZONE_DIST:    À ~{D}m de la zone
 FLASH_RADAR_NEAR:         Tu es tout près
 FLASH_RADAR_CAPTURE:      📷 Prends le QR en photo pour valider
+FLASH_RADAR_IN_ZONE:      ⚡ Dans la zone — trouve la miniature
 FLASH_RADAR_ZERO:         ✅ Toutes les miniatures ont été cueillies, reviens plus tard !
 ```
 

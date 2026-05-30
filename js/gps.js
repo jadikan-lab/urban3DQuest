@@ -372,7 +372,7 @@ function updateRadar() {
     if (inFlashCaptureZone) {
       // Two-state UX: inside displayed search circle => scan is available.
       bar.style.display = 'block';
-      bar.textContent = `⚡ Dans la zone — scanne le QR !${accStr}`;
+      bar.textContent = `${copy('FLASH_RADAR_IN_ZONE', '⚡ Dans la zone — trouve la miniature')}${accStr}`;
       bar.className = 'very-near';
       flashCaptureStickyId = nearestU.t.id;
       nearestUnique = nearestU.t;
@@ -463,7 +463,7 @@ function updateRadar() {
     if (zoneChanged) haptic([80, 60, 80]);
     if (lastHapticZone !== 'proche') lastHapticZone = 'proche';
   } else {
-    bar.textContent = `Scanne le QR !${accStr}`;
+    bar.textContent = `${copy('QUETE_RADAR_SCAN', 'Scanne le QR !')}${accStr}`;
     bar.className = 'very-near';
     nearestFixed = canScanNow ? t : null;
     fab.style.display = (activeTab === 'explore' && canScanNow) ? 'flex' : 'none';
