@@ -548,6 +548,8 @@ function startConfigRefreshPolling() {
       const { data: cfg } = await db.from('config').select('key,value');
       if (cfg) {
         const c = Object.fromEntries(cfg.map(r => [r.key, r.value]));
+        const requiredVersion = c.minSupportedVersion || c.minAppVersion || '';
+        if (!enforceMinSupportedVersion(requiredVersion)) return;
         if (c.gameActive === 'false') showPause();
         else document.getElementById('pauseScreen').classList.remove('open');
         if (c.proximityRadius) proximityR = Number(c.proximityRadius);

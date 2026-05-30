@@ -79,7 +79,29 @@ function initEnvUI() {
 
 initEnvUI();
 
+async function loadLandingAccessGateConfig() {
+  try {
+    const { data, error } = await db
+      .from('config')
+      .select('value')
+      .eq('key', 'gameCode')
+      .maybeSingle();
+    if (error) return;
+
+    const rawCode = String(data?.value || '').trim().toUpperCase();
+    gameCode = rawCode.replace(/[^A-Z0-9]/g, '');
+    if (gameCode) showAccessGate();
+  } catch {
+    // Keep landing usable even if config read fails.
+  }
+}
+
 window.addEventListener('load', async () => {
+  const versionReady = await ensureVersionManifestFresh();
+  if (!versionReady) return;
+
+  await loadLandingAccessGateConfig();
+
   const TEASER_ROUTE_ENABLED = false;
   const bootParams = new URLSearchParams(location.search);
   if (TEASER_ROUTE_ENABLED && bootParams.get('teaser') === '1') {
@@ -111,8 +133,9 @@ window.addEventListener('load', async () => {
     return;
   }
 
-  // Returning user: verify session token then skip landing
-  if (myPseudo) {
+  // Returning user: verify session token then skip landing.
+  // If access gate is enabled, keep landing visible until gate is unlocked.
+  if (myPseudo && !(gameCode && accessGateRequired && !accessGateUnlocked)) {
     if (SUPABASE_ENV.name === 'stg') {
       // STG : on fait confiance au localStorage, pas de vérification session
       const { data: p } = await db.from('players').select('score,found_count').eq('pseudo', myPseudo).single();

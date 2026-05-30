@@ -17,13 +17,121 @@ function resolveSupabaseEnv() {
 const SUPABASE_ENV = resolveSupabaseEnv();
 const SUPABASE_URL = SUPABASE_ENV.url;
 const SUPABASE_KEY = SUPABASE_ENV.key;
-const GAME_VERSION = 'v3.14.24';
+const GAME_VERSION = 'v3.14.25';
+const ASSET_VERSION = '20260530-v31425';
 const loginVersion = document.getElementById('loginVersion');
 if (loginVersion) loginVersion.textContent = 'JOUEUR · ' + GAME_VERSION + ' · ' + SUPABASE_ENV.label;
 document.getElementById('gameVersion').textContent = 'Urban3DQuest.fr · Jadikan ' + GAME_VERSION + ' · JOUEUR · ' + SUPABASE_ENV.label;
 const gameEnvChip = document.getElementById('gameEnvChip');
 if (gameEnvChip) gameEnvChip.textContent = SUPABASE_ENV.label;
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let minSupportedVersion = null;
+let appVersionBlocked = false;
+
+function _parseSemver(v) {
+  const m = String(v || '').trim().match(/^v?(\d+)\.(\d+)\.(\d+)$/i);
+  if (!m) return null;
+  return [Number(m[1]), Number(m[2]), Number(m[3])];
+}
+
+function compareSemver(a, b) {
+  const pa = _parseSemver(a);
+  const pb = _parseSemver(b);
+  if (!pa || !pb) return 0;
+  for (let i = 0; i < 3; i++) {
+    if (pa[i] > pb[i]) return 1;
+    if (pa[i] < pb[i]) return -1;
+  }
+  return 0;
+}
+
+function _openVersionLock(requiredVersion) {
+  const lock = document.getElementById('versionLockScreen');
+  if (!lock) return;
+  const req = document.getElementById('versionLockRequired');
+  const cur = document.getElementById('versionLockCurrent');
+  if (req) req.textContent = requiredVersion || 'inconnue';
+  if (cur) cur.textContent = GAME_VERSION;
+  lock.classList.add('open');
+}
+
+function _closeVersionLock() {
+  const lock = document.getElementById('versionLockScreen');
+  if (!lock) return;
+  lock.classList.remove('open');
+}
+
+function enforceMinSupportedVersion(requiredVersion) {
+  const required = String(requiredVersion || '').trim();
+  if (!required) {
+    minSupportedVersion = null;
+    appVersionBlocked = false;
+    _closeVersionLock();
+    return true;
+  }
+  minSupportedVersion = required;
+  const isBelow = compareSemver(GAME_VERSION, minSupportedVersion) < 0;
+  appVersionBlocked = isBelow;
+  if (isBelow) {
+    _openVersionLock(minSupportedVersion);
+    return false;
+  }
+  _closeVersionLock();
+  return true;
+}
+
+async function ensureVersionManifestFresh() {
+  const params = new URLSearchParams(location.search);
+  let changedUrl = false;
+
+  try {
+    const res = await fetch(`version.json?ts=${Date.now()}`, { cache: 'no-store' });
+    if (!res.ok) return true;
+    const manifest = await res.json();
+    const remoteVersion = String(manifest?.gameVersion || '').trim();
+    const remoteAsset = String(manifest?.assetVersion || '').trim();
+    const remoteMin = String(manifest?.minSupportedVersion || '').trim();
+
+    if (remoteMin) {
+      enforceMinSupportedVersion(remoteMin);
+    }
+
+    const targetCb = remoteAsset || remoteVersion || ASSET_VERSION;
+    const currentCb = params.get('cachebust') || '';
+    if (targetCb && currentCb !== targetCb) {
+      params.set('cachebust', targetCb);
+      changedUrl = true;
+    }
+
+    const normalizedEnv = SUPABASE_ENV.name === 'stg' ? 'stg' : 'prod';
+    if ((params.get('env') || 'prod').toLowerCase() !== normalizedEnv) {
+      params.set('env', normalizedEnv);
+      changedUrl = true;
+    }
+
+    if (remoteVersion && compareSemver(GAME_VERSION, remoteVersion) < 0) {
+      changedUrl = true;
+      if (!params.get('cachebust')) params.set('cachebust', targetCb || ASSET_VERSION);
+    }
+  } catch {
+    return true;
+  }
+
+  if (changedUrl) {
+    const nextUrl = `${location.pathname}?${params.toString()}${location.hash || ''}`;
+    location.replace(nextUrl);
+    return false;
+  }
+  return true;
+}
+
+function retryVersionRefresh() {
+  const params = new URLSearchParams(location.search);
+  params.set('cachebust', ASSET_VERSION);
+  const nextUrl = `${location.pathname}?${params.toString()}${location.hash || ''}`;
+  location.replace(nextUrl);
+}
 
 let myPseudo     = localStorage.getItem('u3dq_pseudo') || '';
 let myScore      = 0;

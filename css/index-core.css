@@ -141,8 +141,8 @@
     #flashTakenToast{position:absolute;top:12px;left:50%;transform:translateX(-50%) translateY(-10px);background:rgba(15,23,42,.93);border:1.5px solid rgba(255,61,138,.55);border-radius:22px;padding:10px 20px;font-size:0.84rem;font-weight:800;color:var(--magenta);z-index:1130;max-width:min(92vw,520px);box-sizing:border-box;white-space:normal;overflow-wrap:anywhere;line-height:1.35;text-align:center;backdrop-filter:blur(10px);font-family:var(--mono);pointer-events:none;opacity:0;transition:opacity .3s,transform .3s}
     #flashTakenToast.show{opacity:1;transform:translateX(-50%) translateY(0)}
     /* ── Welcome return toast ── */
-    #welcomeToast{position:fixed;top:calc(env(safe-area-inset-top) + 64px);left:50%;transform:translateX(-50%) translateY(-8px);background:rgba(255,255,255,.97);border:1.5px solid #22c55e;border-radius:22px;padding:10px 14px;font-size:0.82rem;font-weight:800;color:#16a34a;z-index:400;width:min(calc(100vw - 20px),520px);box-sizing:border-box;white-space:normal;overflow-wrap:anywhere;word-break:break-word;line-height:1.35;text-align:center;backdrop-filter:blur(10px);font-family:var(--mono);pointer-events:none;opacity:0;transition:opacity .35s,transform .35s;box-shadow:0 4px 20px rgba(22,163,74,.18)}
-    #welcomeToast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    #welcomeToast{position:fixed;top:calc(env(safe-area-inset-top) + 64px);left:10px;right:10px;transform:translateY(-8px);background:rgba(255,255,255,.97);border:1.5px solid #22c55e;border-radius:22px;padding:10px 14px;font-size:0.82rem;font-weight:800;color:#16a34a;z-index:400;max-width:520px;margin:0 auto;box-sizing:border-box;white-space:normal;overflow-wrap:anywhere;word-break:break-word;line-height:1.35;text-align:center;backdrop-filter:blur(10px);font-family:var(--mono);pointer-events:none;opacity:0;transition:opacity .35s,transform .35s;box-shadow:0 4px 20px rgba(22,163,74,.18)}
+    #welcomeToast.show{opacity:1;transform:translateY(0)}
     /* ── Found modal flash overlay ── */
     #foundFlashOverlay{position:absolute;inset:0;border-radius:var(--radius-lg);background:#fff;pointer-events:none;opacity:0;z-index:10}
     #foundFlashOverlay.flash{animation:foundFlashAnim .55s ease-out forwards}
@@ -225,7 +225,9 @@
     @keyframes flashHintIn{from{opacity:0;transform:translateX(-50%) translateY(-6px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
     /* ── Progress bar ── */
     #progressBar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--line-2);padding:8px 16px 12px;z-index:200;display:none;padding-bottom:calc(8px + env(safe-area-inset-bottom))}
-    #progressBar .pb-label{display:flex;justify-content:space-between;font-size:0.78rem;color:var(--ink-2);margin-bottom:6px;font-family:var(--mono)}
+    #progressBar .pb-label{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;font-size:0.78rem;color:var(--ink-2);margin-bottom:6px;font-family:var(--mono)}
+    #progressBar .pb-label span{min-width:0;flex:1 1 180px;overflow-wrap:anywhere;word-break:break-word}
+    #progressBar .pb-label strong{flex:0 0 auto}
     #progressBar .pb-label strong{color:var(--ink);font-size:0.84rem}
     #progressBar .pb-track{height:12px;background:var(--bg);border-radius:8px;overflow:hidden;border:1px solid var(--line-2)}
     #progressBar .pb-fill{height:100%;background:linear-gradient(90deg,#3b82f6,#6366f1);border-radius:8px;transition:width 0.6s cubic-bezier(.16,1,.3,1);min-width:0}
@@ -315,6 +317,11 @@
     /* ── Pause screen ── */
     #pauseScreen{display:none;position:fixed;inset:0;background:rgba(5,6,16,.97);z-index:800;align-items:center;justify-content:center;text-align:center;flex-direction:column;gap:16px}
     #pauseScreen.open{display:flex;animation:fadeInFast 0.3s ease}
+    #versionLockScreen{display:none;position:fixed;inset:0;background:rgba(5,6,16,.98);z-index:3200;align-items:center;justify-content:center;padding:18px}
+    #versionLockScreen.open{display:flex;animation:fadeInFast 0.3s ease}
+    .version-lock-box{background:var(--surface);border-radius:22px;padding:24px 18px;width:100%;max-width:420px;text-align:center;border:1px solid rgba(248,113,113,.28);box-shadow:0 0 0 1px rgba(248,113,113,.12),0 8px 40px rgba(26,24,38,.18)}
+    .version-lock-copy{font-size:0.9rem;color:var(--ink-2);line-height:1.45;margin:10px 0 12px}
+    .version-lock-meta{font-family:var(--mono);font-size:0.8rem;color:var(--ink-3);margin:2px 0 4px}
     /* ── Boutons carte ── */
     #arrowToggleBtn{min-height:48px!important;min-width:48px!important;padding:10px 16px!important;font-size:0.8rem!important;font-weight:700!important;transition:transform .1s}
     #arrowToggleBtn:active{transform:scale(0.9)}

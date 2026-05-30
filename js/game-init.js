@@ -37,6 +37,8 @@ async function initGame(pendingFoundId) {
       const parsed = Number(c.questScanMaxGpsAccuracy);
       if (!Number.isNaN(parsed) && parsed >= 5 && parsed <= 200) questScanMaxGpsAccuracy = parsed;
     }
+    const requiredVersion = c.minSupportedVersion || c.minAppVersion || '';
+    if (!enforceMinSupportedVersion(requiredVersion)) return;
     egressEmergencyMode = c.egressEmergency === 'true';
     qrGuideFlashUrl = safeImgUrl(c.qrGuideFlashUrl || '');
     qrGuideFixedUrl = safeImgUrl(c.qrGuideFixedUrl || '');
@@ -113,9 +115,10 @@ async function initGame(pendingFoundId) {
     if (remaining > 0) {
       const wt = document.getElementById('welcomeToast');
       if (wt) {
+        const pseudoForToast = myPseudo.length > 20 ? (myPseudo.slice(0, 19) + '…') : myPseudo;
         const copy = (key, fallback = '') => (window.u3dqCopyText ? window.u3dqCopyText(key, fallback) : fallback);
         wt.textContent = copy('RETOUR_MESSAGE_SHORT', 'Bon retour {PSEUDO} !')
-          .replace('{PSEUDO}', myPseudo)
+          .replace('{PSEUDO}', pseudoForToast)
           .replace('{N}', String(remaining))
           .replace('{S}', remaining > 1 ? 's' : '');
         wt.classList.add('show');

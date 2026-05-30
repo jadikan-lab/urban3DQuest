@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.14.25 - 2026-05-30
+- Prod cache consistency: add `version.json` runtime manifest and normalize `cachebust` URL parameter to the active asset version.
+- Version safety: add minimum supported app version gate (`minSupportedVersion` / `minAppVersion` in `config`) with blocking fullscreen prompt.
+- Runtime control: enforce the same version gate both at game init and during periodic config refresh.
+
 ## v3.14.3 - 2026-05-20
 - Duration display: add day count to long captures (>24h) showing format "Xj Yh Zmin".
 - Data consistency: add rollback protection in capture flow when event insertion fails.

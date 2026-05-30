@@ -14,7 +14,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" media="print" onload="this.media='all'">
   <link rel="stylesheet" href="css/design-tokens.css">
-  <link rel="stylesheet" href="css/index-core.css?v=20260529-v3156">
+  <link rel="stylesheet" href="css/index-core.css?v=20260530-v31425">
 </head>
 <body>
 
@@ -333,20 +333,31 @@
   <p style="color:var(--ink-2);font-size:0.85rem">L'organisateur a mis le jeu en pause.<br>Patiente…</p>
 </div>
 
+<div id="versionLockScreen" aria-live="polite" role="alertdialog" aria-modal="true">
+  <div class="version-lock-box">
+    <div class="qc-trophy">⚠️</div>
+    <h2>Mise a jour requise</h2>
+    <p class="version-lock-copy">Cette version de l'app n'est plus supportee.</p>
+    <p class="version-lock-meta">Version actuelle: <strong id="versionLockCurrent">-</strong></p>
+    <p class="version-lock-meta">Version minimum: <strong id="versionLockRequired">-</strong></p>
+    <button class="btn-primary" onclick="retryVersionRefresh()">Mettre a jour maintenant</button>
+  </div>
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner.legacy.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/supabase-env.js?v=20260529-v3156"></script>
-<script src="js/config.js?v=20260529-v3156"></script>
-<script src="js/ui-copy.js?v=20260529-v3156"></script>
-<script src="js/auth.js?v=20260529-v3156"></script>
-<script src="js/map-init.js?v=20260529-v3156"></script>
-<script src="js/gps.js?v=20260529-v3156"></script>
-<script src="js/compass.js?v=20260529-v3156"></script>
-<script src="js/qr.js?v=20260529-v3156"></script>
-<script src="js/game-init.js?v=20260529-v3156"></script>
-<script src="js/find.js?v=20260529-v3156"></script>
-<script src="js/leaderboard.js?v=20260529-v3156"></script>
-<script src="js/ui.js?v=20260529-v3156"></script>
+<script src="js/supabase-env.js?v=20260530-v31425"></script>
+<script src="js/config.js?v=20260530-v31425"></script>
+<script src="js/ui-copy.js?v=20260530-v31425"></script>
+<script src="js/auth.js?v=20260530-v31425"></script>
+<script src="js/map-init.js?v=20260530-v31425"></script>
+<script src="js/gps.js?v=20260530-v31425"></script>
+<script src="js/compass.js?v=20260530-v31425"></script>
+<script src="js/qr.js?v=20260530-v31425"></script>
+<script src="js/game-init.js?v=20260530-v31425"></script>
+<script src="js/find.js?v=20260530-v31425"></script>
+<script src="js/leaderboard.js?v=20260530-v31425"></script>
+<script src="js/ui.js?v=20260530-v31425"></script>
 </body>
 </html>
