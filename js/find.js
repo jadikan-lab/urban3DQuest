@@ -338,7 +338,8 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
   if (status === 'success') {
     const photos = getPhotoUrls(t.photo_url);
     if (photos.length) {
-      photoStrip.innerHTML = photos.map(safeImgUrl).filter(Boolean).map(url => `<img src="${escHtml(url)}" style="width:100%;max-height:160px;object-fit:cover;border-radius:10px;margin-bottom:6px;display:block">`).join('');
+      const displayPhotos = t.type === 'unique' ? photos.slice(0, 1) : photos;
+      photoStrip.innerHTML = displayPhotos.map(safeImgUrl).filter(Boolean).map(url => `<img src="${escHtml(url)}" style="width:100%;max-height:160px;object-fit:cover;border-radius:10px;margin-bottom:6px;display:block">`).join('');
       photoStrip.style.display = 'block';
     } else { photoStrip.style.display = 'none'; }
   } else { photoStrip.style.display = 'none'; }

@@ -628,14 +628,18 @@ function openTreasureSheet(t) {
   const isNearForClue = isFixedLocked && distM !== null && distM <= (proximityR * 2);
   const clueUnlocked = !isFixedLocked || revealedFixedClues.has(t.id);
   const canShowFixedMedia = !isFixedLocked || clueUnlocked;
-  const photoHtml = (canShowFixedMedia ? safeUrls : []).map(u =>
-    `<img src="${escHtml(u)}" onclick="openPhotoViewer('${jsSingleQuoted(u)}')" class="ts-photo">`
-  ).join('');
+  const photoHtml = (() => {
+    const urls = canShowFixedMedia ? safeUrls : [];
+    if (!urls.length) return '';
+    if (urls.length === 1) return `<img src="${escHtml(urls[0])}" onclick="openPhotoViewer('${jsSingleQuoted(urls[0])}')" class="ts-photo">`;
+    return `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:8px">${
+      urls.map(u => `<img src="${escHtml(u)}" onclick="openPhotoViewer('${jsSingleQuoted(u)}')" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:7px;cursor:zoom-in">`).join('')
+    }</div>`;
+  })();
   const badge = isMine ? '<span class="ts-badge ts-badge-found">✓ Révélé</span>'
     : isTaken ? '<span class="ts-badge ts-badge-taken">🔒 Flash pris</span>'
     : '<span class="ts-badge ts-badge-open">· À révéler</span>';
-  const cta = (!isMine && !isTaken && t.type === 'unique' && t.lat && t.lng)
-    ? `<button class="ts-cta" onclick="recenterOn(${t.lat},${t.lng})">M'y emmener →</button>` : '';
+  const cta = '';
   const clueCta = (isFixedLocked && !clueUnlocked)
     ? (isNearForClue
         ? `<button class="ts-cta" onclick="revealFixedClueFromSheet('${jsSingleQuoted(t.id)}')">Voir la photo + indice</button>`
