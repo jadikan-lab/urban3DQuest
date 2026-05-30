@@ -503,6 +503,8 @@
     .ts-stat-key{font-family:var(--mono);font-size:0.58rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-3);margin-top:3px}
     .ts-cta{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 20px;padding:16px;background:var(--ink);border:none;border-radius:var(--radius);color:var(--surface);font-size:1.05rem;font-weight:800;cursor:pointer;width:calc(100% - 40px);letter-spacing:0.02em;font-family:var(--display)}
     .ts-cta:active{opacity:0.85}
+    .ts-cta + .ts-cta{margin-top:10px}
+    .ts-cta-secondary{background:transparent;color:var(--ink);border:1px solid var(--line-2)}
     .ts-cta-taken{background:var(--line);color:var(--ink-3);cursor:default}
     .ts-top-row{display:flex;align-items:center;gap:8px;padding:0 20px 12px}
     .ts-type{font-family:var(--mono);font-size:0.72rem;color:var(--ink-3);margin-left:auto}

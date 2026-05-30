@@ -639,6 +639,7 @@ function openTreasureSheet(t) {
         ? `<button class="ts-cta" onclick="revealFixedClueFromSheet('${jsSingleQuoted(t.id)}')">Voir la photo + indice</button>`
         : `<div class="ts-hint">📍 Approche-toi encore pour débloquer la photo et l'indice.</div>`)
     : '';
+  const backCta = `<button class="ts-cta ts-cta-secondary" onclick="closeTreasureSheet()" aria-label="Retour au jeu">↩ Retour au jeu</button>`;
   const dist = distM !== null
     ? (() => { const d = distM; return d < 1000 ? Math.round(d) + ' m' : (d/1000).toFixed(1) + ' km'; })()
     : '';
@@ -650,6 +651,7 @@ function openTreasureSheet(t) {
     ${(t.hint && canShowFixedMedia) ? `<div class="ts-hint">💡 ${escHtml(t.hint)}</div>` : ''}
     ${clueCta}
     ${cta}
+    ${backCta}
   `;
   document.getElementById('treasureSheet').classList.add('open');
 }
