@@ -326,7 +326,6 @@ function updateRadar() {
       ? copy('GUIDE_FLASH_SOUS_SOLO', 'Plus qu\'une miniature à trouver')
       : copy('GUIDE_FLASH_SOUS_MULTI', '{N} miniatures à cueillir · sois le premier !').replace('{N}', String(available));
 
-    const uniqueEdgeDist = Math.round(nearestU.edgeDist);
     const flashFab = document.getElementById('flashFab');
     const accForFlash = Math.max(0, Math.round(playerAccuracy || 0));
     // Enter/exit thresholds are anchored to the displayed search circle to match player expectation.
@@ -336,47 +335,23 @@ function updateRadar() {
     const inFlashCaptureZone = nearestU.centerDist <= (stickyForSameTarget ? flashCaptureOutM : flashCaptureInM);
 
     if (inFlashCaptureZone) {
-      // Palier 3 — inside displayed Flash search circle: FAB + hint + "scan now"
-      bar.textContent = `${cStr} · ${copy('FLASH_RADAR_TRES_PROCHE', '📷 Prends le QR code en photo pour valider !').replace('{N}', String(available))}${accStr}`;
+      // Two-state UX: inside displayed search circle => scan is available.
+      bar.textContent = `${cStr} · ${copy('FLASH_RADAR_SCAN', '📷 Tu peux scanner le QR maintenant.')}${accStr}`;
       bar.className = 'very-near';
       flashCaptureStickyId = nearestU.t.id;
       nearestUnique = nearestU.t;
       flashFab.style.display = 'flex';
-      if (nearestU.t.photo_url) showFlashHint(nearestU.t, 'Scanne le QR pour valider.');
+      if (nearestU.t.photo_url) showFlashHint(nearestU.t, 'Tu es dans le rond: scanne le QR pour valider.');
       if (lastHapticZone !== 'unique-capture') { lastHapticZone = 'unique-capture'; haptic([100, 50, 100, 50, 200]); }
-    } else if (uniqueEdgeDist <= FLASH_HINT_M) {
-      // Palier 2 — close to the displayed search circle, no FAB yet
-      bar.textContent = `${cStr} · ${copy('FLASH_RADAR_PROCHE', 'Tu es tout près !').replace('{N}', String(available))}${accStr}`;
-      bar.className = 'very-near';
-      flashCaptureStickyId = null;
-      nearestUnique = null;
-      flashFab.style.display = 'none';
-      if (nearestU.t.photo_url) showFlashHint(nearestU.t, `À ~${Math.max(1, uniqueEdgeDist)}m de la zone`);
-      else hideFlashHint();
-      if (lastHapticZone !== 'unique-near2') { lastHapticZone = 'unique-near2'; haptic([100, 50, 100, 50, 200]); }
-    } else if (uniqueEdgeDist <= proximityR * 5) {
-      // Palier 1 — < 500m : "tu chauffes", rien de révélé
-      bar.textContent = uniqueEdgeDist <= proximityR
-        ? `${cStr} · ${copy('FLASH_RADAR_LOIN', 'Tu te rapproches !').replace('{N}', String(available))}${accStr}`
-        : `${cStr} · ${copy('FLASH_RADAR_TRES_LOIN', 'Un polaroid se cache dans ce quartier…').replace('{N}', String(available))}${accStr}`;
-      bar.className = uniqueEdgeDist <= proximityR ? 'near' : '';
-      flashCaptureStickyId = null;
-      nearestUnique = null;
-      flashFab.style.display = 'none';
-      hideFlashHint();
-      if (uniqueEdgeDist <= proximityR) {
-        if (lastHapticZone !== 'unique-near') { lastHapticZone = 'unique-near'; haptic([80, 60, 80]); }
-      } else {
-        if (lastHapticZone !== 'unique-far') { lastHapticZone = 'unique-far'; }
-      }
     } else {
-      bar.textContent = `${cStr} · ${copy('FLASH_RADAR_TRES_LOIN', 'Un polaroid se cache dans ce quartier…').replace('{N}', String(available))}${accStr}`;
-      bar.className = '';
+      // Two-state UX: outside the circle => keep guidance minimal.
+      bar.textContent = `${cStr} · ${copy('FLASH_RADAR_OUTSIDE', 'Tu n\'es pas loin.')}${accStr}`;
+      bar.className = 'near';
       flashCaptureStickyId = null;
       nearestUnique = null;
       flashFab.style.display = 'none';
       hideFlashHint();
-      if (lastHapticZone !== 'unique-far') { lastHapticZone = 'unique-far'; }
+      if (lastHapticZone !== 'unique-outside') { lastHapticZone = 'unique-outside'; }
     }
 
     fab.style.display = 'none';
