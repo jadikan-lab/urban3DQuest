@@ -371,6 +371,7 @@ function updateRadar() {
 
     if (inFlashCaptureZone) {
       // Two-state UX: inside displayed search circle => scan is available.
+      bar.style.display = 'block';
       bar.textContent = `${cStr} · ${copy('FLASH_RADAR_SCAN', '📷 Tu peux scanner le QR maintenant.')}${accStr}`;
       bar.className = 'very-near';
       flashCaptureStickyId = nearestU.t.id;
@@ -379,9 +380,10 @@ function updateRadar() {
       if (nearestU.t.photo_url) showFlashHint(nearestU.t, 'Scanne le QR pour valider.');
       if (lastHapticZone !== 'unique-capture') { lastHapticZone = 'unique-capture'; haptic([100, 50, 100, 50, 200]); }
     } else {
-      // Two-state UX: outside the circle => keep guidance minimal.
-      bar.textContent = `${cStr} · ${copy('FLASH_RADAR_OUTSIDE', 'Tu n\'es pas loin.')}${accStr}`;
-      bar.className = 'near';
+      // Outside the circle: no radar indication, keep only map/ring guidance.
+      bar.textContent = '';
+      bar.className = '';
+      bar.style.display = 'none';
       flashCaptureStickyId = null;
       nearestUnique = null;
       flashFab.style.display = 'none';
