@@ -353,7 +353,7 @@ function updateRadar() {
       .sort((a, b) => (a.edgeDist - b.edgeDist) || (a.centerDist - b.centerDist))[0];
 
     const available = uniqueLeft.length;
-    // const cStr = available === 1 ? '⚡ 1 trésor dispo' : `⚡ ${available} trésors dispos`;
+    const cStr = available === 1 ? '⚡ 1 trésor dispo' : `⚡ ${available} trésors dispos`;
 
     // Update guide bar count
     const guideText = document.getElementById('modeGuideText');
@@ -372,12 +372,11 @@ function updateRadar() {
     if (inFlashCaptureZone) {
       // Two-state UX: inside displayed search circle => scan is available.
       bar.style.display = 'block';
-      bar.textContent = `${copy('FLASH_RADAR_SCAN', '📷 Tu peux scanner le QR maintenant.')}${accStr}`;
+      bar.textContent = `⚡ Dans la zone — scanne le QR !${accStr}`;
       bar.className = 'very-near';
       flashCaptureStickyId = nearestU.t.id;
       nearestUnique = nearestU.t;
       flashFab.style.display = 'flex';
-      if (nearestU.t.photo_url) showFlashHint(nearestU.t, 'Scanne le QR pour valider.');
       if (lastHapticZone !== 'unique-capture') { lastHapticZone = 'unique-capture'; haptic([100, 50, 100, 50, 200]); }
     } else {
       // Outside the circle: no radar indication, keep only map/ring guidance.
@@ -464,7 +463,7 @@ function updateRadar() {
     if (zoneChanged) haptic([80, 60, 80]);
     if (lastHapticZone !== 'proche') lastHapticZone = 'proche';
   } else {
-    bar.textContent = `${copy('QUETE_RADAR_SCAN', 'Tu es dans la bonne zone: prends le QR en photo.')}${accStr}`;
+    bar.textContent = `Scanne le QR !${accStr}`;
     bar.className = 'very-near';
     nearestFixed = canScanNow ? t : null;
     fab.style.display = (activeTab === 'explore' && canScanNow) ? 'flex' : 'none';
