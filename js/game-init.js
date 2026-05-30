@@ -117,7 +117,7 @@ async function initGame(pendingFoundId) {
       if (wt) {
         const pseudoForToast = myPseudo.length > 20 ? (myPseudo.slice(0, 19) + '…') : myPseudo;
         const copy = (key, fallback = '') => (window.u3dqCopyText ? window.u3dqCopyText(key, fallback) : fallback);
-        wt.textContent = copy('RETOUR_MESSAGE_SHORT', 'Bon retour {PSEUDO} !')
+        wt.textContent = copy('RETOUR_MESSAGE', 'Bon retour {PSEUDO} ! Il te reste {N} balise{S} à trouver.')
           .replace('{PSEUDO}', pseudoForToast)
           .replace('{N}', String(remaining))
           .replace('{S}', remaining > 1 ? 's' : '');

@@ -353,7 +353,9 @@ function updateRadar() {
       .sort((a, b) => (a.edgeDist - b.edgeDist) || (a.centerDist - b.centerDist))[0];
 
     const available = uniqueLeft.length;
-    const cStr = available === 1 ? '⚡ 1 trésor dispo' : `⚡ ${available} trésors dispos`;
+    const cStr = available === 1
+      ? copy('FLASH_COUNT_ONE', '⚡ 1 miniature dispo')
+      : copy('FLASH_COUNT_MULTI', '⚡ {N} miniatures dispos').replace('{N}', String(available));
 
     // Update guide bar count
     const guideText = document.getElementById('modeGuideText');

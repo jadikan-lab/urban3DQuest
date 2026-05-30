@@ -355,16 +355,16 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
       const foundNow = fixedTotal - remaining;
       if (foundNow === 1) {
         setFoundIcon('camera', 'teal');
-        label.textContent = 'PREMIÈRE RÉVÉLATION';
-        title.textContent = 'La chasse commence !';
-        desc.textContent = `Le chrono est lancé. Trouve les ${fixedTotal - 1} autres polaroids le plus vite possible.`;
+        label.textContent = _findCopy('QUETE_FIRST_LABEL', 'PREMIÈRE RÉVÉLATION');
+        title.textContent = _findCopy('QUETE_FIRST_TITRE', 'La chasse commence !');
+        desc.textContent = _findCopy('QUETE_FIRST_DESC', 'Le chrono est lancé. Trouve les {N} autres polaroids le plus vite possible.').replace('{N}', String(fixedTotal - 1));
         dur.textContent = '';
       } else if (remaining === 0) {
         setFoundIcon('camera', 'teal');
-        label.textContent = 'BALISE TROUVÉE';
-        title.textContent = 'Polaroid révélé !';
+        label.textContent = _findCopy('QUETE_0_LABEL', 'BALISE TROUVÉE');
+        title.textContent = _findCopy('QUETE_0_TITRE', 'Polaroid révélé !');
         dur.textContent = durationSec != null ? formatDuration(durationSec) + ' depuis le début' : '';
-        desc.textContent = 'Incroyable ! Ta quete est complete !';
+        desc.textContent = _findCopy('QUETE_0_DESC', 'Incroyable ! Ta quête est complète !');
         db.from('config').select('key,value').then(({ data: cfgData }) => {
           if (!cfgData) return;
           const cfg = Object.fromEntries(cfgData.map(r => [r.key, r.value]));
@@ -373,29 +373,29 @@ function showFoundResult(status, t, durationSec, durationSecHunt) {
         });
       } else if (remaining === 1) {
         setFoundIcon('check', 'success');
-        label.textContent = 'PRESQUE !';
-        title.textContent = 'Plus qu\'un !';
-        desc.textContent = 'Une seule Balise te sépare de la fin. Tout se joue maintenant.';
+        label.textContent = _findCopy('QUETE_1_LABEL', 'PRESQUE !');
+        title.textContent = _findCopy('QUETE_1_TITRE', "Plus qu'un !");
+        desc.textContent = _findCopy('QUETE_1_DESC', 'Une seule Balise te sépare de la fin. Tout se joue maintenant.');
         dur.textContent = durationSecHunt != null ? formatDuration(durationSecHunt) : '';
       } else if (remaining === 2) {
         setFoundIcon('flash', 'flash');
-        label.textContent = 'EN FEU';
-        title.textContent = 'Il n\'en reste plus que deux.';
-        desc.textContent = 'Tu y es presque. Ne lâche rien.';
+        label.textContent = _findCopy('QUETE_2_LABEL', 'EN FEU');
+        title.textContent = _findCopy('QUETE_2_TITRE', "Il n'en reste plus que deux.");
+        desc.textContent = _findCopy('QUETE_2_DESC', 'Tu y es presque. Ne lâche rien.');
         dur.textContent = durationSecHunt != null ? formatDuration(durationSecHunt) : '';
       } else if (remaining === 3) {
         setFoundIcon('gps', 'teal');
-        label.textContent = 'BON RYTHME';
-        title.textContent = 'Encore trois à trouver.';
-        desc.textContent = 'La fin approche. Reste concentré.';
+        label.textContent = _findCopy('QUETE_3_LABEL', 'BON RYTHME');
+        title.textContent = _findCopy('QUETE_3_TITRE', 'Encore trois à trouver.');
+        desc.textContent = _findCopy('QUETE_3_DESC', 'La fin approche. Reste concentré.');
         dur.textContent = durationSecHunt != null ? formatDuration(durationSecHunt) : '';
       } else {
         const midMessages = [
-          { icon: 'camera', className: 'teal', label: 'RÉVÉLÉ', title: 'Balise révélé.', desc: `Continue, il t'en reste ${remaining}.` },
-          { icon: 'gps', className: 'teal', label: 'EN ROUTE', title: 'Belle trouvaille.', desc: `${remaining} polaroids t'attendent encore.` },
-          { icon: 'check', className: 'success', label: 'TROUVÉ', title: 'Tu as l\'œil.', desc: `Plus que ${remaining} en attente.` },
-          { icon: 'gps', className: 'warn', label: 'MARQUÉ', title: 'Dans la boîte.', desc: `${remaining} restants. Ne ralentis pas.` },
-          { icon: 'flash', className: 'flash', label: 'EN CHASSE', title: 'La quête avance.', desc: `${remaining} polaroids à révéler.` }
+          { icon: 'camera', className: 'teal', label: _findCopy('MID_1_LABEL', 'RÉVÉLÉ'), title: _findCopy('MID_1_TITRE', 'Balise révélé.'), desc: _findCopy('MID_1_DESC', "Continue, il t'en reste {N}.").replace('{N}', String(remaining)) },
+          { icon: 'gps', className: 'teal', label: _findCopy('MID_2_LABEL', 'EN ROUTE'), title: _findCopy('MID_2_TITRE', 'Belle trouvaille.'), desc: _findCopy('MID_2_DESC', "{N} balises t'attendent encore.").replace('{N}', String(remaining)) },
+          { icon: 'check', className: 'success', label: _findCopy('MID_3_LABEL', 'TROUVÉ'), title: _findCopy('MID_3_TITRE', "Tu as l'œil."), desc: _findCopy('MID_3_DESC', 'Plus que {N} en attente.').replace('{N}', String(remaining)) },
+          { icon: 'gps', className: 'warn', label: _findCopy('MID_4_LABEL', 'MARQUÉ'), title: _findCopy('MID_4_TITRE', 'Dans la boîte.'), desc: _findCopy('MID_4_DESC', '{N} restants. Ne ralentis pas.').replace('{N}', String(remaining)) },
+          { icon: 'flash', className: 'flash', label: _findCopy('MID_5_LABEL', 'EN CHASSE'), title: _findCopy('MID_5_TITRE', 'La quête avance.'), desc: _findCopy('MID_5_DESC', '{N} polaroids à révéler.').replace('{N}', String(remaining)) }
         ];
         const msg = midMessages[foundNow % midMessages.length];
         setFoundIcon(msg.icon, msg.className);

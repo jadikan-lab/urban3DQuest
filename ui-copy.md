@@ -84,13 +84,9 @@ TUTO_ASTUCE_CLICABLE: Astuce : la flèche et le rond de la carte sont cliquables
 ```
 QUETE_RADAR_TRES_LOIN:    Une balise se cache dans ce quartier…
 QUETE_RADAR_LOIN:         Tu chauffes — il est tout près.
-QUETE_RADAR_PROCHE:       Cherche bien, il est là.
-QUETE_RADAR_ZONE_RECHERCHE: Zone de recherche: ouvre l'œil autour de toi.
-QUETE_RADAR_FINALE:       Tu es tout près. Repère l'objet réel et son QR.
 QUETE_RADAR_SCAN:         Tu es dans la bonne zone: prends le QR en photo.
 QUETE_RADAR_GPS_INSTABLE: ⚠️ GPS instable (±{A}m), avance en zone dégagée.
 QUETE_RADAR_INDICE:       Voilà ce que tu cherches — tu es dans la zone !
-QUETE_RADAR_COMPLETE:     ✅ Ta quête est complète !
 ```
 
 ---
@@ -102,12 +98,7 @@ QUETE_RADAR_COMPLETE:     ✅ Ta quête est complète !
 ```
 FLASH_COUNT_ONE:          ⚡ 1 miniature dispo
 FLASH_COUNT_MULTI:        ⚡ {N} miniatures dispos
-FLASH_RADAR_DISTRICT:     Un polaroid se cache dans ce quartier
-FLASH_RADAR_ZONE_DIST:    À ~{D}m de la zone
-FLASH_RADAR_NEAR:         Tu es tout près
-FLASH_RADAR_CAPTURE:      📷 Prends le QR en photo pour valider
 FLASH_RADAR_IN_ZONE:      ⚡ Dans la zone — trouve la miniature
-FLASH_RADAR_ZERO:         ✅ Toutes les miniatures ont été cueillies, reviens plus tard !
 ```
 
 ---
@@ -194,6 +185,7 @@ FLASH_SHARE_INVITE_CTA:  Inviter
 
 ```
 QR_STATUS_SCAN:   Vise le QR pour le révéler.
+QR_STATUS_LIVE:   📷 Vise le QR · appuie sur l'image pour la mise au point
 QR_STATUS_FIXED:   Tu as trouvé la balise, prends une photo du QR code pour continuer le jeu.
 QR_STATUS_FLASH:   Tu as trouvé la miniature, prends une photo du QR code pour valider ta cueillette.
 QR_STATUS_ANALYZING: 🔍 Révélation en cours…
@@ -219,8 +211,8 @@ FLASH_TAKEN_TOAST_MULTI:  ⚡ {N} miniatures viennent d'être capturées !
 ## MODAL DE RÉSULTAT — Erreurs
 
 ```
-DEJA_LABEL:   DÉJÀ FLASHÉ
-DEJA_TITRE:   Tu as déjà flashé ce polaroid.
+FLASH_ALREADY_LABEL:   DÉJÀ FLASHÉ
+FLASH_ALREADY_TITRE:   Tu as déjà flashé ce polaroid.
 ```
 
 ---
