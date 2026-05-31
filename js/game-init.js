@@ -401,9 +401,9 @@ async function loadTreasures() {
   } else {
     treasures = data;
   }
-  // Sync fixedTotal from actual DB count — stays accurate even if config key 'fixedTotal' is stale
+  // Sync fixedTotal from actual visible DB count — including zero when all fixed beacons are hidden.
   const actualFixed = treasures.filter(t => t.type === 'fixed').length;
-  if (actualFixed > 0) fixedTotal = actualFixed;
+  fixedTotal = actualFixed;
 
   // Detect flash treasures taken by someone else while we were nearby
   if (_prevAvailableFlash.size > 0 && playerLat !== null && activeGameMode === 'unique') {
