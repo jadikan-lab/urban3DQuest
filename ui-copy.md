@@ -45,6 +45,7 @@ NAV_SCORES:         Scores
 ```
 GUIDE_QUETE_TITRE:       Mode Quête
 GUIDE_QUETE_SOUS:        Approche-toi pour révéler les balises fixes
+GUIDE_QUETE_SOUS_ZERO:   Aucune balise disponible pour le moment
 
 GUIDE_FLASH_TITRE:       Mode Flash
 GUIDE_FLASH_SOUS_ZERO:   Aucune miniature disponible pour le moment

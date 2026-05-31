@@ -238,7 +238,12 @@ function updateModeUI() {
   if (guideTitle && guideText) {
     if (activeGameMode === 'fixed') {
       guideTitle.textContent = copy('GUIDE_QUETE_TITRE', 'Mode Quête');
-      guideText.textContent = copy('GUIDE_QUETE_SOUS', 'Approche-toi pour révéler les balises fixes');
+      const fixedVisibleCount = Array.isArray(treasures)
+        ? treasures.filter(x => x.type === 'fixed').length
+        : 0;
+      guideText.textContent = fixedVisibleCount > 0
+        ? copy('GUIDE_QUETE_SOUS', 'Approche-toi pour révéler les balises fixes')
+        : copy('GUIDE_QUETE_SOUS_ZERO', 'Aucune balise disponible pour le moment');
     } else {
       guideTitle.textContent = copy('GUIDE_FLASH_TITRE', 'Mode Flash');
       const flashCount = Array.isArray(treasures)
