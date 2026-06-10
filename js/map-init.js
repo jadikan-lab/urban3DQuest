@@ -114,7 +114,27 @@ function escHtml(v){
 function safeImgUrl(v) {
   const s = String(v || '').trim();
   if (!s) return '';
-  if (/^(https?:|data:image\/)/i.test(s)) return s;
+  if (/^data:image\//i.test(s)) return s;
+  if (/^https?:/i.test(s)) {
+    try {
+      const u = new URL(s);
+      const marker = '/storage/v1/object/public/';
+      const idx = u.pathname.indexOf(marker);
+      if (idx >= 0) {
+        const bucketAndPath = u.pathname.slice(idx + marker.length);
+        if (bucketAndPath) {
+          u.pathname = `/storage/v1/render/image/public/${bucketAndPath}`;
+          u.searchParams.set('width', '960');
+          u.searchParams.set('quality', '72');
+          u.searchParams.set('format', 'webp');
+          return u.toString();
+        }
+      }
+      return s;
+    } catch {
+      return s;
+    }
+  }
   return '';
 }
 
