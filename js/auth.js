@@ -79,6 +79,21 @@ function initEnvUI() {
 
 initEnvUI();
 
+async function loadGuestLandingUrlConfig() {
+  try {
+    const { data, error } = await db
+      .from('config')
+      .select('value')
+      .eq('key', 'guestLandingUrl')
+      .maybeSingle();
+    if (error) return 'https://jadikan.carrd.co/';
+    const raw = String(data?.value || '').trim();
+    return raw || 'https://jadikan.carrd.co/';
+  } catch {
+    return 'https://jadikan.carrd.co/';
+  }
+}
+
 async function loadLandingAccessGateConfig() {
   try {
     const { data, error } = await db
@@ -118,10 +133,6 @@ window.addEventListener('load', async () => {
   const qrInput = document.getElementById('qrFileInput');
   if (qrInput) qrInput.addEventListener('change', () => handleQRPhoto(qrInput));
 
-  // Emergency egress guard: keep anonymous landing fully static (no config read).
-  // Logged users still load full config in initGame after authentication.
-  const guestLandingUrl = 'https://jadikan.carrd.co/';
-
   const params    = new URLSearchParams(location.search);
   const foundId   = params.get('found');
   const checkinId = params.get('checkin') || '';   // ID de la balise fixe (ou '1' legacy)
@@ -129,6 +140,7 @@ window.addEventListener('load', async () => {
 
   // QR balise scanné par un non-joueur → carte de visite
   if (checkin && !myPseudo) {
+    const guestLandingUrl = await loadGuestLandingUrlConfig();
     window.location.replace(guestLandingUrl);
     return;
   }
