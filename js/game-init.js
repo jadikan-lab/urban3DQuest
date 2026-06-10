@@ -383,15 +383,15 @@ async function loadTreasures() {
   let data = null;
   let error = null;
   ({ data, error } = await db.from('treasures')
-    .select('id,type,lat,lng,label,hint,visible,photo_url,found_by,placed_at,activated_at,quest')
+    .select('id,type,lat,lng,label,hint,visible,photo_url,found_by,placed_at,activated_at,quest,solo_hidden')
     .eq('visible', true));
-  if (error && /activated_at/i.test(error.message || '')) {
+  if (error && /(activated_at|solo_hidden)/i.test(error.message || '')) {
     // Backward-compatible fallback for environments where the migration was not applied yet.
     const retry = await db.from('treasures')
       .select('id,type,lat,lng,label,hint,visible,photo_url,found_by,placed_at,quest')
       .eq('visible', true);
     error = retry.error;
-    data = (retry.data || []).map(t => ({ ...t, activated_at: null }));
+    data = (retry.data || []).map(t => ({ ...t, activated_at: null, solo_hidden: false }));
   }
   if (error) {
     console.error('loadTreasures error:', error.message);
@@ -402,9 +402,9 @@ async function loadTreasures() {
   if (!data) return;
   // Filter client-side: if no active quest, show all. Otherwise show matching quest + no-quest (null or '')
   if (activeQuests.length) {
-    treasures = data.filter(t => !t.quest || activeQuests.includes(t.quest));
+    treasures = data.filter(t => !t.solo_hidden && (!t.quest || activeQuests.includes(t.quest)));
   } else {
-    treasures = data;
+    treasures = data.filter(t => !t.solo_hidden);
   }
   // Sync fixedTotal from actual visible DB count — including zero when all fixed beacons are hidden.
   const actualFixed = treasures.filter(t => t.type === 'fixed').length;

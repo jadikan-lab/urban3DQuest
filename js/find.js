@@ -138,6 +138,7 @@ async function _rollbackFoundBy(treasure, previousFoundBy, expectedFoundBy) {
 async function _tryGuestUniqueCapture(treasure) {
   if (myPseudo) return false;
   if (!treasure || treasure.type !== 'unique') return false;
+  if (!treasure.solo_hidden) return false;
 
   const foundList = (treasure.found_by || '').split(',').filter(Boolean);
   if (foundList.length > 0) {
@@ -145,7 +146,7 @@ async function _tryGuestUniqueCapture(treasure) {
     return true;
   }
 
-  const updatePayload = { found_by: 'INVITE', found_at: new Date().toISOString() };
+  const updatePayload = { found_by: 'AUTRE', found_at: new Date().toISOString() };
   const { data: updatedRows, error } = await db.from('treasures')
     .update(updatePayload)
     .eq('id', treasure.id)
@@ -163,9 +164,7 @@ async function _tryGuestUniqueCapture(treasure) {
   updateRadar();
   updateProgressBar();
 
-  haptic([80, 40, 160]);
-  const durationSec = _getUniqueDurationFromLastActivationSec(treasure);
-  showFoundResult('success', treasure, durationSec, null);
+  showFoundResult('taken', { ...treasure, found_by: 'AUTRE' });
   return true;
 }
 

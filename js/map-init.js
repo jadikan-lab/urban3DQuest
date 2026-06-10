@@ -147,6 +147,7 @@ function renderMarkers() {
   mapMarkers = {};
 
   treasures.forEach(t => {
+    if (t.solo_hidden) return;
     const isMine  = t.found_by && t.found_by.split(',').includes(myPseudo);
     // Player map rule: fixed beacons are never shown on the map.
     if (t.type === 'fixed') return;
