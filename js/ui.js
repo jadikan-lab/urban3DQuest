@@ -8,7 +8,7 @@ document.addEventListener('visibilitychange', () => {
   } else {
     startConfigRefreshPolling();
     setTimeout(() => startGeoWatch(true), 300);
-    if (myPseudo || activeTab === 'scores') startLbPolling();
+    if (activeTab === 'scores') startLbPolling();
     if (activeTab === 'explore') startCompassInterval();
     updateRadar();
     updateGpsLoadingPanel();
@@ -36,6 +36,10 @@ function showTab(name, btn) {
     if (flashFab) flashFab.style.display = 'none';
     if (typeof hideFlashHint === 'function') hideFlashHint();
   }
+  if (name !== 'scores' && lbInterval) {
+    clearInterval(lbInterval);
+    lbInterval = null;
+  }
   const gpsKickBtn = document.getElementById('gpsKickBtn');
   if (gpsKickBtn) gpsKickBtn.style.display = (name === 'explore' && isIOSDevice() && playerLat === null) ? 'block' : 'none';
   updateGpsLoadingPanel();
@@ -55,7 +59,7 @@ function showTab(name, btn) {
     _updateRadarBg();
     applyMapHeadingRotation();
     updateCompassCorner();
-    loadLeaderboard();
+    startLbPolling();
   } else if (name === 'moi') {
     stopCompassInterval();
     document.getElementById('captureFab').style.display = 'none';
@@ -554,8 +558,11 @@ function startConfigRefreshPolling() {
         else document.getElementById('pauseScreen').classList.remove('open');
         if (c.proximityRadius) proximityR = Number(c.proximityRadius);
       }
-      scheduleTreasureRefresh(0);
-      if (activeTab === 'scores') scheduleLeaderboardRefresh(0);
+      // Fallback refresh only when realtime sync channel is unavailable.
+      if (!gameSyncChannel) {
+        scheduleTreasureRefresh(0);
+        if (activeTab === 'scores') scheduleLeaderboardRefresh(0);
+      }
     } catch {
       _setOfflineBanner(true);
     }

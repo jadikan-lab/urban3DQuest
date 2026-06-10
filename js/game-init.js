@@ -90,7 +90,7 @@ async function initGame(pendingFoundId) {
     document.addEventListener('touchend', oneShotKick, true);
     document.addEventListener('click', oneShotKick, true);
   }
-  startLbPolling();
+  if (activeTab === 'scores') startLbPolling();
   updateProgressBar();
 
   // Clean URL & process pending QR

@@ -184,12 +184,12 @@ async function loadLeaderboard() {
 
 function startLbPolling() {
   if (lbInterval) clearInterval(lbInterval);
+  if (activeTab !== 'scores') return;
   if (egressEmergencyMode) {
     loadLeaderboard();
     return;
   }
   loadLeaderboard();
-  loadTreasures();
-  lbInterval = setInterval(() => { loadLeaderboard(); loadTreasures(); }, 120000);
+  lbInterval = setInterval(() => { loadLeaderboard(); }, 120000);
 }
 
