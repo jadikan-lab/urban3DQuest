@@ -150,7 +150,7 @@ async function _tryGuestUniqueCapture(treasure) {
   const { data: updatedRows, error } = await db.from('treasures')
     .update(updatePayload)
     .eq('id', treasure.id)
-    .eq('found_by', '')
+    .or('found_by.is.null,found_by.eq.')
     .select('id');
 
   if (error || !updatedRows || !updatedRows.length) {
@@ -165,6 +165,43 @@ async function _tryGuestUniqueCapture(treasure) {
   updateProgressBar();
 
   showFoundResult('taken', { ...treasure, found_by: 'AUTRE' });
+  return true;
+}
+
+async function _trySoloHiddenCaptureNoGps(treasure) {
+  if (!treasure || treasure.type !== 'unique' || !treasure.solo_hidden) return false;
+
+  const foundList = (treasure.found_by || '').split(',').filter(Boolean);
+  if (foundList.length > 0) {
+    showFoundResult('taken', treasure);
+    return true;
+  }
+
+  const winner = myPseudo || 'AUTRE';
+  const updatePayload = { found_by: winner, found_at: new Date().toISOString() };
+  const { data: updatedRows, error } = await db.from('treasures')
+    .update(updatePayload)
+    .eq('id', treasure.id)
+    .or('found_by.is.null,found_by.eq.')
+    .select('id');
+
+  if (error) {
+    _checkinError('Révélation impossible pour le moment. Réessaie dans quelques secondes.');
+    return true;
+  }
+  if (!updatedRows || !updatedRows.length) {
+    showFoundResult('taken', treasure);
+    return true;
+  }
+
+  await loadTreasures();
+  renderMarkers();
+  updateHeader();
+  updateRadar();
+  updateProgressBar();
+
+  if (myPseudo) showFoundResult('success', { ...treasure, found_by: winner }, 0);
+  else showFoundResult('taken', { ...treasure, found_by: winner });
   return true;
 }
 
@@ -191,6 +228,9 @@ async function _doProcessFind(treasureId) {
     _checkinError('Cette balise n\'est pas active dans cette partie. Scanne une balise de la quête en cours.');
     return;
   }
+
+  // Solo hidden QR are validated without GPS (first scan wins).
+  if (await _trySoloHiddenCaptureNoGps(t)) return;
 
   if (!myPseudo) {
     if (await _tryGuestUniqueCapture(t)) return;
