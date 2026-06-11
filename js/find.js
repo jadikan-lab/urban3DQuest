@@ -177,7 +177,7 @@ async function _trySoloHiddenCaptureNoGps(treasure) {
     return true;
   }
 
-  const winner = myPseudo || 'AUTRE';
+  const winner = 'AUTRE';
   const updatePayload = { found_by: winner, found_at: new Date().toISOString() };
   const { data: updatedRows, error } = await db.from('treasures')
     .update(updatePayload)
@@ -200,8 +200,7 @@ async function _trySoloHiddenCaptureNoGps(treasure) {
   updateRadar();
   updateProgressBar();
 
-  if (myPseudo) showFoundResult('success', { ...treasure, found_by: winner }, 0);
-  else showFoundResult('taken', { ...treasure, found_by: winner });
+  showFoundResult('taken', { ...treasure, found_by: winner });
   return true;
 }
 
