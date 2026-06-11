@@ -27,14 +27,16 @@
     <div class="ps-logo">Jadikan · Urban 3D Quest</div>
     <div class="ps-title">Urban 3D Quest</div>
     <p class="ps-sub">J'ai caché des miniatures dans la ville.<br>C'est à toi de les trouver.</p>
-    <input type="text" id="pseudoInput" placeholder="Ton pseudo" maxlength="20" autocomplete="username" autocapitalize="characters">
-    <input type="password" id="passwordInput" placeholder="MOT DE PASSE" maxlength="64" autocomplete="current-password" class="field-spaced">
-    <div id="gameCodeWrap" class="field-hidden">
-      <input type="text" id="gameCodeInput" placeholder="CODE D'ACCÈS" maxlength="20" autocomplete="off" autocapitalize="characters" class="field-accent">
-    </div>
-    <p id="pseudoErr"></p>
-    <button class="btn-primary" id="startBtn" onclick="startGame()">Je cherche</button>
-    <button class="btn-main btn-ghost mt-10" id="guestBtn" onclick="continueAsGuest()">Juste regarder d'abord</button>
+    <form id="loginForm" onsubmit="event.preventDefault(); startGame();">
+      <input type="text" id="pseudoInput" placeholder="Ton pseudo" maxlength="20" autocomplete="username" autocapitalize="characters">
+      <input type="password" id="passwordInput" placeholder="MOT DE PASSE" maxlength="64" autocomplete="current-password" class="field-spaced">
+      <div id="gameCodeWrap" class="field-hidden">
+        <input type="text" id="gameCodeInput" placeholder="CODE D'ACCÈS" maxlength="20" autocomplete="off" autocapitalize="characters" class="field-accent">
+      </div>
+      <p id="pseudoErr"></p>
+      <button class="btn-primary" id="startBtn" type="submit">Je cherche</button>
+      <button class="btn-main btn-ghost mt-10" id="guestBtn" type="button" onclick="continueAsGuest()">Juste regarder d'abord</button>
+    </form>
   </div>
 </div>
 
@@ -129,7 +131,7 @@
     <div id="compassDebug"></div>
     <div id="radarBar"></div>
     <div id="flashHint">
-      <img id="flashHintPhoto" src="" alt="">
+      <img id="flashHintPhoto" alt="">
       <div>
         <div id="flashHintLabel">Voilà ce que tu cherches</div>
         <div id="flashHintSub">Encore quelques mètres…</div>
@@ -147,7 +149,7 @@
 
 <!-- ── Photo viewer overlay ──────────────────────────── -->
 <div id="photoViewer" onclick="closePhotoViewer()">
-  <img id="photoViewerImg" src="" alt="Photo agrandie de la trouvaille">
+  <img id="photoViewerImg" alt="Photo agrandie de la trouvaille">
   <button onclick="closePhotoViewer()" aria-label="Fermer la photo">✕ Fermer</button>
 </div>
 
