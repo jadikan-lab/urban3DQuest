@@ -346,6 +346,17 @@
   </div>
 </div>
 
+<div id="prelaunchScreen" aria-live="polite" role="dialog" aria-modal="true">
+  <div class="prelaunch-box">
+    <div class="qc-trophy">⏳</div>
+    <h2 id="prelaunchTitle">Lancement bientôt</h2>
+    <p id="prelaunchMessage">Le jeu n'est pas encore ouvert. Ton compte est prêt.</p>
+    <div class="prelaunch-timer" id="prelaunchTimer">--j --h --m --s</div>
+    <p class="prelaunch-meta" id="prelaunchMeta">Ouverture automatique dès le lancement.</p>
+    <button class="btn-primary" id="prelaunchRefreshBtn" type="button" onclick="refreshPrelaunchConfigAndResume()">Actualiser</button>
+  </div>
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner.legacy.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>

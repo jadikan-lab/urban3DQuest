@@ -2,6 +2,11 @@
 let bgMap = null;
 let accessGateRequired = false;
 let accessGateUnlocked = false;
+let prelaunchEnabled = false;
+let prelaunchLaunchAt = null;
+let prelaunchMessage = '';
+let prelaunchTimerHandle = null;
+let prelaunchPendingAction = null;
 
 function normalizePseudo(raw) {
   return String(raw || '').trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '');
@@ -98,16 +103,102 @@ async function loadLandingAccessGateConfig() {
   try {
     const { data, error } = await db
       .from('config')
-      .select('value')
-      .eq('key', 'gameCode')
-      .maybeSingle();
-    if (error) return;
+      .select('key,value')
+      .in('key', ['gameCode', 'prelaunchEnabled', 'launchAt', 'prelaunchMessage']);
+    if (error || !data) return;
 
-    const rawCode = String(data?.value || '').trim().toUpperCase();
+    const cfg = Object.fromEntries(data.map(r => [r.key, r.value]));
+    const rawCode = String(cfg.gameCode || '').trim().toUpperCase();
     gameCode = rawCode.replace(/[^A-Z0-9]/g, '');
     if (gameCode) showAccessGate();
+
+    prelaunchEnabled = String(cfg.prelaunchEnabled || '') === 'true';
+    prelaunchMessage = String(cfg.prelaunchMessage || '').trim();
+    prelaunchLaunchAt = null;
+    const rawLaunchAt = String(cfg.launchAt || '').trim();
+    if (rawLaunchAt) {
+      const parsed = new Date(rawLaunchAt);
+      if (!Number.isNaN(parsed.getTime())) prelaunchLaunchAt = parsed;
+    }
   } catch {
     // Keep landing usable even if config read fails.
+  }
+}
+
+function isPrelaunchLocked() {
+  return !!(prelaunchEnabled && prelaunchLaunchAt && Date.now() < prelaunchLaunchAt.getTime());
+}
+
+function closePrelaunchScreen() {
+  const screen = document.getElementById('prelaunchScreen');
+  if (screen) screen.classList.remove('open');
+  if (prelaunchTimerHandle) {
+    clearInterval(prelaunchTimerHandle);
+    prelaunchTimerHandle = null;
+  }
+}
+
+function formatCountdown(ms) {
+  const totalSec = Math.max(0, Math.floor(ms / 1000));
+  const days = Math.floor(totalSec / 86400);
+  const hours = Math.floor((totalSec % 86400) / 3600);
+  const minutes = Math.floor((totalSec % 3600) / 60);
+  const seconds = totalSec % 60;
+  return `${days}j ${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
+}
+
+function openPrelaunchScreen() {
+  const screen = document.getElementById('prelaunchScreen');
+  const title = document.getElementById('prelaunchTitle');
+  const msg = document.getElementById('prelaunchMessage');
+  const timer = document.getElementById('prelaunchTimer');
+  const meta = document.getElementById('prelaunchMeta');
+  if (!screen || !timer) return;
+
+  if (title) title.textContent = 'Lancement bientôt';
+  if (msg) msg.textContent = prelaunchMessage || 'Le jeu n\'est pas encore ouvert. Ton compte est prêt.';
+
+  const tick = () => {
+    if (!isPrelaunchLocked()) {
+      closePrelaunchScreen();
+      const action = prelaunchPendingAction;
+      prelaunchPendingAction = null;
+      if (typeof action === 'function') action();
+      return;
+    }
+    const remain = prelaunchLaunchAt.getTime() - Date.now();
+    timer.textContent = formatCountdown(remain);
+    if (meta) {
+      const launchText = prelaunchLaunchAt.toLocaleString('fr-FR', { dateStyle: 'full', timeStyle: 'short' });
+      meta.textContent = 'Ouverture automatique: ' + launchText;
+    }
+  };
+
+  screen.classList.add('open');
+  tick();
+  if (prelaunchTimerHandle) clearInterval(prelaunchTimerHandle);
+  prelaunchTimerHandle = setInterval(tick, 1000);
+}
+
+function proceedAfterLogin(action) {
+  if (!isPrelaunchLocked()) {
+    closePrelaunchScreen();
+    action();
+    return;
+  }
+  prelaunchPendingAction = action;
+  openPrelaunchScreen();
+}
+
+async function refreshPrelaunchConfigAndResume() {
+  await loadLandingAccessGateConfig();
+  if (!isPrelaunchLocked()) {
+    closePrelaunchScreen();
+    const action = prelaunchPendingAction;
+    prelaunchPendingAction = null;
+    if (typeof action === 'function') action();
+  } else {
+    openPrelaunchScreen();
   }
 }
 
@@ -152,10 +243,12 @@ window.addEventListener('load', async () => {
       // STG : on fait confiance au localStorage, pas de vérification session
       const { data: p } = await db.from('players').select('score,found_count').eq('pseudo', myPseudo).single();
       if (p) { myScore = p.score || 0; myFoundCount = p.found_count || 0; }
-      document.getElementById('pseudoScreen').style.display = 'none';
-      document.getElementById('bgMap').style.display = 'none';
       if (checkin) sessionStorage.setItem('pendingCheckin', checkinId);
-      initGame(foundId);
+      proceedAfterLogin(() => {
+        document.getElementById('pseudoScreen').style.display = 'none';
+        document.getElementById('bgMap').style.display = 'none';
+        initGame(foundId);
+      });
       return;
     }
     const storedToken = localStorage.getItem('u3dq_token');
@@ -171,10 +264,12 @@ window.addEventListener('load', async () => {
     } else {
       myScore      = session.score      || 0;
       myFoundCount = session.found_count || 0;
-      document.getElementById('pseudoScreen').style.display = 'none';
-      document.getElementById('bgMap').style.display = 'none';
       if (checkin) sessionStorage.setItem('pendingCheckin', checkinId);
-      initGame(foundId);
+      proceedAfterLogin(() => {
+        document.getElementById('pseudoScreen').style.display = 'none';
+        document.getElementById('bgMap').style.display = 'none';
+        initGame(foundId);
+      });
       return;
     }
   }
@@ -270,11 +365,12 @@ async function startGame() {
   myToken  = token;
   localStorage.setItem('u3dq_pseudo', pseudo);
   localStorage.setItem('u3dq_token', token);
-  hideLanding();
-
   const pending = sessionStorage.getItem('pendingFound');
   sessionStorage.removeItem('pendingFound');
-  initGame(pending);
+  proceedAfterLogin(() => {
+    hideLanding();
+    initGame(pending);
+  });
 }
 
 async function continueAsGuest() {
@@ -295,5 +391,5 @@ async function continueAsGuest() {
   sessionStorage.removeItem('pendingFound');
   sessionStorage.removeItem('pendingCheckin');
   history.replaceState({}, '', location.pathname);
-  initGame(pending);
+  proceedAfterLogin(() => initGame(pending));
 }

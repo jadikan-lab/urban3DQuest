@@ -317,6 +317,14 @@
     /* ── Pause screen ── */
     #pauseScreen{display:none;position:fixed;inset:0;background:rgba(5,6,16,.97);z-index:800;align-items:center;justify-content:center;text-align:center;flex-direction:column;gap:16px}
     #pauseScreen.open{display:flex;animation:fadeInFast 0.3s ease}
+    #prelaunchScreen{display:none;position:fixed;inset:0;background:rgba(5,6,16,.95);z-index:820;align-items:center;justify-content:center;padding:20px}
+    #prelaunchScreen.open{display:flex;animation:fadeInFast 0.28s ease}
+    .prelaunch-box{width:min(420px,100%);background:rgba(15,23,42,.96);border:1px solid #334155;border-radius:18px;padding:22px 18px;text-align:center;box-shadow:0 20px 50px rgba(2,6,23,.55)}
+    .prelaunch-box h2{font-size:1.15rem;font-family:var(--mono);letter-spacing:.04em;text-transform:uppercase;color:#f8fafc}
+    .prelaunch-box p{margin-top:8px;color:#cbd5e1;font-size:0.84rem;line-height:1.45}
+    .prelaunch-timer{margin-top:14px;padding:10px 12px;border-radius:12px;background:rgba(15,118,110,.22);border:1px solid rgba(45,212,191,.4);font-size:1.06rem;font-weight:800;font-family:var(--mono);color:#5eead4;letter-spacing:.05em}
+    .prelaunch-meta{font-size:0.75rem;color:#94a3b8}
+    #prelaunchRefreshBtn{margin-top:14px}
     #versionLockScreen{display:none;position:fixed;inset:0;background:rgba(5,6,16,.98);z-index:3200;align-items:center;justify-content:center;padding:18px}
     #versionLockScreen.open{display:flex;animation:fadeInFast 0.3s ease}
     .version-lock-box{background:var(--surface);border-radius:22px;padding:24px 18px;width:100%;max-width:420px;text-align:center;border:1px solid rgba(248,113,113,.28);box-shadow:0 0 0 1px rgba(248,113,113,.12),0 8px 40px rgba(26,24,38,.18)}
