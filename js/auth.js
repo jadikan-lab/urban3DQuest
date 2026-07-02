@@ -5,8 +5,14 @@ let accessGateUnlocked = false;
 let prelaunchEnabled = false;
 let prelaunchLaunchAt = null;
 let prelaunchMessage = '';
+let prelaunchImageUrl = '';
 let prelaunchTimerHandle = null;
 let prelaunchPendingAction = null;
+
+function isAllowedPrelaunchImageUrl(raw) {
+  const url = String(raw || '').trim();
+  return /^(https?:\/\/|data:image\/|\/?media\/)/i.test(url);
+}
 
 function normalizePseudo(raw) {
   return String(raw || '').trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '');
@@ -104,7 +110,7 @@ async function loadLandingAccessGateConfig() {
     const { data, error } = await db
       .from('config')
       .select('key,value')
-      .in('key', ['gameCode', 'prelaunchEnabled', 'launchAt', 'prelaunchMessage']);
+      .in('key', ['gameCode', 'prelaunchEnabled', 'launchAt', 'prelaunchMessage', 'prelaunchImageUrl']);
     if (error || !data) return;
 
     const cfg = Object.fromEntries(data.map(r => [r.key, r.value]));
@@ -114,6 +120,7 @@ async function loadLandingAccessGateConfig() {
 
     prelaunchEnabled = String(cfg.prelaunchEnabled || '') === 'true';
     prelaunchMessage = String(cfg.prelaunchMessage || '').trim();
+    prelaunchImageUrl = String(cfg.prelaunchImageUrl || '').trim();
     prelaunchLaunchAt = null;
     const rawLaunchAt = String(cfg.launchAt || '').trim();
     if (rawLaunchAt) {
@@ -153,10 +160,23 @@ function openPrelaunchScreen() {
   const msg = document.getElementById('prelaunchMessage');
   const timer = document.getElementById('prelaunchTimer');
   const meta = document.getElementById('prelaunchMeta');
+  const hero = document.getElementById('prelaunchHero');
+  const fallback = document.getElementById('prelaunchFallbackIcon');
   if (!screen || !timer) return;
 
   if (title) title.textContent = 'Lancement bientôt';
   if (msg) msg.textContent = prelaunchMessage || 'Le jeu n\'est pas encore ouvert. Ton compte est prêt.';
+  if (hero && fallback) {
+    if (isAllowedPrelaunchImageUrl(prelaunchImageUrl)) {
+      hero.src = prelaunchImageUrl;
+      hero.style.display = 'block';
+      fallback.style.display = 'none';
+    } else {
+      hero.removeAttribute('src');
+      hero.style.display = 'none';
+      fallback.style.display = '';
+    }
+  }
 
   const tick = () => {
     if (!isPrelaunchLocked()) {
