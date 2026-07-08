@@ -20,14 +20,14 @@ function normalizePseudo(raw) {
 
 function logQROpenTelemetry(treasureId, scanKind = 'found') {
   const id = String(treasureId || '').trim();
-  if (!id || !db || typeof db.rpc !== 'function') return;
+  if (!id || !db || typeof db.rpc !== 'function') return Promise.resolve();
 
   const kind = scanKind === 'checkin' ? 'checkin' : 'found';
   const dedupeKey = `u3dq_qr_open_logged_${kind}_${id}`;
-  if (sessionStorage.getItem(dedupeKey) === '1') return;
+  if (sessionStorage.getItem(dedupeKey) === '1') return Promise.resolve();
   sessionStorage.setItem(dedupeKey, '1');
 
-  db.rpc('log_qr_open', {
+  return db.rpc('log_qr_open', {
     p_treasure_id: id,
     p_pseudo: myPseudo || null,
     p_scan_kind: kind
@@ -36,6 +36,23 @@ function logQROpenTelemetry(treasureId, scanKind = 'found') {
   }).catch(() => {
     // Keep gameplay flow resilient if RPC is unavailable.
   });
+}
+
+function resolveGuestRedirectUrl(params) {
+  const raw = String(params.get('guest_redirect') || '').trim();
+  if (!/^https:\/\//i.test(raw)) return '';
+  return raw;
+}
+
+async function flushQROpenTelemetry(treasureId, scanKind = 'found') {
+  try {
+    await Promise.race([
+      logQROpenTelemetry(treasureId, scanKind),
+      new Promise(resolve => setTimeout(resolve, 1200))
+    ]);
+  } catch {
+    // Redirect path should stay resilient even if telemetry stalls.
+  }
 }
 
 function _setLoginFieldsVisibility(show) {
@@ -268,16 +285,24 @@ window.addEventListener('load', async () => {
   const foundId   = params.get('found');
   const checkinId = params.get('checkin') || '';   // ID de la balise fixe (ou '1' legacy)
   const checkin   = !!checkinId;
+  const guestRedirectUrl = resolveGuestRedirectUrl(params);
 
-  if (foundId) logQROpenTelemetry(foundId, 'found');
-  if (checkin) logQROpenTelemetry(checkinId, 'checkin');
+  if (foundId && !myPseudo && guestRedirectUrl) {
+    await flushQROpenTelemetry(foundId, 'found');
+    window.location.replace(guestRedirectUrl);
+    return;
+  }
 
   // QR balise scanné par un non-joueur → carte de visite
   if (checkin && !myPseudo) {
+    await flushQROpenTelemetry(checkinId, 'checkin');
     const guestLandingUrl = await loadGuestLandingUrlConfig();
     window.location.replace(guestLandingUrl);
     return;
   }
+
+  if (foundId) logQROpenTelemetry(foundId, 'found');
+  if (checkin) logQROpenTelemetry(checkinId, 'checkin');
 
   // Returning user: verify session token then skip landing.
   // If access gate is enabled, keep landing visible until gate is unlocked.
