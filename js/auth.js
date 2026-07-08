@@ -18,6 +18,26 @@ function normalizePseudo(raw) {
   return String(raw || '').trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '');
 }
 
+function logQROpenTelemetry(treasureId, scanKind = 'found') {
+  const id = String(treasureId || '').trim();
+  if (!id || !db || typeof db.rpc !== 'function') return;
+
+  const kind = scanKind === 'checkin' ? 'checkin' : 'found';
+  const dedupeKey = `u3dq_qr_open_logged_${kind}_${id}`;
+  if (sessionStorage.getItem(dedupeKey) === '1') return;
+  sessionStorage.setItem(dedupeKey, '1');
+
+  db.rpc('log_qr_open', {
+    p_treasure_id: id,
+    p_pseudo: myPseudo || null,
+    p_scan_kind: kind
+  }).then(() => {
+    // Non-blocking observability call.
+  }).catch(() => {
+    // Keep gameplay flow resilient if RPC is unavailable.
+  });
+}
+
 function _setLoginFieldsVisibility(show) {
   const pseudoInput = document.getElementById('pseudoInput');
   const passInput = document.getElementById('passwordInput');
@@ -248,6 +268,9 @@ window.addEventListener('load', async () => {
   const foundId   = params.get('found');
   const checkinId = params.get('checkin') || '';   // ID de la balise fixe (ou '1' legacy)
   const checkin   = !!checkinId;
+
+  if (foundId) logQROpenTelemetry(foundId, 'found');
+  if (checkin) logQROpenTelemetry(checkinId, 'checkin');
 
   // QR balise scanné par un non-joueur → carte de visite
   if (checkin && !myPseudo) {
