@@ -4,7 +4,7 @@ const _gameCopy = (key, fallback = '') => (window.u3dqCopyText ? window.u3dqCopy
 
 async function initGame(pendingFoundId) {
   // Landing defaults to Quest tab; enforce matching mode to avoid Quest/Flash mismatch.
-  if (activeGameMode !== 'fixed') {
+  if (FIXED_ONLY_EDITION && activeGameMode !== 'fixed') {
     activeGameMode = 'fixed';
     localStorage.setItem('u3dq_game_mode', 'fixed');
   }
@@ -12,6 +12,7 @@ async function initGame(pendingFoundId) {
   updateModeUI();
   updateGpsLoadingPanel();
   document.body.classList.toggle('flash-mode', activeGameMode === 'unique');
+  if (FIXED_ONLY_EDITION) document.body.classList.remove('flash-mode');
   document.getElementById('radarBar').style.display = 'block';
 
   // Load config
@@ -222,12 +223,19 @@ function updateModeUI() {
   const guideTitle = document.getElementById('modeGuideTitle');
   const guideText = document.getElementById('modeGuideText');
   const miniMap = document.getElementById('miniMap');
+  const flashNav = document.getElementById('navDeclic');
   const copy = (key, fallback = '') => (window.u3dqCopyText ? window.u3dqCopyText(key, fallback) : fallback);
 
   if (pbLabel) {
     pbLabel.textContent = activeGameMode === 'fixed'
       ? 'Balises trouvées'
       : 'Flash';
+  }
+
+  if (FIXED_ONLY_EDITION) {
+    if (flashNav) flashNav.style.display = 'none';
+    if (guideTitle) guideTitle.textContent = 'Arles ouverture 2026';
+    if (guideText) guideText.textContent = 'Balises fixes uniquement';
   }
 
   if (miniMap) {
@@ -269,6 +277,7 @@ function updateTutorialEntryPoints() {
 
 function setGameMode(mode) {
   const nextMode = mode === 'unique' ? 'unique' : 'fixed';
+  if (FIXED_ONLY_EDITION && nextMode === 'unique') return;
   if (activeGameMode === nextMode) return;
 
   // Hard reset mode-specific UI to avoid stale Flash artifacts when switching.
@@ -288,6 +297,7 @@ function setGameMode(mode) {
   activeGameMode = nextMode;
   localStorage.setItem('u3dq_game_mode', activeGameMode);
   document.body.classList.toggle('flash-mode', activeGameMode === 'unique');
+  if (FIXED_ONLY_EDITION) document.body.classList.remove('flash-mode');
   updateModeUI();
   updateRadar();
   updateNearestCard();
