@@ -234,7 +234,7 @@ function updateModeUI() {
 
   if (FIXED_ONLY_EDITION) {
     if (flashNav) flashNav.style.display = 'none';
-    if (guideTitle) guideTitle.textContent = 'Arles ouverture 2026';
+    if (guideTitle) guideTitle.textContent = 'Arles Fixes 2026';
     if (guideText) guideText.textContent = 'Balises fixes uniquement';
   }
 
