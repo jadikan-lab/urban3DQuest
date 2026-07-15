@@ -39,7 +39,7 @@ function _computeLeaderboardScores(events, cfg) {
     if (!e.pseudo) return;
     if (!players[e.pseudo]) players[e.pseudo] = { fixedEvents: [], flashEvents: [] };
     if (e.treasure_type === 'fixed') players[e.pseudo].fixedEvents.push(e);
-    if (e.treasure_type === 'unique') players[e.pseudo].flashEvents.push(e);
+    if (!FIXED_ONLY_EDITION && e.treasure_type === 'unique') players[e.pseudo].flashEvents.push(e);
   });
 
   const rows = Object.entries(players)
@@ -54,14 +54,16 @@ function _computeLeaderboardScores(events, cfg) {
       } else if (d.fixedEvents.length === 1) {
         fixedDuration = 0;
       }
-      const globalScore = fixedCount * GLOBAL_FIXED_WEIGHT + flashCount * GLOBAL_FLASH_WEIGHT;
+      const globalScore = FIXED_ONLY_EDITION
+        ? fixedCount * GLOBAL_FIXED_WEIGHT
+        : fixedCount * GLOBAL_FIXED_WEIGHT + flashCount * GLOBAL_FLASH_WEIGHT;
       return { pseudo, fixedCount, flashCount, fixedDuration, globalScore, allFixed };
     })
-    .filter(r => r.fixedCount > 0 || r.flashCount > 0);
+    .filter(r => r.fixedCount > 0 || (!FIXED_ONLY_EDITION && r.flashCount > 0));
 
   rows.sort((a, b) => {
     if (b.globalScore !== a.globalScore) return b.globalScore - a.globalScore;
-    if (b.flashCount !== a.flashCount) return b.flashCount - a.flashCount;
+    if (!FIXED_ONLY_EDITION && b.flashCount !== a.flashCount) return b.flashCount - a.flashCount;
     if (b.fixedCount !== a.fixedCount) return b.fixedCount - a.fixedCount;
     if (a.fixedDuration !== null && b.fixedDuration !== null) return a.fixedDuration - b.fixedDuration;
     if (a.fixedDuration !== null) return -1;
@@ -103,7 +105,7 @@ function _renderLeaderboard({ rows, totalFixed, myData, myRankNum }) {
       <div class="my-card-stats">
         <strong>${_lbIcon('score', 'warn')}${myData.globalScore}</strong>
         <span>${_lbIcon('camera', 'teal')}${fixedTxt}</span>
-        <span>${_lbIcon('flash', 'flash')}${myData.flashCount}</span>
+        ${FIXED_ONLY_EDITION ? '' : `<span>${_lbIcon('flash', 'flash')}${myData.flashCount}</span>`}
         <span>${_lbIcon('clock', 'success')}${timeTxt}</span>
       </div>
       <button class="btn-share" id="scoreShareBtn" style="margin-top:10px;padding:11px 12px;font-size:0.88rem" onclick="shareScoreResult()">📤 Partager mon score</button>
@@ -139,7 +141,7 @@ function _renderLeaderboard({ rows, totalFixed, myData, myRankNum }) {
           <div class="lb-score">
             <strong>${_lbIcon('score', 'warn')}${p.globalScore}</strong>
             <span>${_lbIcon('camera', 'teal')}${fixedTxt}</span>
-            <span>${_lbIcon('flash', 'flash')}${p.flashCount}</span>
+            ${FIXED_ONLY_EDITION ? '' : `<span>${_lbIcon('flash', 'flash')}${p.flashCount}</span>`}
             <span>${_lbIcon('clock', 'success')}${timeTxt}</span>
           </div>
         </div>

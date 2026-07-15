@@ -305,6 +305,9 @@ function updateRadar() {
   const copy = (key, fallback = '') => (window.u3dqCopyText ? window.u3dqCopyText(key, fallback) : fallback);
 
   const flashFabEl = document.getElementById('flashFab');
+  if (FIXED_ONLY_EDITION) {
+    if (flashFabEl) flashFabEl.style.display = 'none';
+  }
   if (!myPseudo) {
     bar.textContent = '👀 Mode invité — carte visible · pas de score · tape en haut pour jouer';
     bar.className = '';
@@ -321,7 +324,7 @@ function updateRadar() {
   // GPS accuracy warning
   const accStr = playerAccuracy ? ` · GPS ±${Math.round(playerAccuracy)}m` : '';
 
-  if (activeGameMode === 'unique') {
+  if (!FIXED_ONLY_EDITION && activeGameMode === 'unique') {
     const uniqueLeft = treasures
       .filter(t => t.type === 'unique')
       .filter(t => !(t.found_by && t.found_by.length > 0))
@@ -538,6 +541,10 @@ async function captureFixed() {
 }
 
 async function captureUnique() {
+  if (FIXED_ONLY_EDITION) {
+    _checkinError('Cette version du jeu est en balises fixes uniquement.');
+    return;
+  }
   if (!myPseudo) { _checkinError('Mode invité : connecte-toi pour jouer.'); return; }
   let target = nearestUnique;
   if (!target && playerLat !== null) {

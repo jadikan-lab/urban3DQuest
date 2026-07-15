@@ -171,7 +171,8 @@ function shareScoreResult() {
   const rankTxt = d.rank && d.totalPlayers ? `#${d.rank}/${d.totalPlayers}` : '—';
   const fixedTxt = d.totalFixed > 0 ? `${d.fixedCount}/${d.totalFixed}` : `${d.fixedCount}`;
   const timeTxt = d.allFixed && d.fixedDuration !== null ? formatDuration(d.fixedDuration) : '—';
-  const text = `🏙 Urban3DQuest.fr · Jadikan\n👤 ${d.pseudo}\n🏅 Rang global ${rankTxt}\n⭐ Score ${d.globalScore || 0}\n📷 Quête ${fixedTxt}\n⚡ Flash ${d.flashCount}\n⏱ Temps quête ${timeTxt}\n\nViens jouer : ${playUrl}`;
+  const flashLine = FIXED_ONLY_EDITION ? '' : `\n⚡ Flash ${d.flashCount}`;
+  const text = `🏙 Urban3DQuest.fr · Jadikan\n👤 ${d.pseudo}\n🏅 Rang global ${rankTxt}\n⭐ Score ${d.globalScore || 0}\n📷 Quête ${fixedTxt}${flashLine}\n⏱ Temps quête ${timeTxt}\n\nViens jouer : ${playUrl}`;
 
   const cardModel = {
     kicker: 'SCORE JOUEUR',
@@ -181,7 +182,7 @@ function shareScoreResult() {
     metrics: [
       { label: 'Score', value: String(d.globalScore || 0) },
       { label: 'Quête', value: fixedTxt },
-      { label: 'Flash', value: String(d.flashCount || 0) }
+      ...(FIXED_ONLY_EDITION ? [] : [{ label: 'Flash', value: String(d.flashCount || 0) }])
     ],
     footer: `Temps quête: ${timeTxt}`,
     shareUrl: playUrl
@@ -723,7 +724,9 @@ function loadBalises() {
 
     items.forEach((t, i) => {
       const isMine = t.found_by && t.found_by.split(',').includes(myPseudo);
-      const distStr = t._dist === Infinity ? '' : t._dist < 1000 ? Math.round(t._dist) + 'm' : (t._dist / 1000).toFixed(1) + 'km';
+      const distStr = Number.isFinite(t._dist)
+        ? (t._dist < 1000 ? Math.round(t._dist) + ' m' : (t._dist / 1000).toFixed(1) + ' km')
+        : '';
       const bg = isMine ? '#22c55e' : '#6b7280';
       const tid = escHtml(t.id);
       html += `<div class="bl-item${isMine ? ' found' : ''}" onclick="openTreasureSheet(treasures.find(x=>x.id==='${tid}'))">
@@ -746,9 +749,9 @@ async function loadMoi() {
   const actionsEl = document.getElementById('moiActions');
   if (!el) return;
   const fixed = treasures.filter(t => t.type === 'fixed');
-  const unique = treasures.filter(t => t.type === 'unique');
+  const unique = FIXED_ONLY_EDITION ? [] : treasures.filter(t => t.type === 'unique');
   const myFixed = fixed.filter(t => t.found_by && t.found_by.split(',').includes(myPseudo)).length;
-  const myUnique = unique.filter(t => t.found_by && t.found_by.split(',').includes(myPseudo)).length;
+  const myUnique = FIXED_ONLY_EDITION ? 0 : unique.filter(t => t.found_by && t.found_by.split(',').includes(myPseudo)).length;
 
   // Fetch rank from leaderboard
   let rank = '—';
@@ -766,8 +769,8 @@ async function loadMoi() {
     <div class="moi-avatar" style="background:${grad}">${escHtml(pseudo.charAt(0))}</div>
     <div class="moi-pseudo">${escHtml(pseudo)}</div>
     <div class="moi-grid">
-      <div class="moi-tile"><div class="moi-tile-val">${myFixed}</div><div class="moi-tile-lbl">Quête</div></div>
-      <div class="moi-tile"><div class="moi-tile-val">${myFixed + myUnique}</div><div class="moi-tile-lbl">Total</div></div>
+        <div class="moi-tile"><div class="moi-tile-val">${myFixed}</div><div class="moi-tile-lbl">Balises fixes</div></div>
+        <div class="moi-tile"><div class="moi-tile-val">${myFixed + myUnique}</div><div class="moi-tile-lbl">Total</div></div>
       <div class="moi-tile"><div class="moi-tile-val">${rank}</div><div class="moi-tile-lbl">Classement</div></div>
     </div>
   `;
