@@ -28,11 +28,19 @@ async function _fetchLeaderboardData() {
 
 function _computeLeaderboardScores(events, cfg) {
   const totalFixed = parseInt(cfg.fixedTotal || fixedTotal || 0);
+  const visibleTreasureIds = new Set(
+    (Array.isArray(treasures) ? treasures : [])
+      .map(t => String(t && t.id ? t.id : ''))
+      .filter(Boolean)
+  );
+  const scopedEvents = visibleTreasureIds.size
+    ? events.filter(e => visibleTreasureIds.has(String(e.treasure_id || '')))
+    : events;
 
   const activeQuestIds = (activeQuests && activeQuests.length > 0 && treasures.length > 0)
     ? new Set(treasures.filter(t => activeQuests.includes(t.quest)).map(t => t.id))
     : null;
-  const filteredEvents = activeQuestIds ? events.filter(e => activeQuestIds.has(e.treasure_id)) : events;
+  const filteredEvents = activeQuestIds ? scopedEvents.filter(e => activeQuestIds.has(e.treasure_id)) : scopedEvents;
 
   const players = {};
   filteredEvents.forEach(e => {
