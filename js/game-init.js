@@ -227,7 +227,7 @@ function updateModeUI() {
   const copy = (key, fallback = '') => (window.u3dqCopyText ? window.u3dqCopyText(key, fallback) : fallback);
 
   if (pbLabel) {
-    pbLabel.textContent = activeGameMode === 'fixed'
+    pbLabel.textContent = (FIXED_ONLY_EDITION || activeGameMode === 'fixed')
       ? 'Balises trouvées'
       : 'Flash';
   }
@@ -244,6 +244,16 @@ function updateModeUI() {
   }
 
   if (guideTitle && guideText) {
+    if (FIXED_ONLY_EDITION) {
+      guideTitle.textContent = 'Arles Fixes 2026';
+      const fixedVisibleCount = Array.isArray(treasures)
+        ? treasures.filter(x => x.type === 'fixed').length
+        : 0;
+      guideText.textContent = fixedVisibleCount > 0
+        ? 'Balises fixes uniquement'
+        : copy('GUIDE_QUETE_SOUS_ZERO', 'Aucune balise disponible pour le moment');
+      return;
+    }
     if (activeGameMode === 'fixed') {
       guideTitle.textContent = copy('GUIDE_QUETE_TITRE', 'Mode Quête');
       const fixedVisibleCount = Array.isArray(treasures)
@@ -376,6 +386,20 @@ function maybeOpenQuickTutorial() {
   if (tutorialSeen) return;
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
   const hasCompassAPI = typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function';
+  if (FIXED_ONLY_EDITION) {
+    const title = document.querySelector('#quickTutorialCard h3');
+    const intro = document.querySelector('#quickTutorialCard p');
+    const cards = document.querySelectorAll('#quickTutorialCard .qt-card');
+    if (title) title.textContent = 'Mode balises fixes.';
+    if (intro) intro.textContent = 'Approche-toi d\'une balise puis scanne le QR pour valider.';
+    if (cards[0]) {
+      const firstTitle = cards[0].querySelector('strong');
+      const firstBody = cards[0].querySelector('span');
+      if (firstTitle) firstTitle.textContent = 'Balises fixes';
+      if (firstBody) firstBody.innerHTML = 'Balises fixes dans la ville.<br>Approche-toi pour scanner les QR code<br>Objectif : toutes les trouver.';
+    }
+    if (cards[1]) cards[1].style.display = 'none';
+  }
   if (isIOS && hasCompassAPI) {
     const btn = document.getElementById('tutorialCompassBtn');
     const note = document.getElementById('qtCompassNote');
@@ -388,7 +412,9 @@ function maybeOpenQuickTutorial() {
 async function loadTreasures() {
   // Snapshot available flash treasures before refresh (for "just taken nearby" detection)
   const _prevAvailableFlash = new Set(
-    treasures.filter(t => t.type === 'unique' && !(t.found_by && t.found_by.length > 0)).map(t => t.id)
+    FIXED_ONLY_EDITION
+      ? []
+      : treasures.filter(t => t.type === 'unique' && !(t.found_by && t.found_by.length > 0)).map(t => t.id)
   );
   let data = null;
   let error = null;
@@ -410,18 +436,21 @@ async function loadTreasures() {
     return;
   }
   if (!data) return;
+  const visibleData = FIXED_ONLY_EDITION
+    ? data.filter(t => t.type === 'fixed')
+    : data;
   // Filter client-side: if no active quest, show all. Otherwise show matching quest + no-quest (null or '')
   if (activeQuests.length) {
-    treasures = data.filter(t => !t.solo_hidden && (!t.quest || activeQuests.includes(t.quest)));
+    treasures = visibleData.filter(t => !t.solo_hidden && (!t.quest || activeQuests.includes(t.quest)));
   } else {
-    treasures = data.filter(t => !t.solo_hidden);
+    treasures = visibleData.filter(t => !t.solo_hidden);
   }
   // Sync fixedTotal from actual visible DB count — including zero when all fixed beacons are hidden.
   const actualFixed = treasures.filter(t => t.type === 'fixed').length;
   fixedTotal = actualFixed;
 
   // Detect flash treasures taken by someone else while we were nearby
-  if (_prevAvailableFlash.size > 0 && playerLat !== null && activeGameMode === 'unique') {
+  if (!FIXED_ONLY_EDITION && _prevAvailableFlash.size > 0 && playerLat !== null && activeGameMode === 'unique') {
     const newlyTaken = treasures.filter(t =>
       t.type === 'unique' &&
       _prevAvailableFlash.has(t.id) &&

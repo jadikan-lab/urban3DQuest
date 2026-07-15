@@ -714,8 +714,7 @@ function loadBalises() {
       .sort((a, b) => a._dist - b._dist);
 
     const qFound = items.filter(t => t.found_by && t.found_by.split(',').includes(myPseudo)).length;
-      const flashLine = FIXED_ONLY_EDITION ? '' : `\n⚡ Flash ${d.flashCount}`;
-      const text = `🏙 Urban3DQuest.fr · Jadikan\n👤 ${d.pseudo}\n🏅 Rang global ${rankTxt}\n⭐ Score ${d.globalScore || 0}\n📷 Quête ${fixedTxt}${flashLine}\n⏱ Temps quête ${timeTxt}\n\nViens jouer : ${playUrl}`;
+    const qTotal = items.length;
     const progClass = qFound >= qTotal ? 'done' : qFound > 0 ? 'started' : '';
 
     if (showGroups) {
@@ -725,7 +724,9 @@ function loadBalises() {
 
     items.forEach((t, i) => {
       const isMine = t.found_by && t.found_by.split(',').includes(myPseudo);
-          ...(FIXED_ONLY_EDITION ? [] : [{ label: 'Flash', value: String(d.flashCount || 0) }])
+      const distStr = Number.isFinite(t._dist)
+        ? (t._dist < 1000 ? Math.round(t._dist) + ' m' : (t._dist / 1000).toFixed(1) + ' km')
+        : '';
       const bg = isMine ? '#22c55e' : '#6b7280';
       const tid = escHtml(t.id);
       html += `<div class="bl-item${isMine ? ' found' : ''}" onclick="openTreasureSheet(treasures.find(x=>x.id==='${tid}'))">
