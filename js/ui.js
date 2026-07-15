@@ -400,10 +400,16 @@ async function loadCarnet() {
       countEl.textContent = '';
       return;
     }
-    countEl.textContent = `${evts.length} révélé${evts.length > 1 ? 's' : ''}`;
     // Build a quick lookup from treasures already loaded in memory
     const tMap = Object.fromEntries(treasures.map(t => [t.id, t]));
-    el.innerHTML = evts.map(ev => {
+    const visibleEvts = evts.filter(ev => !!tMap[ev.treasure_id]);
+    if (!visibleEvts.length) {
+      el.innerHTML = `<div class="cn-empty"><span class="cn-empty-icon">🌍</span><span class="cn-empty-label">Aucune miniature visible pour l'instant</span></div>`;
+      countEl.textContent = '';
+      return;
+    }
+    countEl.textContent = `${visibleEvts.length} révélé${visibleEvts.length > 1 ? 's' : ''}`;
+    el.innerHTML = visibleEvts.map(ev => {
       const t = tMap[ev.treasure_id];
       const label = t ? escHtml(tLabel(t)) : escHtml(ev.treasure_id);
       const isUnique = ev.treasure_type === 'unique';
