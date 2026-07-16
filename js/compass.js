@@ -78,7 +78,7 @@ function applyMapHeadingRotation() {
   const mapPane = gameMap.getPane('mapPane');
   const radarBg = document.getElementById('radarBg');
   if (!mapPane) return;
-  const shouldRotate = activeTab === 'explore' && activeGameMode === 'fixed' && playerLat !== null && deviceHeading !== null;
+  const shouldRotate = !FIXED_ONLY_EDITION && activeTab === 'explore' && activeGameMode === 'fixed' && playerLat !== null && deviceHeading !== null;
   if (!shouldRotate) {
     mapVisualAngle = null;
     mapPane.style.rotate = '0deg';
@@ -290,7 +290,7 @@ function updateCompassCorner() {
   const el = document.getElementById('compassCorner');
   const rose = document.getElementById('compassRose');
   if (!el || !rose) return;
-  const show = activeTab === 'explore' && activeGameMode === 'fixed' && playerLat !== null && deviceHeading !== null;
+  const show = !FIXED_ONLY_EDITION && activeTab === 'explore' && activeGameMode === 'fixed' && playerLat !== null && deviceHeading !== null;
   el.classList.toggle('active', show);
   if (!show) {
     compassVisualAngle = null;
@@ -356,7 +356,7 @@ function updateCompass() {
         s.style.top = cy + 'px';
       });
 
-      if (compassArrowMode && activeGameMode === 'fixed') {
+      if (!FIXED_ONLY_EDITION && compassArrowMode && activeGameMode === 'fixed') {
         const fixedPlaced = treasures
           .filter(t => t.type === 'fixed')
           .filter(t => Number.isFinite(t.lat) && Number.isFinite(t.lng))
