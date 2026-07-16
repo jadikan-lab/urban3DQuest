@@ -201,7 +201,7 @@ let accuracyCircle  = null; // GPS accuracy circle on miniMap
 let lastHapticZone  = null;
 let hapticEnabled = localStorage.getItem('u3dq_haptic_enabled') === '1';
 let directionLayers = []; // arrow markers on minimap
-let compassArrowMode = true; // toggle: show direction arrows on minimap
+let compassArrowMode = !FIXED_ONLY_EDITION; // toggle: show direction arrows on minimap
 let mapFollowing = true; // true = map follows GPS, false = user is panning freely
 let lastArrowLat = null, lastArrowLng = null, lastArrowHeading = null; // throttle
 const ARROW_PALETTE = ['#f472b6', '#fb923c', '#22d3ee', '#a78bfa', '#4ade80'];

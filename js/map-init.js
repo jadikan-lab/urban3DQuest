@@ -56,7 +56,7 @@ function initMap() {
   const captureBtn = document.getElementById('captureFab');
   if (captureBtn && captureBtn.parentElement !== mapEl) mapEl.appendChild(captureBtn);
   gameMap.on('dragstart', function() {
-    if (activeGameMode === 'fixed') {
+    if (activeGameMode === 'fixed' && !FIXED_ONLY_EDITION) {
       mapFollowing = true;
       return;
     }
@@ -72,7 +72,7 @@ function initMap() {
 
 function applyExploreMapLock() {
   if (!gameMap) return;
-  const lockOnPlayer = activeTab === 'explore' && activeGameMode === 'fixed';
+  const lockOnPlayer = !FIXED_ONLY_EDITION && activeTab === 'explore' && activeGameMode === 'fixed';
   const locateBtn = document.getElementById('locateMeBtn');
   if (lockOnPlayer) {
     mapFollowing = true;
@@ -149,6 +149,32 @@ function renderMarkers() {
   treasures.forEach(t => {
     if (t.solo_hidden) return;
     const isMine  = t.found_by && t.found_by.split(',').includes(myPseudo);
+    if (FIXED_ONLY_EDITION && t.type === 'fixed' && activeGameMode === 'fixed') {
+      const dist = (playerLat !== null && playerLng !== null)
+        ? haversine(playerLat, playerLng, t.lat, t.lng)
+        : null;
+      const near = Number.isFinite(dist) && dist <= (proximityR * 1.2);
+      if (isMine) {
+        mapMarkers[t.id] = L.circleMarker([t.lat, t.lng], {
+          radius: 2.8,
+          color: '#14532d',
+          weight: 1,
+          fillColor: '#22c55e',
+          fillOpacity: 0.85,
+          opacity: 0.95
+        }).addTo(gameMap).on('click', () => openTreasureSheet(t));
+      } else {
+        mapMarkers[t.id] = L.circleMarker([t.lat, t.lng], {
+          radius: near ? 6 : 4,
+          color: near ? '#f97316' : '#0284c7',
+          weight: 1.5,
+          fillColor: near ? '#fb923c' : '#38bdf8',
+          fillOpacity: near ? 0.8 : 0.55,
+          opacity: 0.95
+        }).addTo(gameMap).on('click', () => openTreasureSheet(t));
+      }
+      return;
+    }
     // Player map rule: fixed beacons are never shown on the map.
     if (t.type === 'fixed') return;
     // Player map rule: flash markers are visible only in Flash mode.
