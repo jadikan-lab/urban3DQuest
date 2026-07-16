@@ -67,14 +67,14 @@ async function _tryProcessFindSecure(t, foundCountBefore) {
 
   if (data.status === 'not_found') { _checkinError('Polaroid introuvable — il a peut-être été retiré.'); return true; }
   if (data.status === 'hidden')   { _checkinError('Ce polaroid n\'est pas encore actif.'); return true; }
-  if (data.status === 'no_gps')   { _checkinError('GPS requis pour valider cette capture.'); return true; }
+  if (data.status === 'no_gps')   { _checkinError('GPS requis pour valider cette capture. Flashe sur place, la ou l\'objet est trouve.'); return true; }
   if (data.status === 'invalid_session') {
     _checkinError('Session expirée — reconnecte-toi puis réessaie.');
     return true;
   }
   if (data.status === 'too_far') {
     const dist = Math.round(Number(data.distance_m || 0));
-    _checkinError(`Tu es à ${dist}m de "${tLabel(t)}" — trop loin pour révéler.\nApproche-toi à moins de ${proximityR}m.`, t.id);
+    _checkinError(`Tu es a ${dist}m de "${tLabel(t)}" - trop loin pour reveler.\nFlashe sur place, la ou l'objet est trouve (a moins de ${proximityR}m).`, t.id);
     return true;
   }
   if (data.status === 'already') { showFoundResult('already', t); return true; }
